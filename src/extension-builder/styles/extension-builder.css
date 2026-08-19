@@ -1,0 +1,2537 @@
+/* ============================================================
+   Extension Builder - Blockly-based UI
+   Layout matches TurboWarp editor style
+
+   IMPORTANT: CSS Modules scoping. Each rule uses :global(.selector)
+   so the class name is preserved raw (e.g. ".ext-builder") and can
+   be matched by React's className="ext-builder". Wrapping in a
+   single :global {} block does NOT work with the webpack css-loader
+   version we have, so each rule is prefixed explicitly.
+   ============================================================ */
+
+/* ---- Global reset: make html/body/#app fill the viewport ---- */
+
+:global(html), :global(body), :global(#app) {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+:global(body) {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background: #e5e5e5;
+    color: #1a1a1a;
+    font-size: 13px;
+}
+
+/* ---- Extension Builder root ---- */
+
+:global(.ext-builder) {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: 100%;
+    background: #e5e5e5;
+    color: #1a1a1a;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 13px;
+    overflow: hidden;
+    position: relative;
+}
+
+/* ---- Left icon rail (AstraEditor style: 制作积木 pinned to far left) ---- */
+
+:global(.ext-builder-left) {
+    width: 48px;
+    flex-shrink: 0;
+    background: #343434;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 8px;
+    gap: 6px;
+    box-shadow: 1px 0 4px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+}
+
+:global(.ext-left-btn) {
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 7px;
+    background: transparent;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+}
+
+:global(.ext-left-btn:hover) {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+:global(.ext-left-btn.active) {
+    background: rgba(255, 255, 255, 0.18);
+    box-shadow: inset 0 0 0 2px #4c97ff;
+}
+
+:global(.ext-left-btn-img) {
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+    object-fit: cover;
+    pointer-events: none;
+}
+
+/* Right side container (tab bar + main area) */
+
+:global(.ext-builder-right) {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+}
+
+/* ---- Tab bar (matches TurboWarp's 代码/造型/声音 tabs) ---- */
+
+:global(.ext-builder-tabs) {
+    display: flex;
+    align-items: stretch;
+    background: #f7f7f7;
+    border-bottom: 1px solid #d0d0d0;
+    padding: 0;
+    height: 36px;
+    flex-shrink: 0;
+}
+
+:global(.ext-tab) {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 20px;
+    background: transparent;
+    color: #555;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+:global(.ext-tab:hover) {
+    background: #e8e8e8;
+    color: #1a1a1a;
+}
+
+:global(.ext-tab.active) {
+    color: #4c97ff;
+    border-bottom-color: #4c97ff;
+    background: #ffffff;
+}
+
+:global(.ext-tab-icon) {
+    font-size: 14px;
+}
+
+/* ---- Main Layout (2-column: workspace | stage) ---- */
+
+:global(.ext-builder-main) {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    background: #ffffff;
+    min-height: 0;
+}
+
+/* ---- Floating block builder window ---- */
+
+:global(.ext-builder-modal-backdrop) {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: transparent;
+    z-index: 500;
+    /* Do NOT block mouse events — the Blockly workspace behind must stay
+       fully interactive (drag blocks, click flyout, etc.) while the
+       builder window is open. Closing happens via ✕ / Esc instead. */
+    pointer-events: none;
+}
+
+:global(.ext-builder-modal) {
+    position: fixed;
+    left: calc(50% - 210px);
+    top: 8vh;
+    width: 420px;
+    max-height: 85vh;
+    background: #1f1f1f;
+    color: #eee;
+    border-radius: 6px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    pointer-events: auto;
+}
+
+:global(.ext-builder-modal-header) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: #262626;
+    border-bottom: 1px solid #3a3a3a;
+    flex-shrink: 0;
+    cursor: move;
+    user-select: none;
+}
+
+:global(.ext-builder-modal-title) {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+}
+
+:global(.ext-builder-modal-close) {
+    background: transparent;
+    border: none;
+    color: #aaa;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 0 6px;
+    line-height: 1;
+}
+
+:global(.ext-builder-modal-close:hover) {
+    color: #fff;
+}
+
+:global(.ext-builder-modal-body) {
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+    padding: 4px 0;
+}
+
+/* ---- Add Block Panel: removed ---- */
+
+/* ---- Block List (left sidebar — like Scratch sprite list) ---- */
+
+:global(.ext-block-list) {
+    width: 260px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    background: #f7f7f7;
+    border-right: 1px solid #d0d0d0;
+    padding: 8px;
+    gap: 4px;
+    overflow-y: auto;
+}
+
+:global(.ext-block-list-title) {
+    font-size: 11px;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 4px 4px 6px;
+}
+
+:global(.ext-block-list-items) {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    overflow-y: auto;
+}
+
+:global(.ext-block-list-item) {
+    padding: 6px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #1a1a1a;
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+:global(.ext-block-list-item:hover) {
+    background: #e8f0ff;
+}
+
+:global(.ext-block-list-item.selected) {
+    background: #4c97ff;
+    color: white;
+    border-color: #3373cc;
+}
+
+:global(.ext-block-list-name) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+}
+
+:global(.ext-block-list-delete) {
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    background: transparent;
+    color: #999;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+:global(.ext-block-list-item.selected .ext-block-list-delete) {
+    color: rgba(255,255,255,0.7);
+}
+
+:global(.ext-block-list-delete:hover) {
+    background: rgba(0,0,0,0.1);
+}
+
+:global(.ext-block-list-add) {
+    padding: 6px 8px;
+    background: #4c97ff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    text-align: center;
+    transition: background 0.15s;
+    margin-top: 4px;
+}
+
+:global(.ext-block-list-add:hover) {
+    background: #3373cc;
+}
+
+/* ---- Block list: settings entry, rename input ---- */
+
+:global(.ext-block-list-settings) {
+    width: 100%;
+    padding: 6px 8px;
+    margin: 0 0 6px 0;
+    background: #f3f3f3;
+    border: 1px solid #d0d0d0;
+    border-radius: 4px;
+    color: #444;
+    cursor: pointer;
+    font-size: 12px;
+    text-align: left;
+}
+
+:global(.ext-block-list-settings:hover) {
+    background: #4c97ff;
+    color: white;
+    border-color: #4c97ff;
+}
+
+:global(.ext-block-list-name-input) {
+    flex: 1;
+    min-width: 0;
+    padding: 2px 4px;
+    border: 1px solid #4c97ff;
+    border-radius: 3px;
+    font-size: 12px;
+    background: white;
+    outline: none;
+}
+
+/* ---- Extension settings modal ---- */
+
+:global(.ext-modal-backdrop) {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+:global(.ext-modal) {
+    background: #f3f3f3;
+    border-radius: 8px;
+    padding: 0;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    max-width: 460px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+:global(.ext-settings-modal) {
+    padding-bottom: 16px;
+}
+
+:global(.ext-settings-banner) {
+    width: 100%;
+    height: 90px;
+    border-radius: 8px 8px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+:global(.ext-settings-banner-icon) {
+    width: 56px;
+    height: 56px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.95);
+    object-fit: contain;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+:global(.ext-settings-banner-placeholder) {
+    color: #999;
+    font-size: 28px;
+    line-height: 56px;
+    text-align: center;
+}
+
+:global(.ext-settings-title) {
+    text-align: center;
+    font-size: 20px;
+    font-weight: 600;
+    margin: 16px 0 12px;
+    color: #333;
+}
+
+:global(.ext-settings-label) {
+    display: block;
+    margin: 8px 24px 4px;
+    font-size: 12px;
+    color: #555;
+}
+
+:global(.ext-settings-label-row) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 10px 0 6px;
+    font-size: 12px;
+    color: #555;
+}
+
+:global(.ext-settings-input) {
+    display: block;
+    margin: 0 24px 8px;
+    width: calc(100% - 48px);
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 13px;
+    box-sizing: border-box;
+    background: white;
+    color: #333;
+}
+
+:global(.ext-settings-input:focus) {
+    outline: none;
+    border-color: #4c97ff;
+    box-shadow: 0 0 0 2px rgba(76, 151, 255, 0.2);
+}
+
+:global(.ext-settings-id-preview) {
+    margin: 8px auto 6px;
+    width: 80px;
+    height: 60px;
+    border: 2px solid #f0c800;
+    border-radius: 6px;
+    background: #fffbe6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 12px;
+    color: #b58a00;
+    word-break: break-all;
+    padding: 4px;
+    box-sizing: border-box;
+}
+
+:global(.ext-settings-checkbox) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #555;
+    margin-bottom: 8px;
+}
+
+:global(.ext-settings-color-picker) {
+    width: 22px;
+    height: 22px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    padding: 0;
+    background: none;
+    cursor: pointer;
+}
+
+:global(.ext-settings-color-presets) {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin: 4px 0 12px;
+}
+
+:global(.ext-settings-color-swatch) {
+    width: 32px;
+    height: 24px;
+    border: 2px solid transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 0;
+}
+
+:global(.ext-settings-color-swatch.active) {
+    border-color: #333;
+    box-shadow: 0 0 0 2px rgba(76, 151, 255, 0.4);
+}
+
+:global(.ext-settings-icon-row) {
+    display: flex;
+    justify-content: space-around;
+    margin: 12px 24px;
+    gap: 12px;
+}
+
+:global(.ext-settings-icon-cell) {
+    flex: 1;
+    text-align: center;
+}
+
+:global(.ext-settings-icon-preview) {
+    width: 80px;
+    height: 60px;
+    margin: 4px auto;
+    border: 1px dashed #bbb;
+    border-radius: 4px;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+:global(.ext-settings-icon-preview img) {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+:global(.ext-settings-icon-empty) {
+    font-size: 11px;
+    color: #999;
+}
+
+:global(.ext-settings-icon-actions) {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+:global(.ext-settings-icon-btn),
+:global(.ext-settings-icon-clear) {
+    padding: 4px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+:global(.ext-settings-icon-btn) {
+    background: #4c97ff;
+    color: white;
+}
+
+:global(.ext-settings-icon-btn:hover) {
+    background: #3373cc;
+}
+
+:global(.ext-settings-icon-clear) {
+    background: #e0e0e0;
+    color: #555;
+}
+
+:global(.ext-settings-icon-clear:hover) {
+    background: #ccc;
+}
+
+:global(.ext-settings-actions) {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+:global(.ext-settings-cancel) {
+    padding: 6px 18px;
+    border: 1px solid #ccc;
+    background: white;
+    color: #555;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+:global(.ext-settings-cancel:hover) {
+    background: #eee;
+}
+
+:global(.ext-settings-done) {
+    padding: 6px 22px;
+    border: none;
+    background: #4c97ff;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+:global(.ext-settings-done:hover) {
+    background: #3373cc;
+}
+
+/* ---- Blockly Workspace (full width, native toolbox) ---- */
+
+:global(.ext-builder-workspace-full) {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 0;
+    background: #1e1e1e;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+:global(.blockly-host) {
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+    position: relative;
+    /* Blockly will set height via SVG, but ensure host grows */
+    display: flex;
+}
+
+:global(.blockly-host .injectionDiv) {
+    width: 100% !important;
+    height: 100% !important;
+    position: relative !important;
+}
+
+:global(.blockly-host .blocklySvg) {
+    width: 100% !important;
+    height: 100% !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+}
+
+/* ---- Stage (right side - where stage was in TurboWarp, now showing code) ---- */
+
+:global(.ext-builder-stage) {
+    flex-shrink: 0;
+    width: 380px;
+    max-width: 50vw;
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+    border-left: 1px solid #d0d0d0;
+    min-height: 0;
+}
+
+:global(.ext-stage-header) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: #f7f7f7;
+    border-bottom: 1px solid #d0d0d0;
+    flex-shrink: 0;
+}
+
+:global(.ext-stage-title) {
+    font-weight: 600;
+    font-size: 12px;
+    color: #1a1a1a;
+}
+
+:global(.ext-stage-actions) {
+    display: flex;
+    gap: 4px;
+}
+
+:global(.ext-stage-btn) {
+    width: 28px;
+    height: 28px;
+    background: #ffffff;
+    color: #555;
+    border: 1px solid #d0d0d0;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.15s, color 0.15s;
+}
+
+:global(.ext-stage-btn:hover) {
+    background: #f0f0f0;
+    color: #1a1a1a;
+}
+
+:global(.ext-stage-btn-copy) {
+    width: auto;
+    padding: 0 10px;
+    font-size: 12px;
+    color: #fff;
+    background: #2e7d32;
+    border-color: #2e7d32;
+}
+
+:global(.ext-stage-btn-copy:hover) {
+    background: #1b5e20;
+    color: #fff;
+}
+
+:global(.ext-stage-screen) {
+    flex: 1;
+    background: #1e1e1e;
+    margin: 8px;
+    border-radius: 4px;
+    overflow: auto;
+    border: 2px solid #d0d0d0;
+    min-height: 0;
+}
+
+:global(.ext-code-content) {
+    margin: 0;
+    padding: 12px;
+    background: #1e1e1e;
+    color: #d4d4d4;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 11px;
+    line-height: 1.5;
+    overflow: auto;
+    white-space: pre;
+    word-wrap: normal;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+:global(.ext-code-content code) {
+    font-family: inherit;
+    color: #d4d4d4;
+}
+
+:global(.ext-stage-footer) {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: #f7f7f7;
+    border-top: 1px solid #d0d0d0;
+    flex-shrink: 0;
+}
+
+:global(.ext-stage-footer button) {
+    padding: 4px 12px;
+    background: #ffffff;
+    color: #1a1a1a;
+    border: 1px solid #d0d0d0;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background 0.15s;
+}
+
+:global(.ext-stage-footer button:hover) {
+    background: #f0f0f0;
+}
+
+/* ---- Bottom panel (variable/list creation): removed (variables/list now created via Blockly variable category) ---- */
+
+/* ---- Blockly theme overrides (these selectors are injected by Blockly at runtime) ---- */
+
+:global(.blocklyToolboxDiv) {
+    background-color: #f7f7f7 !important;
+    border-right: 1px solid #d0d0d0 !important;
+}
+
+:global(.blocklyTreeRow) {
+    margin: 0 !important;
+    padding: 6px 12px !important;
+    cursor: pointer !important;
+}
+
+:global(.blocklyTreeRow:hover) {
+    background-color: #e8e8e8 !important;
+}
+
+:global(.blocklyTreeSelected) {
+    background-color: #4c97ff !important;
+}
+
+:global(.blocklyTreeLabel) {
+    font-family: 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif !important;
+    font-size: 13px !important;
+}
+
+:global(.blocklyMainBackground) {
+    stroke: none !important;
+}
+
+:global(.blocklyTrash) {
+    opacity: 0.6;
+}
+
+/* ---- Top menu bar (TurboWarp-style red header) ---- */
+
+:global(.ext-builder) {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+}
+
+:global(.ext-menu-bar) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 40px;
+    background: linear-gradient(180deg, #fc4e4e 0%, #ff5757 50%, #e94545 100%);
+    color: white;
+    padding: 0 10px;
+    flex-shrink: 0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    user-select: none;
+}
+
+:global(.ext-menu-bar-left),
+:global(.ext-menu-bar-right) {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+}
+
+:global(.ext-menu-bar-right) {
+    justify-content: flex-end;
+}
+
+:global(.ext-menu-bar-center) {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 16px;
+    font-size: 13px;
+}
+
+:global(.ext-menu-brand) {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-right: 8px;
+    margin-right: 4px;
+    border-right: 1px solid rgba(255, 255, 255, 0.25);
+    height: 26px;
+}
+
+:global(.ext-menu-logo) {
+    font-size: 18px;
+    color: #fff;
+    line-height: 1;
+}
+
+:global(.ext-menu-title) {
+    font-weight: 700;
+    font-size: 14px;
+    color: white;
+}
+
+:global(.ext-menu-btn) {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background 0.1s;
+}
+
+:global(.ext-menu-btn:hover) {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+:global(.ext-menu-btn:active) {
+    background: rgba(255, 255, 255, 0.35);
+}
+
+:global(.ext-menu-btn-icon) {
+    font-size: 13px;
+    line-height: 1;
+}
+
+:global(.ext-menu-home-link) {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    font-size: 12px;
+    text-decoration: none;
+    transition: background 0.1s;
+}
+
+:global(.ext-menu-home-link:hover) {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+:global(.ext-menu-home-icon) {
+    font-size: 13px;
+    line-height: 1;
+}
+
+:global(.ext-menu-btn-warn) {
+    background: rgba(0, 0, 0, 0.15);
+    border-color: rgba(255, 255, 255, 0.35);
+}
+
+:global(.ext-menu-btn-warn:hover) {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+:global(.ext-menu-ext-name) {
+    font-weight: 600;
+    color: white;
+}
+
+:global(.ext-menu-ext-id) {
+    color: rgba(255, 255, 255, 0.85);
+    font-family: monospace;
+    font-size: 12px;
+}
+
+/* ---- Per-block editor (AstraEditor-style) ---- */
+
+:global(.ext-block-editor) {
+    margin-top: 10px;
+    padding: 10px;
+    background: #ffffff;
+    border: 1px solid #d0d0d0;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 12px;
+}
+
+:global(.ext-block-editor-header) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 6px;
+}
+
+:global(.ext-block-editor-title) {
+    font-weight: 600;
+    color: #333;
+    font-size: 12px;
+}
+
+:global(.ext-block-editor-name) {
+    color: #999;
+    font-size: 11px;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+:global(.ext-block-editor-preview) {
+    width: 100%;
+    height: 70px;
+    background: #e8e8e8;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    color: #999;
+    position: relative;
+    overflow: hidden;
+}
+
+:global(.ext-block-editor-icon-img) {
+    max-width: 48px;
+    max-height: 48px;
+    object-fit: contain;
+}
+
+:global(.ext-block-editor-icon-placeholder) {
+    font-size: 30px;
+    color: #b0b0b0;
+}
+
+:global(.ext-block-editor-preview-label) {
+    color: #555;
+    font-size: 12px;
+}
+
+:global(.ext-block-editor-label) {
+    display: block;
+    color: #555;
+    font-size: 11px;
+    margin: 6px 0 2px;
+}
+
+:global(.ext-block-editor-input) {
+    display: block;
+    width: 100%;
+    padding: 4px 6px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-size: 12px;
+    box-sizing: border-box;
+    background: #fff;
+    color: #333;
+}
+
+:global(.ext-block-editor-input:focus) {
+    outline: none;
+    border-color: #4c97ff;
+    box-shadow: 0 0 0 2px rgba(76, 151, 255, 0.2);
+}
+
+:global(.ext-block-colour-picker) {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+    padding: 4px 0;
+}
+
+:global(.ext-block-colour-input) {
+    width: 30px;
+    height: 24px;
+    padding: 0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    cursor: pointer;
+    background: #fff;
+}
+
+:global(.ext-block-colour-swatch) {
+    width: 22px;
+    height: 22px;
+    border-radius: 4px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    padding: 0;
+}
+
+:global(.ext-block-colour-swatch:hover) {
+    transform: scale(1.1);
+}
+
+:global(.ext-block-colour-swatch-active) {
+    border-color: #1a1a1a;
+    box-shadow: 0 0 0 2px #fff inset;
+}
+
+:global(.ext-block-colour-clear) {
+    font-size: 11px;
+    color: #888;
+    border: 1px solid #ddd;
+    background: #fff;
+    border-radius: 3px;
+    padding: 2px 6px;
+    cursor: pointer;
+}
+
+:global(.ext-block-colour-clear:hover) {
+    color: #333;
+    border-color: #bbb;
+}
+
+:global(.ext-block-editor-section) {
+    margin: 8px 0 2px;
+    color: #333;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+:global(.ext-block-editor-checkbox) {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: #555;
+    padding: 2px 0;
+    cursor: pointer;
+}
+
+:global(.ext-block-editor-checkbox input) {
+    cursor: pointer;
+}
+
+:global(.ext-block-editor-icon-btn) {
+    margin-top: 10px;
+    width: 100%;
+    padding: 6px 8px;
+    border: none;
+    border-radius: 4px;
+    background: #4c97ff;
+    color: white;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+:global(.ext-block-editor-icon-btn:hover) {
+    background: #3373cc;
+}
+
+:global(.ext-block-editor-hint) {
+    margin-top: 8px;
+    padding: 6px;
+    background: #f0f8ff;
+    border: 1px dashed #b3d9ff;
+    border-radius: 3px;
+    color: #4a7aac;
+    font-size: 10px;
+    line-height: 1.4;
+}
+
+/* ---- CB-ExtGallary field editor ---- */
+
+:global(.ext-block-editor-fields-header) {
+    display: grid;
+    grid-template-columns: 80px 1fr 60px;
+    gap: 6px;
+    padding: 0 0 4px 0;
+    font-size: 11px;
+    color: #aaa;
+    border-bottom: 1px solid #333;
+    margin-bottom: 4px;
+}
+
+:global(.ext-block-editor-fields-list) {
+    margin: 4px 0;
+}
+
+:global(.ext-block-editor-fields-row) {
+    display: grid;
+    grid-template-columns: 80px 1fr 60px auto;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+:global(.ext-block-editor-input-type) {
+    height: 24px;
+    font-size: 11px;
+}
+
+:global(.ext-block-editor-input-text) {
+    height: 24px;
+    font-size: 11px;
+}
+
+:global(.ext-block-editor-input-default) {
+    height: 24px;
+    font-size: 11px;
+}
+
+:global(.ext-block-editor-fields-delete) {
+    height: 24px;
+    padding: 0 6px;
+    background: transparent;
+    border: 1px solid #555;
+    color: #ccc;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 10px;
+}
+
+:global(.ext-block-editor-fields-delete:hover) {
+    background: rgba(220, 60, 60, 0.2);
+    border-color: #d04040;
+    color: #ff8888;
+}
+
+:global(.ext-block-editor-fields-add) {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-top: 4px;
+}
+
+:global(.ext-block-editor-fields-add-btn) {
+    height: 24px;
+    padding: 0 10px;
+    background: rgba(78, 161, 255, 0.15);
+    border: 1px solid #4ea1ff;
+    color: #4ea1ff;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px;
+}
+
+:global(.ext-block-editor-fields-add-btn:hover) {
+    background: rgba(78, 161, 255, 0.3);
+}
+
+:global(.ext-block-editor-fields-add-type) {
+    flex: 1;
+    height: 24px;
+    font-size: 11px;
+}
+
+:global(.ext-block-editor-preview-fields) {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-left: 8px;
+}
+
+:global(.ext-block-editor-preview-field) {
+    display: inline-block;
+    padding: 1px 6px;
+    background: #1a73e8;
+    border-radius: 8px;
+    color: white;
+    font-size: 10px;
+    font-weight: 500;
+}
+
+/* Live block SVG preview inside the builder panel */
+:global(.ext-block-editor-preview-header) {
+    margin-bottom: 6px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #333;
+}
+
+:global(.ext-block-editor-preview-svg) {
+    min-height: 50px;
+    background: #fff;
+    border-radius: 3px;
+    padding: 12px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-x: auto;
+    margin-bottom: 4px;
+}
+
+:global(.ext-block-editor-preview-svg svg) {
+    display: block;
+    max-width: 100%;
+}
+
+:global(.ext-block-editor-preview-empty) {
+    color: #aaa;
+    font-size: 11px;
+    font-style: italic;
+}
+
+:global(.ext-block-editor-preview-host) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    left: -9999px;
+    top: -9999px;
+}
+
+:global(.ext-block-editor-meta) {
+    margin-top: 10px;
+    border-top: 1px solid #333;
+    padding-top: 6px;
+}
+
+:global(.ext-block-editor-meta summary) {
+    cursor: pointer;
+    color: #aaa;
+    font-size: 11px;
+    padding: 4px 0;
+    user-select: none;
+}
+
+:global(.ext-block-editor-meta summary:hover) {
+    color: #fff;
+}
+
+:global(.ext-block-editor-buttons) {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+:global(.ext-block-editor-small-btn) {
+    flex: 1;
+    padding: 5px 8px;
+    border: none;
+    border-radius: 3px;
+    background: #4c97ff;
+    color: white;
+    cursor: pointer;
+    font-size: 11px;
+}
+
+:global(.ext-block-editor-small-btn:hover) {
+    background: #3373cc;
+}
+
+:global(.ext-block-editor-save-btn) {
+    margin-top: 6px;
+    width: 100%;
+    padding: 6px 8px;
+    border: none;
+    border-radius: 3px;
+    background: #28a745;
+    color: white;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+:global(.ext-block-editor-save-btn:hover) {
+    background: #1f8a37;
+}
+
+/* ---- Block preview modal (AstraEditor-style 扩展预览) ---- */
+
+:global(.ext-preview-host) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    left: -9999px;
+    top: -9999px;
+}
+
+:global(.ext-preview-modal) {
+    width: 360px;
+    max-height: 80vh;
+    background: #1e1e1e;
+    color: #f1f1f1;
+    border-radius: 6px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+}
+
+:global(.ext-preview-modal-header) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid #333;
+}
+
+:global(.ext-preview-modal-header .ext-settings-title) {
+    margin: 0;
+    color: #f1f1f1;
+    font-size: 16px;
+}
+
+:global(.ext-preview-modal-close) {
+    background: transparent;
+    border: none;
+    color: #aaa;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 0 6px;
+}
+
+:global(.ext-preview-modal-close:hover) {
+    color: #fff;
+}
+
+:global(.ext-preview-modal-sub) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    background: #262626;
+    border-bottom: 1px solid #333;
+    font-size: 11px;
+}
+
+:global(.ext-preview-ext-name) {
+    color: #4c97ff;
+    font-weight: 600;
+}
+
+:global(.ext-preview-block-count) {
+    color: #888;
+}
+
+:global(.ext-preview-list) {
+    overflow-y: auto;
+    padding: 8px;
+    max-height: 60vh;
+    background: #000;
+    color: #fff;
+    border-radius: 0 0 6px 6px;
+}
+
+:global(.ext-preview-item) {
+    margin-bottom: 6px;
+    padding: 2px 4px;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    position: relative;
+    min-height: 0;
+}
+
+:global(.ext-preview-item-type) {
+    display: none;  /* CB-ExtGallary style: no type label, just the SVG */
+}
+
+:global(.ext-preview-item-svg) {
+    line-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+:global(.ext-preview-item-svg svg) {
+    display: block;
+    max-width: 100%;
+}
+
+:global(.ext-preview-empty) {
+    text-align: center;
+    padding: 20px;
+    color: #999;
+    font-size: 12px;
+}
+
+/* ============================================================
+   登录 / 存档 / 跨站同步
+   (light theme: 浅色卡片 + 深色文字)
+   ============================================================ */
+
+:global(.ext-menu-user) {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    transition: background .15s;
+}
+
+:global(.ext-menu-user:hover) {
+    background: rgba(255, 255, 255, 0.28);
+}
+
+:global(.ext-auth-backdrop) {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+:global(.ext-auth-card) {
+    width: 400px;
+    max-height: 86vh;
+    background: #ffffff;
+    color: #1a1a1a;
+    border-radius: 8px;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* ---- 插件设置弹窗（ExtAddons） ---- */
+
+:global(.ext-addons-card) {
+    width: 520px;
+}
+
+:global(.ext-addons-intro) {
+    font-size: 12px;
+    color: #666;
+    background: #f5f7fa;
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin: 10px 16px 6px;
+    line-height: 1.5;
+}
+
+:global(.ext-addons-list) {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+:global(.ext-addon-item) {
+    border: 1px solid #e3e6ea;
+    border-radius: 6px;
+    padding: 8px 12px;
+    background: #fafbfc;
+}
+
+:global(.ext-addon-label) {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+:global(.ext-addon-check) {
+    width: 16px;
+    height: 16px;
+    accent-color: #4c97ff;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+:global(.ext-addon-name) {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+:global(.ext-addon-cat) {
+    font-size: 11px;
+    color: #4c97ff;
+    background: #e8f1ff;
+    border-radius: 10px;
+    padding: 1px 8px;
+    margin-left: auto;
+}
+
+:global(.ext-addon-desc) {
+    font-size: 12px;
+    color: #777;
+    line-height: 1.5;
+    margin-top: 4px;
+    padding-left: 24px;
+}
+
+/* 推荐标签 */
+:global(.ext-addon-recommend) {
+    font-size: 10px;
+    color: #fff;
+    background: #4c97ff;
+    border-radius: 8px;
+    padding: 1px 7px;
+    margin-left: 6px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    vertical-align: middle;
+}
+
+/* 自定义插件删除按钮 */
+:global(.ext-addon-del) {
+    font-size: 10px;
+    color: #d14;
+    background: transparent;
+    border: 1px solid #f0c0cc;
+    border-radius: 8px;
+    padding: 1px 7px;
+    margin-left: 6px;
+    cursor: pointer;
+    vertical-align: middle;
+    line-height: 1.4;
+}
+:global(.ext-addon-del:hover) {
+    background: #ffe8ee;
+    border-color: #e58aa0;
+}
+
+/* 子选项区域 */
+:global(.ext-addon-opts) {
+    margin-top: 6px;
+    padding-left: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+}
+
+:global(.ext-addon-opt-item) {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: #555;
+    cursor: pointer;
+    user-select: none;
+    line-height: 1.6;
+}
+:global(.ext-addon-opt-item:hover) {
+    color: #222;
+}
+
+:global(.ext-addon-opt-check) {
+    cursor: pointer;
+    accent-color: #4c97ff;
+}
+
+:global(.ext-opt-label) {
+    cursor: pointer;
+}
+
+:global(.ext-addons-foot) {
+    padding: 10px 16px;
+    border-top: 1px solid #eef0f3;
+    text-align: right;
+}
+
+/* ---- 插件面板：搜索框 ---- */
+
+:global(.ext-addons-search) {
+    padding: 0 16px 8px;
+}
+
+:global(.ext-addons-search-input) {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 7px 12px;
+    border: 1px solid #d0d4d9;
+    border-radius: 4px;
+    font-size: 13px;
+    background: #fafbfc;
+    transition: border-color .15s;
+}
+
+:global(.ext-addons-search-input:focus) {
+    outline: none;
+    border-color: #4c97ff;
+    background: #fff;
+}
+
+:global(.ext-addon-empty) {
+    text-align: center;
+    color: #999;
+    font-size: 13px;
+    padding: 24px 12px;
+}
+
+/* ---- 插件面板：危险操作（导出/导入/全部重置） ---- */
+
+:global(.ext-addons-actions) {
+    padding: 10px 16px;
+    border-top: 1px solid #eef0f3;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+:global(.ext-addons-action-btn) {
+    flex: 1;
+    min-width: 90px;
+    padding: 6px 12px;
+    background: #f5f7fa;
+    border: 1px solid #d0d4d9;
+    border-radius: 4px;
+    color: #444;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background .15s, border-color .15s;
+}
+
+:global(.ext-addons-action-btn:hover) {
+    background: #eef1f4;
+    border-color: #b9c0c9;
+}
+
+:global(.ext-addons-action-btn-warn) {
+    color: #a33;
+    border-color: #e0c8c8;
+}
+
+:global(.ext-addons-action-btn-warn:hover) {
+    background: #fdf0f0;
+    border-color: #d0a8a8;
+}
+
+/* 导入插件主按钮 */
+:global(.ext-addons-action-btn-primary) {
+    color: #fff;
+    background: #4c97ff;
+    border-color: #3b86f0;
+    font-weight: 500;
+}
+:global(.ext-addons-action-btn-primary:hover) {
+    background: #3b86f0;
+    border-color: #2f78e0;
+}
+
+/* 开发教程按钮 */
+:global(.ext-addons-action-btn-info) {
+    color: #1f7a4d;
+    background: #e8f6ee;
+    border-color: #b6e0c8;
+}
+:global(.ext-addons-action-btn-info:hover) {
+    background: #d8f0e2;
+    border-color: #9ed3b6;
+}
+
+/* 插件开发教程 弹窗 */
+:global(.ext-addon-doc-card) {
+    max-width: 780px;
+    width: 94%;
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+}
+:global(.ext-doc-tabs) {
+    display: flex;
+    gap: 4px;
+    padding: 8px 16px 0;
+    border-bottom: 1px solid #eee;
+}
+:global(.ext-doc-tab) {
+    padding: 8px 16px;
+    border: 1px solid transparent;
+    border-bottom: none;
+    background: transparent;
+    color: #555;
+    font-size: 13px;
+    cursor: pointer;
+    border-radius: 6px 6px 0 0;
+}
+:global(.ext-doc-tab:hover) {
+    color: #4c97ff;
+}
+:global(.ext-doc-tab.active) {
+    color: #4c97ff;
+    background: #f3f8ff;
+    border-color: #d6e6ff;
+    font-weight: 600;
+}
+:global(.ext-doc-body) {
+    padding: 16px 20px;
+    overflow-y: auto;
+    flex: 1;
+    line-height: 1.7;
+}
+:global(.ext-doc-h3) {
+    margin: 18px 0 8px;
+    font-size: 15px;
+    color: #222;
+    border-left: 3px solid #4c97ff;
+    padding-left: 8px;
+}
+:global(.ext-doc-h3:first-child) {
+    margin-top: 0;
+}
+:global(.ext-doc-p) {
+    margin: 6px 0;
+    color: #444;
+    font-size: 13px;
+}
+:global(.ext-doc-ul), :global(.ext-doc-ol) {
+    margin: 6px 0;
+    padding-left: 22px;
+    color: #444;
+    font-size: 13px;
+}
+:global(.ext-doc-ul li), :global(.ext-doc-ol li) {
+    margin: 4px 0;
+}
+:global(.ext-doc-table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0;
+    font-size: 12.5px;
+}
+:global(.ext-doc-table th), :global(.ext-doc-table td) {
+    border: 1px solid #e2e6ea;
+    padding: 6px 10px;
+    text-align: left;
+    vertical-align: top;
+}
+:global(.ext-doc-table th) {
+    background: #f5f7fa;
+    color: #333;
+    font-weight: 600;
+}
+:global(.ext-doc-table code), :global(.ext-doc-p code), :global(.ext-doc-ul code), :global(.ext-doc-ol code) {
+    background: #f0f2f5;
+    border-radius: 3px;
+    padding: 1px 5px;
+    font-family: 'Consolas', 'Menlo', monospace;
+    font-size: 12px;
+    color: #c0392b;
+}
+:global(.ext-doc-code) {
+    position: relative;
+    margin: 8px 0 14px;
+}
+:global(.ext-doc-copy) {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    z-index: 2;
+    padding: 3px 10px;
+    font-size: 11px;
+    color: #4c97ff;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid #cfe0ff;
+    border-radius: 4px;
+    cursor: pointer;
+}
+:global(.ext-doc-copy:hover) {
+    background: #fff;
+    border-color: #4c97ff;
+}
+:global(.ext-doc-pre) {
+    margin: 0;
+    padding: 12px 14px;
+    background: #1e1e2e;
+    color: #e6e6e6;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-family: 'Consolas', 'Menlo', monospace;
+    font-size: 12px;
+    line-height: 1.55;
+    white-space: pre;
+    tab-size: 2;
+}
+:global(.ext-doc-pre code) {
+    color: inherit;
+    background: transparent;
+    font-size: inherit;
+    padding: 0;
+}
+
+:global(.ext-auth-header) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: #f2f2f2;
+    border-bottom: 1px solid #ddd;
+    flex-shrink: 0;
+}
+
+:global(.ext-auth-title) {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+:global(.ext-auth-form) {
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    gap: 8px;
+}
+
+:global(.ext-auth-label) {
+    font-size: 12px;
+    color: #666;
+    margin-top: 4px;
+}
+
+:global(.ext-auth-input) {
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #1a1a1a;
+    background: #fff;
+    outline: none;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+:global(.ext-auth-input:focus) {
+    border-color: #4c97ff;
+    box-shadow: 0 0 0 2px rgba(76, 151, 255, 0.25);
+}
+
+:global(.ext-auth-btn) {
+    margin-top: 10px;
+    padding: 8px 12px;
+    background: #4c97ff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+:global(.ext-auth-btn:hover) {
+    background: #3d83e0;
+}
+
+:global(.ext-auth-btn:disabled) {
+    opacity: 0.6;
+    cursor: default;
+}
+
+:global(.ext-auth-error) {
+    color: #d83a3a;
+    font-size: 12px;
+    background: #fdecec;
+    border: 1px solid #f5c6c6;
+    border-radius: 4px;
+    padding: 6px 8px;
+}
+
+:global(.ext-auth-switch) {
+    background: transparent;
+    border: none;
+    color: #4c97ff;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 6px;
+}
+
+:global(.ext-auth-switch:hover) {
+    text-decoration: underline;
+}
+
+/* ---- 存档面板 ---- */
+
+:global(.ext-saves-card) {
+    width: 500px;
+}
+
+/* ---- 个人主页 ---- */
+
+:global(.ext-profile-card) {
+    width: 480px;
+}
+
+:global(.ext-profile-body) {
+    padding: 16px 20px 18px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+:global(.ext-profile-head) {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+:global(.ext-profile-avatar) {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4c97ff, #0f6fde);
+    color: #fff;
+    font-size: 26px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(76, 151, 255, .35);
+}
+
+:global(.ext-profile-info) {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+:global(.ext-profile-name) {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a1a;
+    word-break: break-all;
+}
+
+:global(.ext-profile-type) {
+    font-size: 12px;
+    color: #4c97ff;
+    background: #e8f1ff;
+    border-radius: 10px;
+    padding: 1px 8px;
+    align-self: flex-start;
+}
+
+:global(.ext-profile-email) {
+    font-size: 12px;
+    color: #888;
+    word-break: break-all;
+}
+
+:global(.ext-profile-stats) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+:global(.ext-profile-stat) {
+    flex: 1;
+    min-width: 76px;
+    text-align: center;
+    background: #f5f7fa;
+    border: 1px solid #e6e9ed;
+    border-radius: 6px;
+    padding: 10px 4px;
+}
+
+:global(.ext-profile-stat-num) {
+    display: block;
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+:global(.ext-profile-stat-label) {
+    display: block;
+    font-size: 11px;
+    color: #999;
+    margin-top: 2px;
+}
+
+:global(.ext-profile-joined) {
+    font-size: 12px;
+    color: #888;
+}
+
+:global(.ext-profile-saves-title) {
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    border-bottom: 1px solid #eef0f3;
+    padding-bottom: 6px;
+}
+
+:global(.ext-profile-saves) {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+:global(.ext-profile-save-item) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: #fafbfc;
+    border: 1px solid #e6e9ed;
+    border-radius: 6px;
+    padding: 8px 12px;
+}
+
+:global(.ext-profile-save-info) {
+    min-width: 0;
+}
+
+:global(.ext-profile-save-name) {
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 220px;
+}
+
+:global(.ext-profile-save-time) {
+    font-size: 11px;
+    color: #999;
+    margin-top: 2px;
+}
+
+:global(.ext-profile-save-actions) {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+:global(.ext-profile-save-btn) {
+    padding: 4px 12px;
+    font-size: 12px;
+    border-radius: 4px;
+    border: 1px solid #4c97ff;
+    background: #fff;
+    color: #2b6cb0;
+    cursor: pointer;
+}
+
+:global(.ext-profile-save-btn:hover) {
+    background: #eef4ff;
+}
+
+:global(.ext-profile-save-btn-del) {
+    border-color: #e0b8b8;
+    color: #a33;
+}
+
+:global(.ext-profile-save-btn-del:hover) {
+    background: #fdf0f0;
+}
+
+:global(.ext-profile-saves-empty) {
+    font-size: 12px;
+    color: #999;
+    text-align: center;
+    padding: 14px 8px;
+}
+
+:global(.ext-saves-body) {
+    padding: 14px 16px 18px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+:global(.ext-saves-new) {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+:global(.ext-saves-name-input) {
+    flex: 1;
+}
+
+:global(.ext-saves-save-btn) {
+    margin-top: 0;
+    white-space: nowrap;
+}
+
+:global(.ext-saves-msg) {
+    font-size: 12px;
+    color: #0b8e69;
+    background: #e8f7f1;
+    border: 1px solid #b9e5d5;
+    border-radius: 4px;
+    padding: 6px 8px;
+}
+
+:global(.ext-saves-list-title) {
+    font-size: 12px;
+    font-weight: 700;
+    color: #555;
+}
+
+:global(.ext-saves-empty) {
+    font-size: 12px;
+    color: #999;
+    padding: 6px 0;
+}
+
+:global(.ext-saves-list) {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 240px;
+    overflow-y: auto;
+}
+
+:global(.ext-saves-item) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 10px;
+    background: #f7f7f7;
+    border: 1px solid #e3e3e3;
+    border-radius: 5px;
+}
+
+:global(.ext-saves-item-info) {
+    min-width: 0;
+    flex: 1;
+}
+
+:global(.ext-saves-item-name) {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a1a1a;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+:global(.ext-saves-item-time) {
+    font-size: 11px;
+    color: #999;
+    margin-top: 2px;
+}
+
+:global(.ext-saves-item-actions) {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+:global(.ext-saves-act) {
+    padding: 3px 8px;
+    font-size: 11px;
+    color: #333;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+:global(.ext-saves-act:hover) {
+    background: #eef4ff;
+    border-color: #4c97ff;
+    color: #2b6cb0;
+}
+
+:global(.ext-saves-act-del:hover) {
+    background: #fdecec;
+    border-color: #d83a3a;
+    color: #d83a3a;
+}
+
+/* ---- 跨站同步 ---- */
+
+:global(.ext-sync-section) {
+    border-top: 1px solid #e3e3e3;
+    padding-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+:global(.ext-sync-title) {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+:global(.ext-sync-hint) {
+    font-size: 12px;
+    color: #666;
+    margin: 0;
+    line-height: 1.5;
+}
+
+:global(.ext-sync-link-box) {
+    display: flex;
+    gap: 6px;
+    align-items: flex-start;
+}
+
+:global(.ext-sync-link) {
+    flex: 1;
+    font-size: 11px;
+    font-family: monospace;
+    color: #333;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 6px;
+    resize: none;
+    background: #fafafa;
+    box-sizing: border-box;
+}
+
+:global(.ext-sync-import),
+:global(.ext-sync-file) {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+:global(.ext-sync-import .ext-auth-input) {
+    flex: 1;
+}
+
+:global(.ext-auth-remember) {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #555;
+    cursor: pointer;
+    user-select: none;
+    padding: 2px 0;
+}
+
+:global(.ext-auth-remember input) {
+    accent-color: #4c97ff;
+    cursor: pointer;
+}
+
+:global(.ext-auth-dhd-switch) {
+    margin-top: 4px;
+    border-top: 1px solid #e3e3e3;
+    padding-top: 10px;
+    font-weight: 600;
+    color: #2b6cb0;
+}
+
+/* 工具箱拖动或初始化时残留的孤立 input 形状（比如 target_clone 块被
+   复制后只剩 input_value 字段）—— 强制隐藏无主机块的拖动预览残留 */
+:global(.blocklyGhost) {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* 拖动时 BlockDragSurface 内部的 input_value socket 形状不显示 ——
+   否则按住积木时输入框会作为 ghost 出现在屏幕右上角（松开消失）。
+   dragSurface 内的 input socket 是 blocklyPath（无 data-argument-type
+   属性、无 .blocklyInputRow class），用 :not(.blocklyBlockBackground)
+   识别（背景 path 才是块主体） */
+:global(.blocklyBlockDragSurface .blocklyPath:not(.blocklyBlockBackground)),
+:global(.blocklyBlockDragSurface .blocklyInputRow),
+:global(.blocklyBlockDragSurface path[data-argument-type]),
+:global(.blocklyBlockDragSurface ellipse),
+:global(.blocklyBlockDragSurface rect.blocklyInputRow),
+:global(.blocklyBlockDragSurface .blocklyShape),
+:global(.blocklyBlockDragSurface g.blocklyInsertionMarker),
+:global(.blocklyBlockDragSurface .blocklyInsertionMarker) {
+    display: none !important;
+}
+
+/* v11 — 隐藏 scratch-blocks 的 insertion marker（拖动 reporter 时
+   显示在主工作区的"可放置位置"提示）。这是 scratch-blocks 内部
+   行为：(块,_editingWorkspace) getInsertionMarkers 后台每帧调
+   onPendingConn()，但 ghost 元素偶尔残留。
+   用户描述"拖动积木时出现、松开消失、位置随幕布改变" 精准匹配此行为。 */
+:global(.blocklyInsertionMarker),
+:global(g.blocklyInsertionMarker) {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+/* v11 暴力兜底 — 任何 fill 与绿色椭圆颜色匹配的 path（默认
+   reporter shadow socket #529552、青色 #0FBD8C），在工具箱/flyout
+   内部显示但不连接子积木的，全部隐藏（保留主工作区已连接节点） */
+:global(.blocklyFlyout path[fill="#529552"]:not(.blocklyBlockBackground)),
+:global(.blocklyFlyout ellipse[fill="#529552"]),
+:global(.blocklyFlyout path[fill="#0FBD8C"]:not(.blocklyBlockBackground)),
+:global(.blocklyFlyout ellipse[fill="#0FBD8C"]) {
+    display: none !important;
+}
+
+/* ============ 好友 / 关注 面板 ============ */
+
+:global(.ext-friends-card) {
+    width: 460px;
+}
+
+:global(.ext-friends-intro) {
+    font-size: 12px;
+    color: #666;
+    background: #f5f7fa;
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin: 10px 16px 6px;
+    line-height: 1.5;
+}
+
+:global(.ext-friends-search) {
+    display: flex;
+    gap: 8px;
+    padding: 0 16px 8px;
+}
+
+:global(.ext-friends-search-input) {
+    flex: 1;
+    box-sizing: border-box;
+    padding: 7px 12px;
+    border: 1px solid #d0d4d9;
+    border-radius: 4px;
+    font-size: 13px;
+    background: #fafbfc;
+    transition: border-color .15s;
+}
+
+:global(.ext-friends-search-input:focus) {
+    border-color: #4c97ff;
+    outline: none;
+    background: #fff;
+}
+
+:global(.ext-friends-search-btn) {
+    flex-shrink: 0;
+    padding: 7px 16px;
+    border: none;
+    border-radius: 4px;
+    background: #4c97ff;
+    color: #fff;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+:global(.ext-friends-search-btn:disabled) {
+    opacity: .6;
+    cursor: default;
+}
+
+:global(.ext-friends-results) {
+    margin: 0 16px 4px;
+    border: 1px solid #e3e6ea;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+:global(.ext-friends-list) {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+:global(.ext-friends-item) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    border: 1px solid #e3e6ea;
+    border-radius: 6px;
+    padding: 8px 12px;
+    background: #fafbfc;
+}
+
+:global(.ext-friends-name) {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1a1a;
+    word-break: break-all;
+}
+
+:global(.ext-friends-actions) {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+:global(.ext-friends-btn) {
+    padding: 5px 12px;
+    border: 1px solid #4c97ff;
+    border-radius: 4px;
+    background: #fff;
+    color: #4c97ff;
+    font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+:global(.ext-friends-btn:hover) {
+    background: #eaf2ff;
+}
+
+:global(.ext-friends-btn:disabled) {
+    opacity: .6;
+    cursor: default;
+}
+
+:global(.ext-friends-btn-done) {
+    border-color: #c4c9d1;
+    color: #888;
+    background: #f0f2f5;
+}
+
+:global(.ext-friends-btn-warn) {
+    border-color: #e0573e;
+    color: #e0573e;
+}
+
+:global(.ext-friends-btn-warn:hover) {
+    background: #fdeeea;
+}
+
+:global(.ext-friends-tabs) {
+    display: flex;
+    gap: 4px;
+    padding: 4px 16px 0;
+    border-bottom: 1px solid #eef0f3;
+}
+
+:global(.ext-friends-tab) {
+    flex: 1;
+    padding: 8px 4px;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: none;
+    color: #777;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+:global(.ext-friends-tab-active) {
+    color: #4c97ff;
+    border-bottom-color: #4c97ff;
+    font-weight: 600;
+}
+
+:global(.ext-friends-empty) {
+    padding: 24px 12px;
+    text-align: center;
+    color: #999;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+:global(.ext-friends-msg) {
+    margin: 8px 16px 12px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    background: #fff5f3;
+    color: #c0392b;
+    font-size: 12px;
+    line-height: 1.5;
+}
