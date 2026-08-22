@@ -168,6 +168,7 @@ module.exports = [
                 filename: 'index.html',
                 title: 'scratch扩展编辑器',
                 isEditor: true,
+                hash: true,
                 ...htmlWebpackPluginCommon
             }),
             new CopyWebpackPlugin({
