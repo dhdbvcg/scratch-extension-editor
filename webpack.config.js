@@ -12,7 +12,7 @@ const postcssVars = require('postcss-simple-vars');
 const postcssImport = require('postcss-import');
 
 const STATIC_PATH = process.env.STATIC_PATH || '/static';
-const {APP_NAME} = require('./src/lib/brand');
+const APP_NAME = 'Scratch扩展编辑器';
 
 const root = process.env.ROOT || '';
 if (root.length > 0 && !root.endsWith('/')) {
@@ -53,11 +53,7 @@ const base = {
         publicPath: root
     },
     resolve: {
-        symlinks: false,
-        alias: {
-            'text-encoding$': path.resolve(__dirname, 'src/lib/tw-text-encoder'),
-            'scratch-render-fonts$': path.resolve(__dirname, 'src/lib/tw-scratch-render-fonts')
-        }
+        symlinks: false
     },
     module: {
         rules: [{
@@ -117,11 +113,6 @@ const base = {
                 {
                     from: 'node_modules/scratch-blocks/media',
                     to: 'static/blocks-media/high-contrast'
-                },
-                {
-                    from: 'src/lib/themes/blocks/high-contrast-media/blocks-media',
-                    to: 'static/blocks-media/high-contrast',
-                    force: true
                 }
             ]
         })
@@ -198,59 +189,4 @@ module.exports = [
             })
         ])
     })
-].concat(
-    process.env.NODE_ENV === 'production' || process.env.BUILD_MODE === 'dist' ? (
-        // export as library
-        defaultsDeep({}, base, {
-            target: 'web',
-            entry: {
-                'scratch-gui': './src/index.js'
-            },
-            output: {
-                libraryTarget: 'umd',
-                filename: 'js/[name].js',
-                chunkFilename: 'js/[name].js',
-                path: path.resolve('dist'),
-                publicPath: `${STATIC_PATH}/`
-            },
-            externals: {
-                'react': 'react',
-                'react-dom': 'react-dom'
-            },
-            module: {
-                rules: base.module.rules.concat([
-                    {
-                        test: /\.(svg|png|wav|mp3|gif|jpg|woff2|hex)$/,
-                        loader: 'url-loader',
-                        options: {
-                            limit: 2048,
-                            outputPath: 'static/assets/',
-                            publicPath: `${STATIC_PATH}/assets/`,
-                            esModule: false
-                        }
-                    }
-                ])
-            },
-            plugins: base.plugins.concat([
-                new CopyWebpackPlugin({
-                    patterns: [
-                        {
-                            from: 'extension-worker.{js,js.map}',
-                            context: 'node_modules/scratch-vm/dist/web',
-                            noErrorOnMissing: true
-                        }
-                    ]
-                }),
-                // Include library JSON files for scratch-desktop to use for downloading
-                new CopyWebpackPlugin({
-                    patterns: [
-                        {
-                            from: 'src/lib/libraries/*.json',
-                            to: 'libraries',
-                            flatten: true
-                        }
-                    ]
-                })
-            ])
-        })) : []
-);
+];
