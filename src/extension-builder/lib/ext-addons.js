@@ -1,797 +1,70 @@
 /**
- * ExtAddons — 轻量插件系统（移植自 TurboWarp addons，精选对扩展制作有用的纯 Blockly 层插件）
+ * ExtAddons — 轻量插件系统
  *
  * 设计说明：
- * - 完整 TurboWarp addons 框架深度依赖标准 Scratch GUI（redux store、vm、
- *   stage/sprite/paint 编辑器 DOM），无法在纯 Blockly 扩展编辑器（ExtensionBuilder）
- *   中运行。
- * - 本模块只移植「对扩展制作（积木拼装/工作区编辑）有用」且「纯 Blockly /
- *   纯 CSS 层」的插件，用 localStorage 持久化开关，注入方式与官方 addons 一致。
+ * - 多数内置插件（快速复制积木 / 斑马条纹 / 方形输入框 / 数字框微调 / 孤立半透明 /
+ *   更多右键菜单）已于 2026-08-22 迁移到独立仓库：
+ *     https://github.com/dhdbvcg/scratch-ext-addon
+ *   并通过 ExtensionBuilder「设置 → 插件管理 → 安装插件」用来源
+ *     github:dhdbvcg/scratch-ext-addon
+ *   安装（对齐 DeepSeek Harness 的 dsh plugin add 风格）。
+ * - EXT_ADDONS 现在保留少量「强内置」插件（随编辑器代码打包、默认启用、不可卸载），
+ *   例如 realtime-collab（多人实时协作）。它们通过顶部 import 加入 EXT_ADDONS，
+ *   并在 DEFAULT_STATE 设默认 true。
+ * - 其余插件仍来自用户安装（外源）。
  * - 所有插件在 Blockly 工作区注入完成后调用 applyExtAddons() 激活。
+ *
+ * 导入来源（持续优化）：
+ *   - 单个 JS 文件（本地 / 远程直链 / npm / github）
+ *   - 文件夹（webkitdirectory）：含 index.js + HTML/CSS/图片/JS 等资源
+ *   - ZIP 包：含 index.js + HTML/CSS/图片/JS 等资源（JSZip 解压）
+ * 插件除 setup 外，还可携带 resources（base64 持久化），并通过 ctx.assets /
+ * ctx.loadAsset / ctx.fileOverride 读取资源、改写网页底层文件。
  */
+
+// 内置插件（随编辑器代码打包，默认启用，无需安装）
+// realtime-collab：多人实时协作（房间/聊天/工作区同步）
+// 源文件位于 src/extension-builder/lib/builtin/（随 src 打包，babel 可转译 ES2020 语法）
+import realtimeCollab from './builtin/realtime-collab.js';
+// extedit-ai：AI 助手面板（内置 UI 开关，无 Blockly 改装）
+import extEditAi from './builtin/extedit-ai.js';
 
 const STORAGE_KEY = 'extbuilder_ext_addons';
 
+// 已迁移到 github:dhdbvcg/scratch-ext-addon 的内置插件（仅作旧状态兼容，不再注入）
+const MIGRATED_BUILTIN = ['block-duplicate', 'zebra-striping', 'editor-square-inputs', 'editor-number-arrow-keys', 'transparent-orphans', 'developer-tools'];
+
 const DEFAULT_STATE = {
-    'block-duplicate': true,
-    'zebra-striping': false,
-    'editor-square-inputs': false,
-    'editor-number-arrow-keys': true,
-    'transparent-orphans': false,
-    'developer-tools': true,
+    // 内置实时协作：默认开启
+    'realtime-collab': true,
+    // 内置 AI 助手：默认开启
+    'extedit-ai': true,
 };
 
 /**
- * 插件注册表。每个插件：
+ * 插件注册表（内置为空，插件均通过「插件管理 → 安装插件」外部安装）。
+ * 每个插件：
  *   id           唯一 id（对应 localStorage 键）
  *   name         中文名
  *   description  中文描述
  *   category     分类（编辑器 / 视觉）
  *   css          (可选) 注入的 CSS 字符串
- *   setup        (可选) async (ctx) => cleanup：在 Blockly 注入后调用，返回清理函数
- *   loadStyleOnly 仅样式类插件（无需 setup）
+ *   setup        (可选) async (ctx) => cleanup：在 Blockly 注入后调用，
+ * 返回清理函数
  */
 export const EXT_ADDONS = [
-    {
-        id: 'block-duplicate',
-        name: '快速复制积木',
-        description: '按住 Alt/⌥ 拖动积木直接复制一份（无需右键）。按住 Ctrl/⌘ 拖动只复制选中的单个积木（cherry pick）。扩展拼装积木时非常好用。',
-        category: '编辑器',
-        setup: async (ctx) => {
-            const B = ctx.Blockly;
-            if (!B || !B.Gesture) return () => {};
-            // 记录 Ctrl/Alt 键状态
-            let ctrlOrMeta = false;
-            let alt = false;
-            const onMouseDown = (e) => {
-                ctrlOrMeta = e.ctrlKey || e.metaKey;
-                alt = e.altKey;
-            };
-            document.addEventListener('mousedown', onMouseDown, {capture: true});
-
-            const origStart = B.Gesture.prototype.startDraggingBlock_;
-            B.Gesture.prototype.startDraggingBlock_ = function (...args) {
-                const block = this.targetBlock_;
-                const isFakeEvent = !(this.mostRecentEvent_ instanceof MouseEvent);
-                // block_define（"定义xxx 实现"）积木不可复制——它与左侧积木列表
-                // 一一对应，复制会导致工作区与积木列表失去同步（与 setDeletable(false)
-                // 同一设计约束）。注意 block 可能为 null（拖空白处），先判空。
-                const isProtectedBlock = !block || block.type === 'block_define' ||
-                    block.type === 'procedures_definition';
-                const isDuplicating = alt && !isFakeEvent && !this.flyout_ &&
-                    !this.shouldDuplicateOnDrag_ && !isProtectedBlock;
-                const isCherry = ctrlOrMeta && block && !block.isShadow && !block.isShadow() && !isProtectedBlock;
-                if (isDuplicating || isCherry) {
-                    if (!B.Events.getGroup()) B.Events.setGroup(true);
-                }
-                if (isDuplicating) {
-                    try {
-                        this.startWorkspace_.setResizesEnabled(false);
-                        B.Events.disable();
-                        let newBlock = null;
-                        try {
-                            const xmlBlock = B.Xml.blockToDom(block);
-                            newBlock = B.Xml.domToBlock(xmlBlock, this.startWorkspace_);
-                            if (B.scratchBlocksUtils && B.scratchBlocksUtils.changeObscuredShadowIds) {
-                                B.scratchBlocksUtils.changeObscuredShadowIds(newBlock);
-                            }
-                            const xy = block.getRelativeToSurfaceXY();
-                            newBlock.moveBy(xy.x, xy.y);
-                        } catch (e) { /* 复制失败不影响拖动 */ }
-                        if (newBlock) {
-                            B.Events.enable();
-                            B.Events.setGroup(true);
-                        }
-                    } catch (e) { /* silent */ }
-                }
-                return origStart.call(this, ...args);
-            };
-            return () => {
-                B.Gesture.prototype.startDraggingBlock_ = origStart;
-                document.removeEventListener('mousedown', onMouseDown, {capture: true});
-            };
-        }
-    },
-
-    {
-        id: 'zebra-striping',
-        name: '斑马条纹积木',
-        description: '嵌套的相同颜色积木（如 重复 里的 重复）交替明暗显示，方便看清嵌套层级。',
-        category: '视觉',
-        setup: async (ctx) => {
-            const B = ctx.Blockly;
-            if (!B || !B.BlockSvg) return () => {};
-            const origRender = B.BlockSvg.prototype.render;
-            B.BlockSvg.prototype.render = function (optBubble) {
-                if (!this.isInFlyout && !this.isShadow() && !this.getParent()) {
-                    const stripeState = new Map();
-                    for (const block of this.getDescendants()) {
-                        const parent = block.getSurroundParent();
-                        let striped = false;
-                        if (parent) {
-                            if (block.isShadow()) striped = !!stripeState.get(parent);
-                            else if (parent.getColour() === block.getColour()) striped = !stripeState.get(parent);
-                        }
-                        stripeState.set(block, striped);
-                        const els = [block.svgPath_];
-                        if (block.inputList) {
-                            for (const input of block.inputList) {
-                                if (input.outlinePath) els.push(input.outlinePath);
-                                if (input.fieldRow) {
-                                    for (const f of input.fieldRow) {
-                                        if (f.fieldGroup_) els.push(f.fieldGroup_);
-                                    }
-                                }
-                            }
-                        }
-                        els.forEach(el => el && el.classList && el.classList.toggle('sa-zebra-stripe', striped));
-                    }
-                }
-                return origRender.call(this, optBubble);
-            };
-            return () => { B.BlockSvg.prototype.render = origRender; };
-        },
-        css: `
-.sa-zebra-stripe { filter: brightness(0.95); }
-.blocklyDraggable > .blocklyPath.sa-zebra-stripe { filter: brightness(0.95) saturate(0.9); }
-`
-    },
-
-    {
-        id: 'editor-square-inputs',
-        name: '方形数字输入框',
-        description: '数字/文本输入框从圆形变为方形，视觉上更清晰地区分输入区域。',
-        category: '视觉',
-        setup: async (ctx) => {
-            const B = ctx.Blockly;
-            if (!B || !B.BlockSvg) return () => {};
-            const origJsonInit = B.BlockSvg.prototype.jsonInit;
-            B.BlockSvg.prototype.jsonInit = function (json) {
-                const shapeOverride = {
-                    math_number: 'NUMBER', math_integer: 'NUMBER', math_whole_number: 'NUMBER',
-                    math_positive_number: 'NUMBER', math_angle: 'NUMBER', note: 'NUMBER',
-                    text: 'TEXT', argument_editor_string_number: 'TEXT', colour_picker: 'COLOUR'
-                };
-                if (shapeOverride[this.type] && !this.isShadow()) {
-                    const shape = B.OUTPUT_SHAPE_SQUARE || B.INPUT_SHAPE_SQUARE;
-                    if (shape && B.shapesForArgument) {
-                        try {
-                            const newJson = {...json};
-                            // 保持 jsonInit 原有行为，仅对明确映射的块应用方形输出形状
-                            const argShape = shapeOverride[this.type] === 'NUMBER' ? 'NUMBER' : 'TEXT';
-                            if (B.INPUT_SHAPE_HEXAGONAL && B.INPUT_SHAPE_SQUARE) {
-                                newJson.outputShape = B.OUTPUT_SHAPE_SQUARE;
-                            }
-                            return origJsonInit.call(this, newJson);
-                        } catch (e) { /* 降级 */ }
-                    }
-                }
-                return origJsonInit.call(this, json);
-            };
-            return () => { B.BlockSvg.prototype.jsonInit = origJsonInit; };
-        },
-        css: `
-.blocklyDraggable .blocklyEditableText, .blocklyDraggable .blocklyHtmlInput {
-    border-radius: 4px;
-}
-`
-    },
-
-    {
-        id: 'editor-number-arrow-keys',
-        name: '数字框 ↑↓ 微调',
-        description: '聚焦数字输入框时，按 ↑/↓ 键可以快速增减数值，Shift 一次 ±10，替代手动输入。',
-        category: '编辑器',
-        setup: async (ctx) => {
-            const B = ctx.Blockly;
-            if (!B) return () => {};
-            const handler = (e) => {
-                const target = e.target;
-                if (!target || target.tagName !== 'INPUT') return;
-                const isNum = /^\d*\.?\d*$/.test(target.value || '');
-                if (!isNum) return;
-                if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
-                e.preventDefault();
-                e.stopPropagation();
-                let v = parseFloat(target.value || '0');
-                const step = e.shiftKey ? 10 : 1;
-                v = e.key === 'ArrowUp' ? v + step : v - step;
-                target.value = String(Math.round(v * 1000) / 1000);
-                target.dispatchEvent(new Event('input', {bubbles: true}));
-                // 同步 Blockly 字段值
-                const field = target._blocklyField;
-                if (field && field.setValue) field.setValue(target.value);
-            };
-            document.addEventListener('keydown', handler, true);
-            return () => { document.removeEventListener('keydown', handler, true); };
-        }
-    },
-
-    {
-        id: 'transparent-orphans',
-        name: '孤立积木半透明',
-        description: '顶部不是帽子积木的孤立积木（没有以帽子启动的脚本）变淡显示，帮助快速发现未接线的积木；帽子积木本身保持清晰。',
-        category: '视觉',
-        setup: async (ctx) => {
-            const { Blockly } = ctx;
-            if (!Blockly || !Blockly.BlockSvg) return () => {};
-
-            const CLASS = 'sa-orphan-hat';
-
-            // 帽子 / 脚本起点判定：上方无法再接入任何积木，即 previousConnection
-            // 与 outputConnection 都为 null（没有任何东西能接到它上面）。
-            // 这样能正确识别本编辑器里的 block_define（"定义xxx 实现"）——它的视觉
-            // 形状是帽子，但 nextConnection 可能为 null，用"有 nextConnection"判定
-            // 会漏掉它；同时也能识别标准事件帽子（prev/out 为 null、next 有值）。
-            // 普通语句块（有 previousConnection）和 Reporter（有 outputConnection）
-            // 不会被误判为帽子。
-            const isHat = (block) =>
-                !!(block && !block.previousConnection && !block.outputConnection);
-
-            // 收集一棵脚本树里的所有积木：自身 + 通过 next 连接的语句块 +
-            // 通过输入连接（reporter / 值）连上的积木（含 shadow 占位）。
-            // 不依赖 getDescendants 的具体语义，手工遍历更稳（scratch-blocks 定制 fork）。
-            const collectChain = (block) => {
-                const out = [];
-                const stack = [block];
-                const seen = new Set();
-                while (stack.length) {
-                    const b = stack.pop();
-                    if (!b || seen.has(b.id)) continue;
-                    seen.add(b.id);
-                    out.push(b);
-                    const next = b.getNextBlock && b.getNextBlock();
-                    if (next) stack.push(next);
-                    if (b.inputList) {
-                        for (const input of b.inputList) {
-                            const target = input.connection &&
-                                input.connection.targetBlock &&
-                                input.connection.targetBlock();
-                            if (target) stack.push(target);
-                        }
-                    }
-                }
-                return out;
-            };
-
-            // 给一棵脚本树打标记（或不打）：
-            //  - 是帽子：它自身 + 下方所有积木都标记为不透明
-            //  - 非帽子：它自身 + 下方所有积木都确保不带标记（透明）
-            // 只有"帽子或挂在帽子下的积木"才不透明；孤立的非帽子积木（含其下级）
-            // 一律透明，正是"孤立积木半透明"要的效果。
-            const tagChain = (topBlock) => {
-                if (!topBlock) return;
-                const keep = isHat(topBlock);
-                for (const b of collectChain(topBlock)) {
-                    const svg = b.getSvgRoot && b.getSvgRoot();
-                    if (!svg || !svg.classList) continue;
-                    if (keep) svg.classList.add(CLASS);
-                    else svg.classList.remove(CLASS);
-                }
-            };
-
-            const tagWorkspace = (ws) => {
-                if (!ws || ws.isFlyout) return;
-                let tops;
-                try { tops = ws.getTopBlocks(false); } catch (e) { return; }
-                for (const block of tops) tagChain(block);
-            };
-
-            // 在 Blockly 渲染顶层积木时同步打标记类，确保重渲染后状态正确
-            // （仿斑马条纹插件，避免仅靠事件监听可能出现的时序 / 丢标问题）。
-            const origRender = Blockly.BlockSvg.prototype.render;
-            Blockly.BlockSvg.prototype.render = function (optBubble) {
-                const result = origRender.call(this, optBubble);
-                // 仅顶层积木参与（与 CSS .blocklyDraggable 作用范围一致）；
-                // 子树由 tagWorkspace / 事件统一处理。
-                if (!this.isInFlyout && !this.getParent() &&
-                    this.svgGroup_ && this.svgGroup_.classList) {
-                    if (isHat(this)) this.svgGroup_.classList.add(CLASS);
-                    else this.svgGroup_.classList.remove(CLASS);
-                }
-                return result;
-            };
-
-            // 兜底：积木移动 / 断开连接（成为顶层）等事件驱动再标记一次对应工作区。
-            // 注意：scratch-blocks 定制 fork 里【没有】全局 Blockly.addChangeListener
-            // （实测 typeof 为 undefined），只能挂在具体工作区实例上。若直接调用会抛错
-            // 并中断 setup，导致后面的初始打标 retagAll 永远不执行（表现为"所有积木透明"）。
-            const listener = (e) => {
-                let ws = null;
-                if (e && e.workspaceId && Blockly.Workspace && Blockly.Workspace.getById) {
-                    ws = Blockly.Workspace.getById(e.workspaceId);
-                }
-                if (!ws) ws = ctx.getWorkspace && ctx.getWorkspace();
-                if (ws) tagWorkspace(ws);
-            };
-            let removeListener = () => {};
-            try {
-                const main = ctx.getWorkspace && ctx.getWorkspace();
-                if (main && typeof main.addChangeListener === 'function') {
-                    main.addChangeListener(listener);
-                    removeListener = () => { try { main.removeChangeListener(listener); } catch (e) {} };
-                }
-            } catch (e) { /* 变更监听是可选的，失败不影响初始打标 */ }
-
-            // ★ 初始打标（核心修复）：覆写安装前已渲染完成的积木不会触发 render 覆写
-            // 或变更事件，必须主动遍历一次所有非 flyout 工作区，否则它们永远拿不到
-            // sa-orphan-hat 类、被 CSS 判为透明（表现为"所有积木都透明"）。
-            // 关键：必须「同步立即执行」+ setTimeout 兜底，不能只依赖 requestAnimationFrame
-            // —— 在部分 headless / 隐藏页面下，加载阶段的 rAF 不触发，会导致打标永远不跑。
-            const retagAll = () => {
-                const tagWs = (ws) => {
-                    if (!ws || ws.isFlyout) return;
-                    try { tagWorkspace(ws); } catch (e) { /* silent */ }
-                };
-                const main = ctx.getWorkspace && ctx.getWorkspace();
-                if (main) tagWs(main);
-                try {
-                    const db = Blockly.Workspace && Blockly.Workspace.WorkspaceDB_;
-                    if (db && typeof db === 'object') {
-                        for (const id in db) tagWs(db[id]);
-                    }
-                } catch (e) { /* silent */ }
-            };
-            retagAll();              // 立即打标（setup 运行时积木已渲染完成）
-            setTimeout(retagAll, 0); // 兜底：DOM / SVG 完全就绪后再打一次
-            setTimeout(retagAll, 500);
-            setTimeout(retagAll, 1500);
-
-            return () => {
-                Blockly.BlockSvg.prototype.render = origRender;
-                removeListener();
-                // 清理：移除所有标记类，恢复完全不透明
-                try {
-                    const workspaces = [];
-                    const main = ctx.getWorkspace && ctx.getWorkspace();
-                    if (main) workspaces.push(main);
-                    const db = Blockly.Workspace && Blockly.Workspace.WorkspaceDB_;
-                    if (db && typeof db === 'object') {
-                        for (const id in db) { if (db[id]) workspaces.push(db[id]); }
-                    }
-                    for (const ws of workspaces) {
-                        if (!ws || ws.isFlyout) continue;
-                        let tops;
-                        try { tops = ws.getTopBlocks(false); } catch (e) { continue; }
-                        for (const block of tops) {
-                            for (const b of collectChain(block)) {
-                                const svg = b.getSvgRoot && b.getSvgRoot();
-                                if (svg && svg.classList) svg.classList.remove(CLASS);
-                            }
-                        }
-                    }
-                } catch (e) { /* silent */ }
-            };
-        },
-        css: `
-.blocklySvg > .blocklyWorkspace > .blocklyBlockCanvas > .blocklyDraggable:not(.sa-orphan-hat) {
-    opacity: 0.6;
-    transition: opacity .2s;
-}
-.blocklySvg > .blocklyWorkspace > .blocklyBlockCanvas > .blocklyDraggable:not(.sa-orphan-hat):hover,
-.blocklySvg > .blocklyWorkspace > .blocklyBlockCanvas > .blocklyDraggable:not(.sa-orphan-hat).blocklyDragging {
-    opacity: 1;
-}
-`
-    },
-
-    // ========================================================================
-    // （More Right-Click Menu）— 移植自 TurboWarp addons
-    // 功能：右键积木新增「全部复制 / 复制积木 / 剪切积木」（内部剪贴板）、
-    //       点击空白画布浮现「粘贴」按钮、增强整理积木
-    // 子选项：增强"整理积木"、在鼠标指针处粘贴积木
-    // ========================================================================
-    {
-        id: 'developer-tools',
-        name: '更多右键菜单栏',
-        description: '右键积木新增「全部复制（整条脚本）/ 复制积木（单块）/ 剪切积木」，复制内容存入内部剪贴板；点击空白画布会浮现「粘贴」按钮，点击即可粘贴。区别于原版「复制」直接落一块到画布。',
-        category: '编辑器',
-        recommended: true,
-        options: [
-            { id: 'enhanced-cleanup', label: '增强"整理积木"', default: true },
-            { id: 'paste-at-mouse', label: '在鼠标指针处粘贴积木', default: true }
-        ],
-        css: `
-`,
-        setup: async (ctx) => {
-            const B = ctx.Blockly;
-            if (!B || !B.Xml || !B.Gesture || !B.ContextMenu) return () => {};
-
-            // ── 子选项读取 ──
-            const addonConfig = ctx.addon || {};
-            const optionDefs = addonConfig.options || [];
-            const getOpts = () => {
-                try {
-                    // 优先从 localStorage 读最新值（用户可能在面板切换了子选项）
-                    const saved = JSON.parse(localStorage.getItem('extbuilder_opts_' + (addonConfig.id || 'developer-tools')) || '{}');
-                    const defaults = {};
-                    optionDefs.forEach(o => { defaults[o.id] = !!o.default; });
-                    return {...defaults, ...saved};
-                } catch (e) {
-                    const defaults = {};
-                    optionDefs.forEach(o => { defaults[o.id] = !!o.default; });
-                    return {...defaults};
-                }
-            };
-
-            // ── 内部剪贴板（XML 字符串）──
-            let clipboardXml = null;   // 序列化的 XML 字符串
-
-            // ── 右键上下文捕获 ──
-            let lastTarget = null;          // 右键点击的积木
-            let lastWorkspace = null;       // 右键所在工作区
-            let lastMouseWsPos = null;      // 鼠标位置（workspace 坐标）
-
-            const computeWsPos = (e, ws) => {
-                if (!e || !ws || !ws.getCanvas) return null;
-                try {
-                    const svg = ws.getCanvas();
-                    if (svg && svg.createSVGPoint) {
-                        const pt = svg.createSVGPoint();
-                        pt.x = e.clientX; pt.y = e.clientY;
-                        const ctm = svg.getScreenCTM();
-                        if (ctm) return pt.matrixTransform(ctm.inverse());
-                    }
-                } catch (err) { /* silent */ }
-                return null;
-            };
-
-            // ── 工具函数：获取主工作区 ──
-            const getMainWs = () => { try { return ctx.getWorkspace && ctx.getWorkspace(); } catch (e) { return null; } };
-
-            // ── 序列化 / 复制到内部剪贴板 ──
-            const getStackTop = (b) => {
-                let t = b;
-                try { while (t.getParent && t.getParent()) t = t.getParent(); } catch (e) {}
-                return t;
-            };
-            const serializeStack = (topBlock) => {                 // 整条连接（含 next 链）
-                const xml = B.Xml.blockToDom(topBlock, true);
-                return new XMLSerializer().serializeToString(xml);
-            };
-            const serializeSingle = (block) => {                   // 仅单块：剥掉 <next> 后续链
-                const xml = B.Xml.blockToDom(block, true);
-                const nextEl = xml.getElementsByTagName('next')[0];
-                if (nextEl && nextEl.parentNode) nextEl.parentNode.removeChild(nextEl);
-                return new XMLSerializer().serializeToString(xml);
-            };
-            const setClipboard = (xmlStr) => {
-                clipboardXml = xmlStr;
-                // 按钮只在点击幕布时出现（showPasteBtn），复制时无需立即显示
-            };
-            const copyAll = (block) => {   // 全部复制：右键积木连接在一起的全部积木
-                if (!block) return;
-                try { setClipboard(serializeStack(getStackTop(block))); } catch (e) { console.warn('[MoreRightClick] 复制失败:', e); }
-            };
-            const copySingle = (block) => { // 复制积木：仅右键单块（含嵌套 input 子积木）
-                if (!block) return;
-                try { setClipboard(serializeSingle(block)); } catch (e) { console.warn('[MoreRightClick] 复制失败:', e); }
-            };
-            const cutSingle = (block) => {  // 剪切积木：复制到剪贴板并移除该块
-                if (!block) return;
-                try {
-                    setClipboard(serializeSingle(block));
-                    const nextBlock = block.getNextBlock && block.getNextBlock();
-                    if (nextBlock && block.nextConnection) {
-                        try { block.nextConnection.disconnect(); } catch (e) {}
-                    }
-                    block.dispose(true);
-                } catch (e) { console.warn('[MoreRightClick] 剪切失败:', e); }
-            };
-
-            // ── 粘贴积木 ──
-            const pasteBlocks = (ws, optX, optY) => {
-                if (!clipboardXml || !ws || !B.Xml || !B.Xml.domToBlock) return;
-                try {
-                    const parser = new DOMParser();
-                    const xmlDoc = parser.parseFromString(clipboardXml, 'text/xml');
-                    const blockEl = xmlDoc.documentElement;
-                    if (!blockEl || blockEl.tagName !== 'block') return;
-
-                    // 关闭事件分组以避免撤销栈混乱
-                    if (!B.Events.getGroup()) B.Events.setGroup(true);
-
-                    const newBlock = B.Xml.domToBlock(blockEl, ws);
-                    if (!newBlock) return;
-
-                    // 处理 shadow ID 冲突（与 block-duplicate 一致）
-                    if (B.scratchBlocksUtils && B.scratchBlocksUtils.changeObscuredShadowIds) {
-                        B.scratchBlocksUtils.changeObscuredShadowIds(newBlock);
-                    }
-
-                    // 定位：剪贴板积木不含坐标（domToBlock 落在 0,0），按 delta 移动
-                    const cur = newBlock.getRelativeToSurfaceXY ? newBlock.getRelativeToSurfaceXY() : {x: 0, y: 0};
-                    let dx, dy;
-                    if (optX !== undefined && optY !== undefined) {
-                        dx = optX - cur.x; dy = optY - cur.y;
-                    } else {
-                        dx = 40; dy = 40;
-                    }
-                    newBlock.moveBy(dx, dy);
-
-                    // 选中新粘贴的积木
-                    if (ws.select && newBlock.select) {
-                        try { ws.select(newBlock); } catch (e) { /* silent */ }
-                    }
-
-                    B.Events.setGroup(false);
-                } catch (e) {
-                    console.warn('[MoreRightClick] 粘贴失败:', e);
-                }
-            };
-
-            // ── 增强「整理积木」──
-            const enhancedCleanUp = (ws) => {
-                if (!ws) return;
-                let tops;
-                try { tops = ws.getTopBlocks(false); } catch (e) { return; }
-                if (!tops || tops.length === 0) return;
-
-                // 分离帽子积木（脚本起点）和孤立非帽子积木
-                const hats = [];
-                const orphans = [];
-                tops.forEach(b => {
-                    const isHat = !b.previousConnection && !b.outputConnection;
-                    if (isHat) hats.push(b);
-                    else orphans.push(b);
-                });
-
-                const COL_GAP = 180;  // 列间距
-                const ROW_GAP = 48;   // 行间距（标准 Blockly spacing * 1.5）
-                let x = 20, maxY = 0;
-
-                const layoutColumn = (blocks) => {
-                    let cx = x, cy = 10;
-                    blocks.forEach(block => {
-                        try {
-                            const hw = block.width || block.height || 120;
-                            const hh = block.height || block.height || 80;
-                            block.moveBy(cx - (block.getRelativeToSurfaceXY ? block.getRelativeToSurfaceXY().x : 0),
-                                        cy - (block.getRelativeToSurfaceXY ? block.getRelativeToSurfaceXY().y : 0));
-                            cy += hh + ROW_GAP;
-                            if (cy > maxY) maxY = cy;
-                        } catch (e) { /* 跳过不可移动的 */ }
-                    });
-                    x += COL_GAP;
-                };
-
-                // 先排帽子列（脚本），再排孤立列
-                if (hats.length) layoutColumn(hats);
-                if (orphans.length) layoutColumn(orphans);
-
-                // 调整工作区滚动范围
-                try { ws.resizeContents(); } catch (e) { /* silent */ }
-            };
-
-            // ── 捕获右键目标（在原生 showContextMenu_ 之前记录积木/工作区/鼠标位置）──
-            const origHandleRightClick = B.Gesture.prototype.handleRightClick;
-            B.Gesture.prototype.handleRightClick = function (e) {
-                lastTarget = this.targetBlock_ || null;
-                lastWorkspace = this.startWorkspace_ || null;
-                lastMouseWsPos = computeWsPos(e, lastWorkspace);
-                return origHandleRightClick.call(this, e);
-            };
-
-            // ── 核心方案：覆写 ContextMenu.show —— 仿 TurboWarp 开发者工具完整菜单 ──
-            // 原版菜单结构（右键积木）：
-            //   撤销 | 重做 | ── | 整理积木+ | ── | [原生项] | ── | 全部复制/复制积木/剪切积木 | 粘贴
-            // 原版菜单结构（右键空白画布）：
-            //   撤销 | 重做 | ── | 整理积木+ | ── | 添加注释 | 删除 | ── | 粘贴
-            const origShow = B.ContextMenu.show;
-            B.ContextMenu.show = function (e, options, rtl) {
-                try {
-                    const opts = getOpts();
-                    const ws = lastWorkspace || getMainWs();
-                    const block = lastTarget ||
-                        (ws && ws.getSelected && ws.getSelected()) || null;
-
-                    const newOptions = [];
-
-                    // ① 撤销 / 重做（工作区级操作）
-                    const canUndo = ws && ws.undoStack && Array.isArray(ws.undoStack) && ws.undoStack.length > 0;
-                    const canRedo = ws && ws.redoStack && Array.isArray(ws.redoStack) && ws.redoStack.length > 0;
-                    // scratch-blocks 的 undo/redo 通过 Blockly.Events 或 workspace 方法暴露
-                    // 尝试多种方式检测
-                    let _canUndo = false, _canRedo = false;
-                    try {
-                        if (B.Events && typeof B.Events.getUndoStack === 'function') {
-                            _canUndo = B.Events.getUndoStack().length > 0;
-                        }
-                        if (B.Events && typeof B.Events.getRedoStack === 'function') {
-                            _canRedo = B.Events.getRedoStack().length > 0;
-                        }
-                    } catch(e) {}
-                    // fallback: 通过 workspace 的 undo_/redo_
-                    try {
-                        if (!_canUndo && ws && ws.undo_ && Array.isArray(ws.undo_)) _canUndo = ws.undo_.length > 0;
-                        if (!_canRedo && ws && ws.redo_ && Array.isArray(ws.redo_)) _canRedo = ws.redo_.length > 0;
-                    } catch(e) {}
-
-                    newOptions.push({
-                        text: '撤销',
-                        enabled: _canUndo,
-                        callback: () => { try { if (ws && ws.undo) ws.undo(); else if (B.Commands) B.Commands.undo(); } catch(x){} }
-                    });
-                    newOptions.push({
-                        text: '重做',
-                        enabled: _canRedo,
-                        callback: () => { try { if (ws && ws.redo) ws.redo(); else if (B.Commands) B.Commands.redo(); } catch(x){} }
-                    });
-
-                    newOptions.push({text: '──', enabled: false, callback: function(){}});
-
-                    // ② 整理积木+
-                    newOptions.push({
-                        text: '整理积木' + (opts['enhanced-cleanup'] ? '+' : ''),
-                        enabled: !!(ws && ws.getTopBlocks),
-                        callback: () => {
-                            if (opts['enhanced-cleanup']) enhancedCleanUp(ws);
-                            else try { if (ws && ws.cleanUp) ws.cleanUp(); } catch(e){}
-                        }
-                    });
-
-                    newOptions.push({text: '──', enabled: false, callback: function(){}});
-
-                    // ③ 如果右键的是积木，注入原生选项（options 已由 block.showContextMenu_ 构建）
-                    if (block && options && options.length > 0) {
-                        // 把原生选项全部接过来（复制、添加注释、删除、帮助等）
-                        for (const opt of options) newOptions.push(opt);
-                        // 清空原数组避免重复
-                        options.length = 0;
-
-                        newOptions.push({text: '──', enabled: false, callback: function(){}});
-
-                        // ④ 自定义复制/剪切项
-                        newOptions.push({
-                            text: '全部复制',
-                            enabled: true,
-                            callback: () => { copyAll(block); }
-                        });
-                        newOptions.push({
-                            text: '复制积木',
-                            enabled: true,
-                            callback: () => { copySingle(block); }
-                        });
-                        newOptions.push({
-                            text: '剪切积木',
-                            enabled: (typeof block.isDeletable !== 'function') ? true : block.isDeletable(),
-                            callback: () => { cutSingle(block); }
-                        });
-                    }
-
-                    // ⑤ 粘贴（剪贴板有内容时才启用）
-                    newOptions.push({
-                        text: '粘贴',
-                        enabled: !!clipboardXml,
-                        callback: () => {
-                            const pasteWs = lastWorkspace || getMainWs();
-                            pasteBlocks(pasteWs, lastMouseWsPos ? lastMouseWsPos.x : undefined, lastMouseWsPos ? lastMouseWsPos.y : undefined);
-                        }
-                    });
-
-                    // 替换 options 为新数组
-                    options.length = 0;
-                    for (const o of newOptions) options.push(o);
-
-                } catch (err) { /* 任何错误不影响原生菜单 */ }
-                return origShow.call(this, e, options, rtl);
-            };
-
-            // ── 键盘快捷键：Ctrl+C / Ctrl+V ──
-            const onKeyDown = (e) => {
-                // Ctrl/Cmd + C = 复制
-                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c' && !e.shiftKey && !e.altKey) {
-                    const ws = getMainWs();
-                    const selected = ws && ws.getSelected && ws.getSelected();
-                    if (selected && !(e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable))) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const top = selected.getParent ? (function findTop(b){return b.getParent?findTop(b.getParent()):b;})(selected) : selected;
-                        copyAll(top);
-                    }
-                }
-                // Ctrl/Cmd + V = 粘贴
-                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v' && !e.shiftKey && !e.altKey) {
-                    if (clipboardXml && !(e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable))) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const ws = getMainWs();
-                        if (ws) pasteBlocks(ws);
-                    }
-                }
-            };
-            document.addEventListener('keydown', onKeyDown, true);
-
-            // ── 修复：拖拽后 shadow 块（绿色椭圆等）位置漂移 ──
-            // 根因：moveOffDragSurface_ 后 shadow 的 outputConnection 坐标变陈旧，
-            // 每次 render → tighten_() 用相对位置修正会累积偏移。
-            // 修复：拖拽结束后强制对含 shadow 输入的积木做绝对定位重渲染。
-            const origMoveOffDragSurface = B.BlockSvg.prototype.moveOffDragSurface_;
-            B.BlockSvg.prototype.moveOffDragSurface_ = function (newXY) {
-                origMoveOffDragSurface.call(this, newXY);
-                try {
-                    // 拖拽结束后的下一帧，强制重新渲染本块及所有后代
-                    // （requestAnimationFrame 确保 DOM 已从 drag surface 移回 canvas）
-                    const self = this;
-                    requestAnimationFrame(() => {
-                        try {
-                            // 从栈顶开始渲染整条链
-                            let top = self;
-                            while (top.getParent && top.getParent()) top = top.getParent();
-                            const rerenderWithShadows = (block) => {
-                                if (!block) return;
-                                // 强制重新计算连接坐标：先清掉陈旧的 transform 再 render
-                                if (block.svgGroup_) {
-                                    const root = block.getSvgRoot && block.getSvgRoot();
-                                    if (root) {
-                                        // 读当前绝对位置
-                                        const cur = block.getRelativeToSurfaceXY ? block.getRelativeToSurfaceXY() : {x:0,y:0};
-                                        // 重设 transform 为干净的绝对坐标
-                                        root.setAttribute('transform', 'translate(' + cur.x + ',' + cur.y + ')');
-                                    }
-                                }
-                                block.render && block.render(true);
-                                // 也渲染所有通过 input 连接的子块（shadow 块）
-                                if (block.inputList) {
-                                    for (const inp of block.inputList) {
-                                        const target = inp.connection && inp.connection.targetBlock && inp.connection.targetBlock();
-                                        if (target) rerenderWithShadows(target);
-                                    }
-                                }
-                                // 渲染 next 链上的后续块
-                                const next = block.getNextBlock && block.getNextBlock();
-                                if (next) rerenderWithShadows(next);
-                            };
-                            rerenderWithShadows(top);
-                        } catch(e) { /* silent */ }
-                    });
-                } catch(e) { /* silent */ }
-            };
-
-            // ── 增强「整理积木」──
-            // 当子选项开启时，用增强版替换默认的 cleanUp
-            let origCleanUp = null;
-            const tryPatchCleanup = () => {
-                const opts = getOpts();
-                if (opts['enhanced-cleanup'] && B.WorkspaceSvg && B.WorkspaceSvg.prototype.cleanUp && !origCleanUp) {
-                    origCleanUp = B.WorkspaceSvg.prototype.cleanUp;
-                    B.WorkspaceSvg.prototype.cleanUp = function (...args) {
-                        enhancedCleanUp(this);
-                    };
-                } else if (!opts['enhanced-cleanup'] && origCleanUp) {
-                    B.WorkspaceSvg.prototype.cleanUp = origCleanUp;
-                    origCleanUp = null;
-                }
-            };
-            tryPatchCleanup();
-
-            // 监听子选项变化（其他地方写入 localStorage 时同步更新行为）
-            let _lastOptsStr = JSON.stringify(getOpts());
-            const optsPoller = setInterval(() => {
-                const cur = JSON.stringify(getOpts());
-                if (cur !== _lastOptsStr) {
-                    _lastOptsStr = cur;
-                    tryPatchCleanup();
-                }
-            }, 500);
-
-            return () => {
-                // 清理所有覆写
-                B.Gesture.prototype.handleRightClick = origHandleRightClick;
-                B.ContextMenu.show = origShow;
-                B.BlockSvg.prototype.moveOffDragSurface_ = origMoveOffDragSurface;
-                document.removeEventListener('keydown', onKeyDown, true);
-                clearInterval(optsPoller);
-                if (origCleanUp) {
-                    B.WorkspaceSvg.prototype.cleanUp = origCleanUp;
-                }
-                clipboardXml = null;
-                lastTarget = null; lastWorkspace = null; lastMouseWsPos = null;
-            };
-        }
-    }
-
+    // 标记为内置：插件管理列表里不可卸载、开关锁定为启用
+    Object.assign({}, realtimeCollab, { builtin: true }),
+    // AI 助手：内置 UI 开关（无改装逻辑）
+    Object.assign({}, extEditAi, { builtin: true }),
 ];
+
+/** 提示文案：内置插件已迁移到外部仓库 */
+export const EXT_ADDONS_MIGRATION_NOTE =
+    '内置插件已迁移到 GitHub 仓库 scratch-ext-addon，可在「安装插件」中输入 ' +
+    'github:dhdbvcg/scratch-ext-addon 重新安装。';
+
+
 
 /**
  * ============================================================
@@ -876,41 +149,29 @@ export function saveCustomAddons(list) {
 }
 
 /**
- * 从 JS 文件文本导入自定义插件。
- * @param {string} fileText 文件内容
- * @returns {Array} 成功导入的插件定义数组（已写入 localStorage）
- * @throws {Error} 格式错误时抛异常
+ * 把 JS 文本编译成插件定义数组（共享逻辑：本地文件与远程来源都用它）。
+ * 支持 `export default {...}` / `module.exports = {...}`，以及导出数组。
+ * @returns {Array} 校验通过的插件对象数组（含 setupCode 源码）
  */
-export function importCustomAddonFromFile(fileText) {
-    if (typeof fileText !== 'string' || !fileText.trim()) {
-        throw new Error('文件内容为空');
-    }
-    let code = fileText;
-    // 支持 `export default {...}` → 转写为 CommonJS module.exports
+function evalAddonText(rawCode) {
+    if (typeof rawCode !== 'string' || !rawCode.trim()) throw new Error('内容为空');
+    let code = rawCode;
     if (/export\s+default/.test(code)) {
         code = code.replace(/export\s+default\s+/, 'module.exports = ');
-        // 屏蔽其它 export 语句（简单处理，避免重新编译时报语法错误）
         code = code.replace(/^[ \t]*export\s+/gm, '// export ');
     }
     const module = {exports: {}};
     const blk = resolveBlockly();
     const win = (typeof window !== 'undefined' ? window : undefined);
-    // 在受控作用域里执行，提供 module/exports/Blockly/ctx/window
     const fn = new Function('module', 'exports', 'Blockly', 'ctx', 'window', code);
     fn(module, module.exports, blk, undefined, win);
     const exp = module.exports;
-    if (!exp) {
-        throw new Error('文件未导出插件对象（请用 module.exports = {...} 或 export default {...}）');
-    }
+    if (!exp) throw new Error('文件未导出插件对象（请用 module.exports = {...} 或 export default {...}）');
     const list = Array.isArray(exp) ? exp : [exp];
     const valid = [];
     for (const a of list) {
-        if (!a || typeof a.id !== 'string' || !a.id.trim()) {
-            throw new Error('插件缺少有效的 id 字段');
-        }
-        if (typeof a.setup !== 'function') {
-            throw new Error('插件「' + (a.id || '?') + '」缺少 setup 函数');
-        }
+        if (!a || typeof a.id !== 'string' || !a.id.trim()) throw new Error('插件缺少有效的 id 字段');
+        if (typeof a.setup !== 'function') throw new Error('插件「' + (a.id || '?') + '」缺少 setup 函数');
         valid.push({
             id: a.id.trim(),
             name: a.name || a.id,
@@ -921,11 +182,539 @@ export function importCustomAddonFromFile(fileText) {
             custom: true
         });
     }
-    // 合并：删除同名旧插件，追加新插件
-    const existing = loadCustomAddons().map(stripCustomFn);
-    const merged = existing.filter(e => !valid.some(v => v.id === e.id)).concat(valid);
-    saveCustomAddons(merged);
     return valid;
+}
+
+/**
+ * 写入 localStorage（合并同名、追加新插件）。sourceSpec 非空时记录来源便于「更新」。
+ */
+function storeImportedAddons(list, sourceSpec) {
+    const existing = loadCustomAddons().map(stripCustomFn);
+    const merged = existing
+        .filter(e => !list.some(v => v.id === e.id))
+        .concat(list.map(a => sourceSpec != null
+            ? {...a, source: sourceSpec, installedAt: Date.now()}
+            : a));
+    saveCustomAddons(merged);
+    return list;
+}
+
+/**
+ * 从本地 JS 文件文本导入（向后兼容旧入口，不记录来源）。
+ */
+export function importCustomAddonFromFile(fileText) {
+    const list = evalAddonText(fileText);
+    if (!list.length) throw new Error('文件中没有有效的插件对象');
+    return storeImportedAddons(list, null);
+}
+
+/* ===================== 文件夹 / ZIP / 多格式导入 =====================
+ * 一个插件「包」是一组文件（HTML / CSS / 各种图片 / JS 等），结构：
+ *   index.js  —— 入口（必须，导出插件对象，同 evalAddonText 规则）
+ *   *.html / *.css / *.png / *.jpg / *.svg / *.gif / *.webp ... —— 资源（转 base64）
+ * 其余 JS 文件也可作为资源被 index.js 通过 ctx.loadAsset 读取。
+ *
+ * 导入方式：
+ *   1) 文件夹：浏览器 <input webkitdirectory> 选出的 File[]，逐个读为 {path, text, base64}
+ *   2) ZIP：JSZip 解压后的 {path, text, base64}[]
+ *   3) 单个 JS：沿用 importCustomAddonFromFile（已存在）
+ *
+ * 资源以 base64 dataURL 形式存进插件对象的 assets 字段，持久化到 localStorage，
+ * 重载后由 makeAddonCtx 还原为 ctx.assets / ctx.loadAsset。
+ */
+
+// 是否视为「可识别的资源」（用于生成 assets map）
+// 白名单：HTML / CSS / 图片 / 字体 / 非入口的 JS（可被 index.js 经 loadAsset 读取）。
+// 其余文本（md/txt/json 等）不进 assets；index.js 永远作为入口不进 assets。
+function isAssetPath(path) {
+    const p = path.replace(/\\/g, '/').replace(/^\/+/, '');
+    if (/^index\.js$|(^|\/)index\.js$/.test(p)) return false;
+    if (/\.(js|mjs)$/i.test(p)) return true; // 非入口 JS 也可作为资源被 loadAsset 读取
+    if (/\.(md|markdown|txt|json|map)$/i.test(p)) return false;
+    if (/\.(html?|css|png|jpe?g|gif|webp|bmp|ico|svg|woff2?|ttf|otf)$/i.test(p)) return true;
+    return false;
+}
+
+// 归一化路径（去掉前导 ./ 与绝对前缀，统一小写比较用 key）
+function normPath(path) {
+    return path.replace(/\\/g, '/').replace(/^\.?\//, '');
+}
+
+// 从文件数组解析出 index.js 文本 + assets map
+function parseBundleFiles(files) {
+    const fileMap = new Map();
+    for (const f of files) {
+        const p = normPath(f.path || f.name || '');
+        if (!p) continue;
+        fileMap.set(p.toLowerCase(), f);
+    }
+    // 找入口：优先根 index.js，其次任一 index.js
+    const entryCandidates = ['index.js', ...[...fileMap.keys()].filter(k => /(^|\/)index\.js$/.test(k))];
+    let entryKey = entryCandidates.find(k => fileMap.has(k));
+    if (!entryKey) throw new Error('插件包中找不到 index.js 入口文件');
+    const entryFile = fileMap.get(entryKey);
+    const entryText = entryFile.text != null ? entryFile.text : entryFile.base64 || '';
+    if (!entryText) throw new Error('入口 index.js 内容为空');
+
+    // 其余文件做 assets（base64 dataURL）
+    const assets = {};
+    for (const [k, f] of fileMap.entries()) {
+        if (k === entryKey) continue;
+        if (!isAssetPath(k)) continue;
+        const dataUrl = toDataUrl(f, k);
+        if (dataUrl) assets[k] = dataUrl;
+    }
+    return {entryText, assets};
+}
+
+// 把文件转成 dataURL（优先 base64 字段，否则用 text 转）
+function toDataUrl(f, key) {
+    if (f.base64) return f.base64; // 已经是 dataURL 或裸 base64
+    if (f.text != null) {
+        const mime = mimeOf(key);
+        const b64 = typeof btoa !== 'undefined'
+            ? btoa(unescape(encodeURIComponent(f.text)))
+            : Buffer.from(f.text, 'utf-8').toString('base64');
+        return 'data:' + mime + ';base64,' + b64;
+    }
+    return null;
+}
+
+// 粗略 MIME 推断（仅用于资源预览/dataURL 头）
+function mimeOf(path) {
+    const ext = (path.split('.').pop() || '').toLowerCase();
+    const map = {
+        html: 'text/html', htm: 'text/html', css: 'text/css', js: 'text/javascript',
+        json: 'application/json', svg: 'image/svg+xml', png: 'image/png', jpg: 'image/jpeg',
+        jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', bmp: 'image/bmp',
+        ico: 'image/x-icon', txt: 'text/plain', md: 'text/markdown', woff: 'font/woff',
+        woff2: 'font/woff2', ttf: 'font/ttf'
+    };
+    return map[ext] || 'application/octet-stream';
+}
+
+/**
+ * 把 {path, text, base64}[] 编译并持久化为插件（含资源）。
+ * @returns 导入的插件定义数组
+ */
+export function evalAddonBundle(files, sourceSpec) {
+    if (!Array.isArray(files) || !files.length) throw new Error('文件列表为空');
+    const {entryText, assets} = parseBundleFiles(files);
+    const list = evalAddonText(entryText);
+    for (const item of list) {
+        item.assets = assets; // 资源随插件一起持久化
+    }
+    return storeImportedAddons(list, sourceSpec || null);
+}
+
+/**
+ * 浏览器本地文件夹 / 多文件选择导入（webkitdirectory 或 multiple）。
+ * files: File[]（可能含子目录路径，webkitdirectory 时 file.webkitRelativePath 可用）
+ */
+export async function importAddonBundle(files, sourceSpec) {
+    if (!files || !files.length) throw new Error('未选择文件');
+    const prepared = await Promise.all([...files].map(async (f) => {
+        const path = (f.webkitRelativePath && f.webkitRelativePath.length > f.name.length)
+            ? f.webkitRelativePath
+            : f.name;
+        const isImg = /(\.(png|jpe?g|gif|webp|bmp|svg|ico|woff2?|ttf))$/i.test(path);
+        let base64 = null;
+        if (isImg) {
+            const buf = await f.arrayBuffer();
+            base64 = 'data:' + (f.type || mimeOf(path)) + ';base64,' +
+                (typeof btoa !== 'undefined'
+                    ? btoa(String.fromCharCode(...new Uint8Array(buf)))
+                    : Buffer.from(buf).toString('base64'));
+        }
+        return {path, name: f.name, text: isImg ? '' : await f.text(), base64};
+    }));
+    return evalAddonBundle(prepared, sourceSpec || ('local:' + (files[0].name || 'folder')));
+}
+
+/**
+ * 从 ZIP（ArrayBuffer）导入插件包，使用 JSZip 解压。
+ * 支持 HTML/CSS/图片/JS 等任意资源。
+ */
+export async function importAddonFromZip(arrayBuffer, sourceSpec) {
+    let JSZip;
+    try {
+        JSZip = (await import('jszip')).default || (await import('jszip'));
+    } catch (e) {
+        // 兜底：全局或 require
+        JSZip = (typeof window !== 'undefined' && window.JSZip) || (typeof require !== 'undefined' ? require('jszip') : null);
+    }
+    if (!JSZip) throw new Error('ZIP 解压库不可用（JSZip 未加载）');
+    const zip = await JSZip.loadAsync(arrayBuffer);
+    const files = [];
+    zip.forEach((relPath, entry) => {
+        if (entry.dir) return;
+        // 忽略 macOS 元数据
+        if (relPath.startsWith('__MACOSX/') || relPath.endsWith('/.DS_Store')) return;
+        files.push(relPath);
+    });
+    const prepared = await Promise.all(files.map(async (relPath) => {
+        const entry = zip.file(relPath);
+        if (!entry) return null;
+        const isImg = /(\.(png|jpe?g|gif|webp|bmp|svg|ico|woff2?|ttf))$/i.test(relPath);
+        if (isImg) {
+            const buf = await entry.async('uint8array');
+            const b64 = (typeof btoa !== 'undefined'
+                ? btoa(String.fromCharCode(...buf))
+                : Buffer.from(buf).toString('base64'));
+            return {path: relPath, name: relPath.split('/').pop(), base64: 'data:image/' + (mimeOf(relPath).split('/')[1] || 'png') + ';base64,' + b64, text: ''};
+        }
+        const text = await entry.async('string');
+        return {path: relPath, name: relPath.split('/').pop(), text, base64: null};
+    }));
+    const filtered = prepared.filter(Boolean);
+    return evalAddonBundle(filtered, sourceSpec || 'local:zip');
+}
+
+/* ===================== 多源安装（对齐 DeepSeek Harness 的 dsh plugin add） ===================== */
+
+const CDN = 'https://cdn.jsdelivr.net';
+
+// 识别来源类型：npm / github / git / url / tarball
+function detectSourceType(spec) {
+    spec = (spec || '').trim();
+    if (!spec) throw new Error('来源为空');
+    if (/^https?:\/\//i.test(spec)) {
+        if (/\.tgz$|\.tar\.gz$/i.test(spec)) return {type: 'tarball', url: spec};
+        return {type: 'url', url: spec};
+    }
+    if (/^git\+https?:\/\//i.test(spec)) {
+        const m = spec.match(/^git\+https?:\/\/(github\.com\/[^\s/]+\/[^\s/]+?)(\.git)?$/i);
+        if (m) return {type: 'github', owner: m[1].split('/')[0], repo: m[1].split('/')[1]};
+        return {type: 'git', url: spec.replace(/^git\+/, '')};
+    }
+    if (/^github:/i.test(spec)) {
+        const rest = spec.replace(/^github:/i, '').replace(/\.git$/, '');
+        const parts = rest.split('/');
+        return {type: 'github', owner: parts[0], repo: parts[1]};
+    }
+    if (/^npm:/i.test(spec)) return {type: 'npm', pkg: spec.replace(/^npm:/i, '')};
+    if (/^[\w.-]+\/[\w.-]+$/.test(spec)) {
+        return {type: 'github', owner: spec.split('/')[0], repo: spec.split('/')[1].replace(/\.git$/, '')};
+    }
+    if (/^(@[\w.-]+\/)?[\w.-]+$/.test(spec) && !/\s/.test(spec)) return {type: 'npm', pkg: spec};
+    throw new Error('无法识别的来源类型：' + spec);
+}
+
+async function fetchText(url) {
+    // 加时间戳破坏浏览器缓存（确保每次都拿到最新数据）
+    const sep = url.indexOf('?') === -1 ? '?' : '&';
+    const bustUrl = url + sep + '_t=' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    console.log('[ExtAddons] fetchText URL:', bustUrl);
+    const res = await fetch(bustUrl, {mode: 'cors', cache: 'no-store'});
+    console.log('[ExtAddons] fetchText status:', res.status, res.headers.get('content-length'), 'bytes');
+    if (!res.ok) throw new Error('拉取失败（HTTP ' + res.status + '）：' + url);
+    const text = await res.text();
+    console.log('[ExtAddons] fetchText OK, length:', text.length, 'first 100:', text.slice(0, 100));
+    return text;
+}
+
+// 极简 tar(ustar) 读取：解 gzip 后找出最佳 .js 入口
+async function extractJsFromTarball(arrayBuffer) {
+    const ds = new DecompressionStream('gzip');
+    const stream = new Response(arrayBuffer).body.pipeThrough(ds);
+    const gunzipped = await new Response(stream).arrayBuffer();
+    const bytes = new Uint8Array(gunzipped);
+    const jsFiles = [];
+    let offset = 0;
+    const readStr = (off, len) => {
+        let s = '';
+        for (let i = 0; i < len; i++) { const c = bytes[off + i]; if (c === 0) break; s += String.fromCharCode(c); }
+        return s;
+    };
+    while (offset + 512 <= bytes.length) {
+        const name = readStr(offset, 100).replace(/\0.*$/, '');
+        const size = parseInt(readStr(offset + 124, 12).replace(/\0.*$/, '').trim(), 8) || 0;
+        const typeflag = String.fromCharCode(bytes[offset + 156]);
+        offset += 512;
+        if (typeflag !== '0') { offset += Math.ceil(size / 512) * 512; continue; }
+        if (!name || size === 0) { offset += Math.ceil(size / 512) * 512; if (!name) break; continue; }
+        const data = bytes.slice(offset, offset + size);
+        offset += Math.ceil(size / 512) * 512;
+        if (name.endsWith('.js')) jsFiles.push({name, text: new TextDecoder().decode(data)});
+    }
+    if (!jsFiles.length) throw new Error('tarball 中没有 .js 文件');
+    return (jsFiles.find(f => /(^|\/)(index|main)\.js$/.test(f.name)) || jsFiles[0]).text;
+}
+
+async function resolveTarball(url) {
+    const res = await fetch(url, {mode: 'cors'});
+    if (!res.ok) throw new Error('拉取 tarball 失败（HTTP ' + res.status + '）：' + url);
+    return extractJsFromTarball(await res.arrayBuffer());
+}
+
+async function resolveNpm(pkg) {
+    let text = await fetchText(CDN + '/npm/' + pkg);
+    if (text.trim().startsWith('{') && text.includes('"version"')) {
+        try {
+            const j = JSON.parse(text);
+            const main = j.main || 'index.js';
+            return await fetchText(CDN + '/npm/' + pkg + '/' + main);
+        } catch (e) { /* 不是 package.json，原样返回 */ }
+    }
+    return text;
+}
+
+async function resolveGithub(owner, repo) {
+    const base = CDN + '/gh/' + owner + '/' + repo + '/';
+    const candidates = ['package.json', 'index.js', 'dist/index.js', 'src/index.js',  'dist/bundle.js', 'build/index.js'];
+    for (const c of candidates) {
+        try {
+            const text = await fetchText(base + c);
+            if (c === 'package.json') {
+                const j = JSON.parse(text);
+                try {
+                    return [await fetchText(base + (j.main || 'index.js'))];
+                } catch (e) { /* main 指向的文件不存在，尝试多插件模式 */ }
+            } else {
+                return [text];
+            }
+        } catch (e) { /* 尝试下一个候选 */ }
+    }
+    // 无单入口（「一个仓库多个插件」结构）：优先读取仓库根目录的 plugins.json 清单（走 jsDelivr，避免 API 限流/CORS）；
+    // 其次回退到 GitHub API 文件树。每个子目录的 index.js 作为一个独立插件。
+    let jsPaths = [];
+    try {
+        const manifest = JSON.parse(await fetchText(base + 'plugins.json'));
+        if (Array.isArray(manifest.plugins) && manifest.plugins.length) {
+            jsPaths = manifest.plugins.map(p => {
+                const dir = (typeof p === 'string' ? p : (p.dir || p.path || '')).replace(/\/+$/, '');
+                return dir + '/index.js';
+            });
+        }
+    } catch (e) { /* 没有清单，回退到 API tree */ }
+    if (!jsPaths.length) {
+        const tree = await fetchGithubTree(owner, repo);
+        jsPaths = tree
+            .map(t => t.path)
+            .filter(p => /^(?:[^\/]+\/)?index\.js$/.test(p) && p !== 'index.js');
+    }
+    if (!jsPaths.length) throw new Error('在 github:' + owner + '/' + repo + ' 中找不到入口 JS 文件');
+    const texts = [];
+    for (const p of jsPaths) {
+        try { texts.push(await fetchText(base + p)); } catch (e) { /* 跳过无法读取的文件 */ }
+    }
+    if (!texts.length) throw new Error('在 github:' + owner + '/' + repo + ' 中找不到入口 JS 文件');
+    return texts;
+}
+
+async function fetchGithubTree(owner, repo) {
+    // 依次尝试常见分支名 / HEAD，避免默认分支名差异导致的 404
+    const refs = ['main', 'master', 'HEAD'];
+    let lastErr;
+    for (const ref of refs) {
+        try {
+            const api = 'https://api.github.com/repos/' + owner + '/' + repo + '/git/trees/' + ref + '?recursive=1';
+            const res = await fetch(api, {mode: 'cors'});
+            if (!res.ok) { lastErr = res.status; continue; }
+            const data = await res.json();
+            if (Array.isArray(data.tree) && data.tree.length) return data.tree;
+        } catch (e) { lastErr = e; }
+    }
+    throw new Error('获取仓库文件树失败（HTTP ' + (lastErr || '未知') + '）');
+}
+
+/**
+ * 根据来源标识符拉取 JS 文本（支持 npm / github / git / 直链 / tarball）。
+ * 返回 string[]：单入口仓库返回 [单文件]，多插件仓库返回每个 index.js 的内容。
+ */
+export async function resolveAddonSource(spec) {
+    const info = detectSourceType(spec);
+    switch (info.type) {
+        case 'npm': return [await resolveNpm(info.pkg)];
+        case 'github': return resolveGithub(info.owner, info.repo);
+        case 'url': return [await fetchText(info.url)];
+        case 'tarball': return [await resolveTarball(info.url)];
+        case 'git': throw new Error('暂不支持该 git 托管（目前仅支持 GitHub）：' + info.url);
+        default: throw new Error('未知来源类型');
+    }
+}
+
+/**
+ * 从来源安装插件（对齐 DSH：`dsh plugin add <npm/github/git/url>`）。
+ * 成功返回导入的插件定义数组。
+ */
+export async function importAddonFromSource(spec, opts = {}) {
+    let texts;
+    if (opts && opts.fileText != null) texts = [opts.fileText];
+    else texts = await resolveAddonSource(spec);
+    const all = [];
+    for (const t of texts) {
+        const list = evalAddonText(t);
+        for (const item of list) all.push(item);
+    }
+    if (!all.length) throw new Error('来源中没有有效的插件对象');
+    return storeImportedAddons(all, spec);
+}
+
+/**
+ * 按来源重新拉取并更新某个已安装插件（DSH 的 update 等价物）。
+ */
+export async function updateCustomAddonSource(id) {
+    const existing = loadCustomAddons().map(stripCustomFn);
+    const found = existing.find(e => e.id === id);
+    if (!found || !found.source) throw new Error('该插件没有来源信息，无法更新');
+    const texts = await resolveAddonSource(found.source);
+    const all = [];
+    for (const t of texts) {
+        const list = evalAddonText(t);
+        for (const item of list) all.push(item);
+    }
+    const updated = all.find(a => a.id === id);
+    if (!updated) throw new Error('更新后未找到 id 为「' + id + '」的插件');
+    const others = existing.filter(e => e.id !== id);
+    saveCustomAddons(others.concat([{...updated, source: found.source, installedAt: Date.now()}]));
+    return updated;
+}
+
+/**
+ * 从 GitHub 仓库的某个子目录安装单个插件（市场「安装」按钮使用）。
+ * 直接走 jsDelivr CDN 拉取 <dir>/index.js，不依赖 GitHub API。
+ */
+export async function importAddonFromGithubDir(owner, repo, dir) {
+    // 优先用 GitHub Contents API（支持 CORS + 实时数据，无 CDN 缓存问题）
+    const cleanDir = dir.replace(/\/+$/, '');
+    const apiPath = 'repos/' + owner + '/' + repo + '/contents/' + cleanDir + '/index.js';
+    let text;
+    try {
+        const apiUrl = 'https://api.github.com/' + apiPath;
+        console.log('[ExtAddons] importAddonFromGithubDir fetching via Contents API:', apiUrl);
+        const res = await fetch(apiUrl, {cache: 'no-store'});
+        if (!res.ok) throw new Error('Contents API HTTP ' + res.status);
+        const data = await res.json();
+        if (data.content && data.encoding === 'base64') {
+            const binary = atob(data.content.replace(/\s/g, ''));
+            text = new Uint8Array([...binary].map(c => c.charCodeAt(0)));
+            text = new TextDecoder('utf-8').decode(text);
+        } else {
+            throw new Error('Contents API 未返回有效内容');
+        }
+    } catch (e) {
+        console.warn('[ExtAddons] Contents API 失败，回退 jsDelivr CDN:', e && e.message);
+        // 回退：jsDelivr CDN（有 CORS 但可能缓存旧版）
+        const base = CDN + '/gh/' + owner + '/' + repo + '/';
+        const url = base + cleanDir + '/index.js?_t=' + Date.now();
+        text = await fetchText(url);
+    }
+    console.log('[ExtAddons] importAddonFromGithubDir got length:', text.length);
+    const list = evalAddonText(text);
+    if (!list.length) throw new Error('在 ' + dir + ' 中没有有效的插件对象');
+    return storeImportedAddons(list, 'github:' + owner + '/' + repo + '/' + dir);
+}
+
+/**
+ * 拉取插件市场清单（仓库根的 plugins.json，走 jsDelivr CDN）。
+ * 返回 [{ id, name, description, category, dir, source }]
+ */
+export async function fetchAddonMarketList(owner, repo) {
+    const base = CDN + '/gh/' + owner + '/' + repo + '/';
+    let manifest;
+    try {
+        manifest = JSON.parse(await fetchText(base + 'plugins.json'));
+    } catch (e) {
+        // 没有清单时回退：列举整个仓库的 index.js
+        const tree = await fetchGithubTree(owner, repo);
+        const dirs = tree
+            .map(t => t.path)
+            .filter(p => /^(?:[^\/]+\/)?index\.js$/.test(p) && p !== 'index.js')
+            .map(p => p.replace(/\/index\.js$/, ''));
+        manifest = { plugins: dirs.map(d => ({ dir: d, name: d, description: '' })) };
+    }
+    const raw = Array.isArray(manifest.plugins) ? manifest.plugins : [];
+    return raw.map(p => {
+        // 兼容两种格式：字符串目录名 或 { dir, name, description, category }
+        const dir = (typeof p === 'string' ? p : (p.dir || p.path || '')).replace(/\/+$/, '');
+        const name = (typeof p === 'string' ? p : (p.name || dir));
+        const description = (typeof p === 'string' ? '' : (p.description || ''));
+        const category = (typeof p === 'string' ? '插件' : (p.category || '插件'));
+        return {
+            id: dir,
+            name,
+            description,
+            category,
+            dir,
+            source: 'github:' + owner + '/' + repo + '/' + dir
+        };
+    });
+}
+
+/**
+ * 通过 GitHub 搜索 API 列出带指定 topic 的所有公开仓库。
+ * 返回 [{ owner, repo, description, stars }]
+ * 注意：GitHub API 在浏览器内受 CORS 限制，沙箱/无 token 环境可能失败，
+ * 调用方需自行处理异常（可回退到固定仓库清单）。
+ */
+export async function fetchAddonTopicRepos(topic) {
+    const url = 'https://api.github.com/search/repositories?q=topic:' +
+        encodeURIComponent(topic) + '&per_page=100&sort=stars';
+    const res = await fetch(url, {
+        headers: { 'Accept': 'application/vnd.github+json' }
+    });
+    if (!res.ok) throw new Error('搜索主题仓库失败（HTTP ' + res.status + '）');
+    const data = await res.json();
+    const items = Array.isArray(data.items) ? data.items : [];
+    return items.map(r => ({
+        owner: r.owner && r.owner.login,
+        repo: r.name,
+        description: r.description || '',
+        stars: r.stargazers_count || 0
+    }));
+}
+
+/**
+ * 从插件市场拉取清单。
+ * 优先用 GitHub Contents API（支持 CORS + 实时数据），
+ * 失败则回退 jsDelivr CDN（支持 CORS 但可能有缓存延迟）。
+ * 返回 [{ id, name, description, category, dir, source, repoOwner, repoName }]
+ */
+export async function fetchAddonMarketFromTopic(topic) {
+    console.log('[ExtAddons] fetchAddonMarketFromTopic START, topic=', topic);
+    const MARKET_OWNER = 'dhdbvcg';
+    const MARKET_REPO = 'scratch-ext-addon';
+
+    let manifest;
+    // 策略 1：GitHub Contents API（支持 CORS，实时数据，返回 base64）
+    try {
+        const api = 'https://api.github.com/repos/' + MARKET_OWNER + '/' + MARKET_REPO + '/contents/plugins.json';
+        console.log('[ExtAddons] trying GitHub Contents API:', api);
+        const res = await fetch(api, {cache: 'no-store'});
+        if (res.ok) {
+            const data = await res.json();
+            if (data.content && data.encoding === 'base64') {
+                // 正确解码 UTF-8：atob 返回二进制字符串，需经 TextDecoder 转 UTF-8
+                const bin = atob(data.content.replace(/\s/g, ''));
+                const bytes = new Uint8Array(bin.length);
+                for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+                manifest = JSON.parse(new TextDecoder('utf-8').decode(bytes));
+                console.log('[ExtAddons] Contents API OK, decoded length:', JSON.stringify(manifest).length);
+            } else { throw new Error('unexpected encoding'); }
+        } else { throw new Error('HTTP ' + res.status); }
+    } catch (e) {
+        console.warn('[ExtAddons] Contents API failed, fallback to jsDelivr:', e && e.message);
+        // 策略 2：jsDelivr CDN（有 CORS，但可能缓存旧数据）
+        const base = CDN + '/gh/' + MARKET_OWNER + '/' + MARKET_REPO + '/';
+        const ts = '_v=' + Date.now() + '_' + Math.random().toString(36).slice(2);
+        console.log('[ExtAddons] fetching jsDelivr:', base + 'plugins.json?' + ts);
+        manifest = JSON.parse(await fetchText(base + 'plugins.json?' + ts));
+    }
+    const raw = Array.isArray(manifest.plugins) ? manifest.plugins : [];
+    console.log('[ExtAddons] plugins count:', raw.length, raw.map(p => (typeof p === 'string' ? p : p.dir || p.id)));
+    return raw.map(p => {
+        const dir = (typeof p === 'string' ? p : (p.dir || p.path || '')).replace(/\/+$/, '');
+        const name = (typeof p === 'string' ? p : (p.name || dir));
+        const description = (typeof p === 'string' ? '' : (p.description || ''));
+        const category = (typeof p === 'string' ? '插件' : (p.category || '插件'));
+        return {
+            id: dir, name, description, category, dir,
+            source: 'github:' + MARKET_OWNER + '/' + MARKET_REPO + '/' + dir,
+            repoOwner: MARKET_OWNER,
+            repoName: MARKET_REPO
+        };
+    });
 }
 
 /**
@@ -935,6 +724,7 @@ export function removeCustomAddon(id) {
     const existing = loadCustomAddons().map(stripCustomFn);
     saveCustomAddons(existing.filter(e => e.id !== id));
 }
+
 
 /**
  * 内置插件 + 自定义插件（运行时合并，用于列表渲染与激活）
@@ -978,39 +768,267 @@ export function setAddonState(state) {
  * 取决于时序）。每次 apply 前先移除同 id 的旧 style，保证幂等。
  */
 let _applyQueue = Promise.resolve();
+
+/**
+ * 为单个插件构造富上下文（对齐 DSH 的 ctx）：
+ * 除了 Blockly / getWorkspace，还提供 document / window / createElement /
+ * injectCSS / addToolbarButton / mountPanel / effect / addEventListener / root，
+ * 让插件可以像 DSH 一样自由改造编辑器网页界面。所有副作用通过 effect()
+ * 或 setup 返回的清理函数统一回收。
+ */
+function makeAddonCtx(addon, {Blockly, getWorkspace}) {
+    const disposers = [];
+    const registerDisposer = (d) => { if (typeof d === 'function') disposers.push(d); };
+    const root = () => document.querySelector('.ext-builder');
+    // 插件包内资源（path -> base64 dataURL），从 addon.assets 还原
+    const assets = (addon && addon.assets) || {};
+    const ctx = {
+        Blockly,
+        getWorkspace,
+        document,
+        window,
+        addon,
+        root,
+
+        /* ---------- 资源访问（文件夹 / ZIP 导入的 HTML/CSS/图片/JS） ---------- */
+        /**
+         * 读取插件包内资源。name 支持相对路径（如 'icon.png'、'css/style.css'、'lib/util.js'）。
+         * 返回 base64 dataURL 字符串；找不到返回 null。
+         */
+        loadAsset(name) {
+            if (!name) return null;
+            const key = normPath(name).toLowerCase();
+            if (assets[key]) return assets[key];
+            // 模糊匹配：以文件名结尾
+            const found = Object.keys(assets).find(k => k === key || k.endsWith('/' + key) || k.split('/').pop() === key);
+            return found ? assets[found] : null;
+        },
+        /**
+         * 读取资源文本（如 CSS / JS / HTML），自动剥离 dataURL 头。
+         * 返回文本字符串；找不到返回 null。
+         */
+        loadAssetText(name) {
+            const d = ctx.loadAsset(name);
+            if (!d) return null;
+            const m = /^data:[^;]+;base64,(.*)$/.exec(d);
+            if (m) {
+                try {
+                    const bin = typeof atob !== 'undefined' ? atob(m[1]) : Buffer.from(m[1], 'base64').toString('binary');
+                    return decodeURIComponent(escape(bin));
+                } catch (e) { return null; }
+            }
+            return d; // 不是 base64，假定已是文本
+        },
+        /** 当前插件携带的资源路径列表 */
+        get assetNames() { return Object.keys(assets); },
+
+        /* ---------- 修改网页底层文件的能力 ---------- */
+        /**
+         * 覆盖 / 改写编辑器网页的底层文件。插件可借此替换 HTML 结构、注入 CSS、
+         * 挂载脚本、替换图片资源，实现「底层文件级」改造。
+         * @param {object} opt
+         *   - html: string | {selector, html} | {selector, prepend, append}  改写 DOM 结构
+         *   - css: string                      注入整段 CSS（作用域到 body）
+         *   - js: string                       注入并执行一段脚本（run 在 DOM 就绪后）
+         *   - images: {[selectorOrUrl]: dataUrl}  替换匹配元素的 src / 背景图
+         *   - replaceUrl: {[oldUrl]: newUrl}   把页面里出现的某资源 URL 整体换掉
+         * 所有副作用都会被自动回收（插件关闭时还原）。
+         */
+        fileOverride(opt) {
+            opt = opt || {};
+            const reverts = [];
+            const snapshot = (el) => el ? el.outerHTML : null;
+
+            // 1) HTML 结构改写
+            if (opt.html) {
+                const apply = (h) => {
+                    if (typeof h === 'string') {
+                        const host = root() || document.body;
+                        const tmp = document.createElement('div');
+                        tmp.innerHTML = h;
+                        while (tmp.firstChild) host.appendChild(tmp.firstChild);
+                        reverts.push(() => { /* 追加内容无法精确回滚，记录提示 */ });
+                    } else if (h.selector) {
+                        const el = document.querySelector(h.selector);
+                        if (el) {
+                            const before = el.innerHTML;
+                            if (h.html != null) el.innerHTML = h.html;
+                            if (h.prepend != null) el.insertAdjacentHTML('afterbegin', h.prepend);
+                            if (h.append != null) el.insertAdjacentHTML('beforeend', h.append);
+                            reverts.push(() => { el.innerHTML = before; });
+                        }
+                    }
+                };
+                Array.isArray(opt.html) ? opt.html.forEach(apply) : apply(opt.html);
+            }
+
+            // 2) 注入 CSS（整段，作用于 body）
+            if (opt.css) {
+                const s = document.createElement('style');
+                s.setAttribute('data-ext-addon-override', addon.id);
+                s.textContent = opt.css;
+                document.head.appendChild(s);
+                reverts.push(() => s.remove());
+            }
+
+            // 3) 注入并执行 JS
+            if (opt.js) {
+                const tag = document.createElement('script');
+                tag.setAttribute('data-ext-addon-override', addon.id);
+                tag.textContent = opt.js;
+                document.head.appendChild(tag);
+                reverts.push(() => tag.remove());
+            }
+
+            // 4) 替换图片资源（按选择器或按当前 src）
+            if (opt.images && typeof opt.images === 'object') {
+                for (const [selOrUrl, dataUrl] of Object.entries(opt.images)) {
+                    if (!dataUrl) continue;
+                    let targets = [];
+                    if (selOrUrl.startsWith('http') || selOrUrl.startsWith('/') || selOrUrl.startsWith('.')) {
+                        // 视为 URL 模糊匹配：选所有 src/style 含该串的元素
+                        targets = [...document.querySelectorAll('img, [style], [src]')].filter(el => {
+                            const src = el.getAttribute && el.getAttribute('src');
+                            const style = el.getAttribute && el.getAttribute('style');
+                            return (src && src.indexOf(selOrUrl) !== -1) || (style && style.indexOf(selOrUrl) !== -1);
+                        });
+                    } else {
+                        targets = [...document.querySelectorAll(selOrUrl)];
+                    }
+                    targets.forEach(el => {
+                        if (el.tagName === 'IMG') {
+                            const old = el.getAttribute('src');
+                            el.setAttribute('src', dataUrl);
+                            reverts.push(() => old != null ? el.setAttribute('src', old) : el.removeAttribute('src'));
+                        } else {
+                            const oldStyle = el.getAttribute('style');
+                            const newStyle = (oldStyle || '') + ';background-image:url(' + dataUrl + ') !important;';
+                            el.setAttribute('style', newStyle);
+                            reverts.push(() => oldStyle != null ? el.setAttribute('style', oldStyle) : el.removeAttribute('style'));
+                        }
+                    });
+                }
+            }
+
+            // 5) 全局替换资源 URL
+            if (opt.replaceUrl && typeof opt.replaceUrl === 'object') {
+                const walker = document.createTreeWalker(document.documentElement, NodeFilter.SHOW_ELEMENT, null);
+                const changed = [];
+                let node;
+                const applyMap = (attr) => {
+                    const val = node.getAttribute(attr);
+                    if (!val) return;
+                    for (const [oldU, newU] of Object.entries(opt.replaceUrl)) {
+                        if (val.indexOf(oldU) !== -1) {
+                            const nv = val.split(oldU).join(newU);
+                            node.setAttribute(attr, nv);
+                            changed.push({node, attr, old: val});
+                            break;
+                        }
+                    }
+                };
+                while ((node = walker.nextNode())) {
+                    applyMap('src'); applyMap('href'); applyMap('style');
+                }
+                reverts.push(() => changed.forEach(c => c.node.setAttribute(c.attr, c.old)));
+            }
+
+            // 统一登记回收：插件关闭时还原所有底层文件改动
+            registerDisposer(() => { for (const r of reverts) { try { r(); } catch (e) {} } });
+            return () => { for (const r of reverts) { try { r(); } catch (e) {} } };
+        },
+        createElement(tag, props, children) {
+            const el = document.createElement(tag);
+            if (props) {
+                for (const [k, v] of Object.entries(props)) {
+                    if (v == null) continue;
+                    if (k === 'className') el.className = v;
+                    else if (k === 'style' && typeof v === 'object') Object.assign(el.style, v);
+                    else if (k === 'dataset' && typeof v === 'object') Object.assign(el.dataset, v);
+                    else if (k.startsWith('on') && typeof v === 'function') el.addEventListener(k.slice(2).toLowerCase(), v);
+                    else if (k === 'textContent') el.textContent = v;
+                    else if (k === 'innerHTML') el.innerHTML = v;
+                    else el.setAttribute(k, v);
+                }
+            }
+            const kids = Array.isArray(children) ? children : (children == null ? [] : [children]);
+            kids.forEach(c => {
+                if (c == null) return;
+                el.appendChild(typeof c === 'string' || typeof c === 'number' ? document.createTextNode(String(c)) : c);
+            });
+            return el;
+        },
+        injectCSS(css) {
+            const s = document.createElement('style');
+            s.setAttribute('data-ext-addon', addon.id);
+            s.textContent = css || '';
+            document.head.appendChild(s);
+            registerDisposer(() => s.remove());
+            return s;
+        },
+        addToolbarButton(label, onClick, opts) {
+            opts = opts || {};
+            const btn = ctx.createElement('button', {className: 'ext-plugin-btn', title: opts.title || label}, [label]);
+            if (typeof onClick === 'function') btn.addEventListener('click', onClick);
+            const mount = opts.container ? document.querySelector(opts.container) : document.querySelector('.ext-menu-bar-right');
+            (mount || root()).appendChild(btn);
+            registerDisposer(() => btn.remove());
+            return btn;
+        },
+        mountPanel(opts) {
+            opts = opts || {};
+            const panel = ctx.createElement('div', {className: 'ext-plugin-panel' + (opts.className ? ' ' + opts.className : '')});
+            if (opts.title) panel.appendChild(ctx.createElement('div', {className: 'ext-plugin-panel-title'}, [opts.title]));
+            const body = ctx.createElement('div', {className: 'ext-plugin-panel-body'});
+            panel.appendChild(body);
+            const container = opts.container ? document.querySelector(opts.container) : document.querySelector('.ext-builder-main');
+            (container || root()).appendChild(panel);
+            registerDisposer(() => panel.remove());
+            return {panel, body, remove: () => panel.remove()};
+        },
+        effect(disposer) { registerDisposer(disposer); },
+        addEventListener(target, event, cb, opts) {
+            target.addEventListener(event, cb, opts);
+            registerDisposer(() => target.removeEventListener(event, cb, opts));
+        }
+    };
+    return {ctx, disposers};
+}
+
 export async function applyExtAddons(ctx) {
     const run = async () => {
         const state = getAddonState();
         const cleanups = [];
-        const styleEls = [];
 
         // 幂等：移除所有已注入的插件样式（可能来自上次 apply）
         document.querySelectorAll('style[data-ext-addon]').forEach(el => el.remove());
 
         for (const addon of getAllAddons()) {
             if (!state[addon.id]) continue;
-            // 注入 CSS
+            // 注入 CSS（剥离 :global() 包装——css-loader 伪语法，运行时注入需去掉）
             if (addon.css) {
                 const style = document.createElement('style');
                 style.setAttribute('data-ext-addon', addon.id);
-                style.textContent = addon.css;
+                // :global(.foo) → .foo  （css-loader 编译时剥离，运行时 raw 注入必须手动去）
+                style.textContent = addon.css.replace(/:global\(([^)]+)\)/g, '$1');
                 document.head.appendChild(style);
-                styleEls.push(style);
+                cleanups.push(() => { try { style.remove(); } catch (e) {} });
             }
-            // 执行 setup
+            // 执行 setup（富 ctx）
             if (typeof addon.setup === 'function') {
+                const {ctx: addonCtx, disposers} = makeAddonCtx(addon, ctx);
                 try {
-                    const cleanup = await addon.setup({...ctx, addon});
-                    if (typeof cleanup === 'function') cleanups.push(cleanup);
+                    const cleanup = await addon.setup(addonCtx);
+                    if (typeof cleanup === 'function') disposers.push(cleanup);
                 } catch (e) {
                     console.error('[ExtAddons] 插件 ' + addon.id + ' 初始化失败:', e);
                 }
+                cleanups.push(() => disposers.forEach(d => { try { d(); } catch (e) {} }));
             }
         }
 
         return () => {
             cleanups.forEach(fn => { try { fn(); } catch (e) { /* silent */ } });
-            styleEls.forEach(el => { try { el.remove(); } catch (e) { /* silent */ } });
         };
     };
 

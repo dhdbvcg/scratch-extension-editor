@@ -9,6 +9,7 @@
 
 const USERS_KEY = 'extbuilder_users';
 const SESSION_KEY = 'extbuilder_session';
+const PREV_SESSION_KEY = 'extbuilder_prev_session'; // 切换账号时记住上一个会话
 const SESSION_DAYS = 30;
 
 import {cloudAvailable, cloudUpsertUser, cloudFetchUsers} from './cloud.js';
@@ -133,11 +134,15 @@ export function logout() {
 
 // ---- 注册 / 登录 ----
 
-export function register(username, password, remember) {
+export function register(username, password, remember, captchaToken) {
     const name = String(username || '').trim();
     if (name.length < 2) return Promise.reject(new Error('用户名至少需要 2 个字符'));
     if (!password || String(password).length < 4) {
         return Promise.reject(new Error('密码至少需要 4 个字符'));
+    }
+    // hCaptcha 验证：注册时必须提供有效 token（客户端基本校验，防止空提交）
+    if (!captchaToken || typeof captchaToken !== 'string' || captchaToken.length < 10) {
+        return Promise.reject(new Error('请完成人机验证'));
     }
     const users = getUsers();
     if (users[name]) return Promise.reject(new Error('该用户名已被注册，请直接登录'));
@@ -208,4 +213,58 @@ export function importUser(meta) {
     };
     setUsers(users);
     return true;
+}
+
+// ---- 切换账号（记住上一个会话，支持一键切回） ----
+
+/**
+ * 保存当前会话为"上一个会话"（切换/退出前调用）。
+ */
+export function savePrevSession(s) {
+    try {
+        if (s && s.username) {
+            localStorage.setItem(PREV_SESSION_KEY, JSON.stringify(s));
+        }
+    } catch (e) { /* silent */ }
+}
+
+/**
+ * 读取上一个会话（用于"一键切回"）。
+ */
+export function getPrevSession() {
+    try {
+        const raw = localStorage.getItem(PREV_SESSION_KEY);
+        if (!raw) return null;
+        const s = JSON.parse(raw);
+        if (!s || !s.username) return null;
+        // 检查是否过期
+        if (s.expires && s.expires < Date.now()) {
+            clearPrevSession();
+            return null;
+        }
+        return s;
+    } catch (e) { return null; }
+}
+
+/**
+ * 清除上一个会话。
+ */
+export function clearPrevSession() {
+    try {
+        localStorage.removeItem(PREV_SESSION_KEY);
+    } catch (e) { /* silent */ }
+}
+
+/**
+ * 一键切回到上一个会话：恢复 session 到当前登录状态。
+ * 返回恢复的会话对象；失败返回 null。
+ */
+export function switchToPrevSession() {
+    const prev = getPrevSession();
+    if (!prev) return null;
+    // 先退出当前
+    logout();
+    // 恢复上一个
+    createSession(prev.username, prev.remember);
+    return getSession();
 }

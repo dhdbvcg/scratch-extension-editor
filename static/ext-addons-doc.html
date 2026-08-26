@@ -203,8 +203,97 @@
           <li><code>ctx.Blockly</code> —— scratch-blocks 的 Blockly 实例（原型、工具函数都在这里）</li>
           <li><code>ctx.getWorkspace()</code> —— 返回当前积木工作区实例</li>
           <li><code>ctx.addon</code> —— 当前插件自身的定义对象</li>
+          <li><code>ctx.document</code> / <code>ctx.window</code> —— 直接操作页面 DOM</li>
+          <li><code>ctx.createElement(tag, props, children)</code> —— 创建元素助手（自动挂事件/onX、style 对象、dataset）</li>
+          <li><code>ctx.injectCSS(css)</code> —— 注入一段样式（禁用时自动移除）</li>
+          <li><code>ctx.addToolbarButton(label, onClick, opts)</code> —— 在顶部工具栏右侧加一个按钮</li>
+          <li><code>ctx.mountPanel(opts)</code> —— 在主区挂一个浮动面板，返回 <code>{panel, body, remove}</code></li>
+          <li><code>ctx.effect(disposer)</code> / <code>ctx.addEventListener(target, ev, cb)</code> —— 注册可逆副作用，禁用时统一回收</li>
+          <li><code>ctx.assets</code> / <code>ctx.loadAsset(name)</code> / <code>ctx.loadAssetText(name)</code> / <code>ctx.assetNames</code> —— 读取插件包内资源（HTML·CSS·图片·JS 等，base64）</li>
+          <li><code>ctx.fileOverride(opt)</code> —— <strong>修改网页底层文件</strong>：覆盖 DOM 结构、注入 CSS/JS、替换图片、全局替换资源 URL，禁用时自动还原</li>
         </ul>
-        <p class="doc-p"><code>setup</code> 必须返回一个 <strong>清理函数</strong>（可 <code>async</code> 返回）。重载页面或禁用插件时会调用它，用于还原原型、移除监听、解绑事件。</p>
+        <p class="doc-p"><code>setup</code> 必须返回一个 <strong>清理函数</strong>（可 <code>async</code> 返回）；也可以不返回、改用 <code>ctx.effect(fn)</code> 注册回收逻辑。重载页面或禁用插件时，所有注册的可逆操作都会被执行，用于还原原型、移除 DOM、解绑事件。</p>
+
+        <h3 class="doc-h3">二·五、导入格式：单个 JS / 文件夹 / ZIP</h3>
+        <p class="doc-p">在「设置 → 插件管理 → 安装插件」弹窗中，除粘贴来源外，还可本地导入：</p>
+        <ul class="doc-ul">
+          <li><strong>单个 JS</strong>：直接选中 <code>.js</code> 插件文件。</li>
+          <li><strong>文件夹</strong>：点「文件夹」后选整个目录，目录内需含 <code>index.js</code> 入口；其余 HTML·CSS·图片·JS 作为资源随插件持久化。</li>
+          <li><strong>ZIP 包</strong>：点「ZIP 包」选 <code>.zip</code>，包内需含 <code>index.js</code> 入口，其余文件作为资源。</li>
+        </ul>
+        <p class="doc-p">资源以 base64 形式存入 localStorage，页面重载后自动恢复，无需重新导入。</p>
+
+        <h3 class="doc-h3">三·五、读取资源与改写网页底层文件</h3>
+        <p class="doc-p">插件包内的资源可通过 <code>ctx.loadAsset()</code> 读取；<code>ctx.fileOverride()</code> 则提供「底层文件级」改造能力，所有改动在插件禁用时自动还原：</p>
+        <div class="code-block">
+          <button type="button" class="copy-btn">复制</button>
+          <pre><code>export default {
+  id: 'asset-and-override',
+  name: '资源与底层文件改写示例',
+  description: '读取 ZIP/文件夹 资源，并改写编辑器底层文件',
+  setup: function (ctx) {
+    // 1) 读取插件包内的图片资源并显示在按钮上
+    const icon = ctx.loadAsset('icon.png');     // base64 dataURL
+    const css  = ctx.loadAssetText('theme.css'); // 资源文本
+    if (css) ctx.injectCSS(css);
+
+    // 2) 改写网页底层文件（禁用时自动还原）
+    ctx.fileOverride({
+      // 替换某个图片元素的 src
+      images: { '.ext-logo img': icon },
+      // 覆盖某容器 HTML 结构
+      html: { selector: '.ext-builder-header', prepend: '&lt;div class="badge"&gt;插件已加载&lt;/div&gt;' },
+      // 注入整段 CSS 到 body
+      css: '.ext-builder { --brand: #2b7de9; }',
+      // 注入并执行脚本
+      js: 'console.log("插件底层脚本已运行");',
+      // 全局替换资源 URL
+      replaceUrl: { '/old-logo.png': '/new-logo.png' }
+    });
+
+    // 3) 返回清理函数（fileOverride 的还原会一并执行）
+    return function cleanup() {
+      console.log('插件已卸载');
+    };
+  }
+};</code></pre>
+        </div>
+
+        <h3 class="doc-h3">三、改造网页界面（改页能力）</h3>
+        <p class="doc-p">插件可以像 DeepSeek Harness 一样自由改造本编辑器界面——加按钮、挂面板、注入样式、操作任意 DOM：</p>
+        <div class="code-block">
+          <button type="button" class="copy-btn">复制</button>
+          <pre><code>export default {
+  id: 'page-mods',
+  name: '界面改造示例',
+  description: '加工具栏按钮 + 浮动面板 + 主题样式',
+  setup: function (ctx) {
+    // 1) 顶部工具栏加一个按钮
+    const btn = ctx.addToolbarButton('点我', () => {
+      alert('你好，来自插件 ' + ctx.addon.id);
+    }, {title: '示例按钮'});
+
+    // 2) 挂一个浮动面板
+    const panel = ctx.mountPanel({title: '我的面板', body: null});
+    panel.body.appendChild(ctx.createElement('p', {style: {color: '#2b7de9'}}, ['这是插件注入的面板内容']));
+
+    // 3) 注入主题样式
+    ctx.injectCSS('.ext-builder { outline: 2px dashed #2b7de9; }');
+
+    // 4) 直接操作 DOM
+    const title = ctx.document.querySelector('.ext-menu-title');
+    if (title) title.textContent = '扩展编辑器（已被插件改名）';
+
+    // 5) 返回清理函数（也可改用 ctx.effect）
+    return function cleanup () {
+      btn.remove();
+      panel.remove();
+    };
+  }
+};</code></pre>
+        </div>
+
+        <h3 class="doc-h3">四、完整示例</h3>
 
         <h3 class="doc-h3">三、完整示例</h3>
         <div class="code-block">
@@ -248,6 +337,16 @@
 
       <!-- 使用教程 -->
       <div class="doc-body" id="tab-usage" hidden>
+        <h3 class="doc-h3">零、从来源安装（对齐 DeepSeek Harness 的 dsh plugin add）</h3>
+        <p class="doc-p">打开「🧩 插件」面板 → 点蓝色「安装插件」，在弹窗里粘贴<strong>来源</strong>并点「安装」。支持：</p>
+        <ul class="doc-ul">
+          <li><code>npm 包名</code>（如 <code>my-addon</code> 或 <code>@scope/addon</code>，走 jsDelivr CDN）</li>
+          <li><code>github:owner/repo</code> 或简写 <code>owner/repo</code>（走 jsDelivr 的 GitHub 端点，自动找入口 JS）</li>
+          <li>直链 URL：<code>https://…/plugin.js</code>，或 <code>.tgz</code> / <code>.tar.gz</code> 压缩包（自动解包找 .js 入口）</li>
+          <li>本地文件：点「选择本地文件」选 <code>.js</code></li>
+        </ul>
+        <p class="doc-p">安装来源会被记录，插件项出现「更新」按钮，可一键按来源重新拉取最新版。无来源信息（如本地文件）则不显示「更新」。</p>
+
         <h3 class="doc-h3">一、编写插件文件</h3>
         <p class="doc-p">新建一个 <code>.js</code> 文件，两种写法皆可：</p>
         <div class="code-block">
@@ -275,11 +374,11 @@ export default {
 };</code></pre>
         </div>
 
-        <h3 class="doc-h3">二、导入并启用</h3>
+        <h3 class="doc-h3">二、安装并启用</h3>
         <ol class="doc-ol">
-          <li>打开「🧩 编辑器插件」面板</li>
-          <li>点击蓝色「导入插件」按钮，选择你的 <code>.js</code> 文件</li>
-          <li>导入后插件自动出现在列表并<strong>立即启用</strong>，无需刷新</li>
+          <li>打开「🧩 插件」面板</li>
+          <li>点蓝色「安装插件」→ 粘贴来源（npm/github/URL/本地文件）</li>
+          <li>安装后插件自动出现在列表并<strong>立即启用</strong>，无需刷新</li>
         </ol>
 
         <h3 class="doc-h3">三、删除与管理</h3>

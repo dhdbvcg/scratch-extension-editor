@@ -4,8 +4,9 @@
  * Defensive version: works even if Blockly fails to load
  */
 
-import React, {useState, useEffect, useRef, useCallback, Component} from 'react';
+import React, {useState, useEffect, useRef, useCallback, useMemo, Component} from 'react';
 import LazyScratchBlocks from '../lib/tw-lazy-scratch-blocks.js';
+import AIAssistant from '../lib/ai-assistant/AIAssistant.jsx';
 import {
     TOOLBOX_CONFIG,
     BLOCK_DEFINITIONS,
@@ -14,7 +15,7 @@ import {
 } from '../lib/block-definitions.js';
 import {applyZhTranslations} from '../lib/scratch-blocks-zh.js';
 import {EXT_FORGE_RUNTIME, withUtilInjection} from '../lib/extforge-runtime.js';
-import {getSession, login, register, logout as authLogout, getUserMeta} from '../lib/auth.js';
+import {getSession, login, register, logout as authLogout, getUserMeta, savePrevSession, getPrevSession, clearPrevSession, switchToPrevSession} from '../lib/auth.js';
 import {
     listSaves, saveProject, deleteSave, exportSaveFile, parseSaveFileText,
     collectProjectState, restoreProjectState
@@ -23,7 +24,7 @@ import {buildSyncUrl, parseSyncPayload, importSyncPayload} from '../lib/sync.js'
 import {
     cloudAvailable, cloudSearchUsers, cloudListRelations, cloudFollow, cloudUnfollow
 } from '../lib/cloud.js';
-import {EXT_ADDONS, getAllAddons, getAddonState, setAddonState, applyExtAddons, getAddonOptions, setAddonOptions, importCustomAddonFromFile, removeCustomAddon} from '../lib/ext-addons.js';
+import {EXT_ADDONS, getAllAddons, getAddonState, setAddonState, applyExtAddons, getAddonOptions, setAddonOptions, removeCustomAddon, importAddonFromSource, updateCustomAddonSource, importAddonFromGithubDir, fetchAddonMarketFromTopic, loadCustomAddons, importAddonBundle, importAddonFromZip} from '../lib/ext-addons.js';
 import '../styles/extension-builder.css';
 
 // 积木预设颜色（Scratch 风格常用色，供积木定义面板选择）
@@ -186,6 +187,11 @@ const ExtensionBuilderInner = () => {
     const [showBlockBuilder, setShowBlockBuilder] = useState(false);
     const [builderModalPos, setBuilderModalPos] = useState(null); // {x, y}
     const builderModalRef = useRef(null);
+    const builderResizeRef = useRef(null); // {dir, startX, startY, origLeft, origTop, origWidth, origHeight}
+    const [builderMinimized, setBuilderMinimized] = useState(false);
+    const [builderMaximized, setBuilderMaximized] = useState(false);
+    const [builderSize, setBuilderSize] = useState(null); // {width, height}
+    const BUILDER_RESIZE_DIRS = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
     const builderDragRef = useRef(null); // {startX, startY, origX, origY}
     // Blockly workspace XML is stored in a ref instead of React state so
     // that drag operations don't trigger component re-renders (which
@@ -233,12 +239,70 @@ const ExtensionBuilderInner = () => {
         document.removeEventListener('mousemove', handleBuilderDragMove);
         document.removeEventListener('mouseup', handleBuilderDragEnd);
     }, [handleBuilderDragMove]);
+
+    // Minimize / maximize the builder window (matches realtime-collab behaviour).
+    const handleBuilderMinimize = useCallback(() => {
+        setBuilderMinimized((prev) => !prev);
+    }, []);
+
+    const handleBuilderMaximize = useCallback(() => {
+        setBuilderMaximized((prev) => !prev);
+    }, []);
+
+    // 8-direction resize, driven by the edge/corner handles.
+    const handleBuilderResizeMove = useCallback((e) => {
+        const st = builderResizeRef.current;
+        if (!st) return;
+        const dx = e.clientX - st.startX;
+        const dy = e.clientY - st.startY;
+        const MIN_W = 300;
+        const MIN_H = 360;
+        let left = st.origLeft;
+        let top = st.origTop;
+        let width = st.origWidth;
+        let height = st.origHeight;
+        if (st.dir.indexOf('e') !== -1) width = Math.max(MIN_W, st.origWidth + dx);
+        if (st.dir.indexOf('s') !== -1) height = Math.max(MIN_H, st.origHeight + dy);
+        if (st.dir.indexOf('w') !== -1) {
+            width = Math.max(MIN_W, st.origWidth - dx);
+            left = st.origLeft + (st.origWidth - width);
+        }
+        if (st.dir.indexOf('n') !== -1) {
+            height = Math.max(MIN_H, st.origHeight - dy);
+            top = st.origTop + (st.origHeight - height);
+        }
+        setBuilderModalPos({ x: Math.round(left), y: Math.round(top) });
+        setBuilderSize({ width: Math.round(width), height: Math.round(height) });
+    }, []);
+
+    const handleBuilderResizeEnd = useCallback(() => {
+        builderResizeRef.current = null;
+        document.removeEventListener('mousemove', handleBuilderResizeMove);
+        document.removeEventListener('mouseup', handleBuilderResizeEnd);
+    }, [handleBuilderResizeMove]);
+
+    const handleBuilderResizeStart = useCallback((e, dir) => {
+        if (e.button !== 0 || !builderModalRef.current) return;
+        const rect = builderModalRef.current.getBoundingClientRect();
+        builderResizeRef.current = {
+            dir,
+            startX: e.clientX,
+            startY: e.clientY,
+            origLeft: rect.left,
+            origTop: rect.top,
+            origWidth: rect.width,
+            origHeight: rect.height
+        };
+        document.addEventListener('mousemove', handleBuilderResizeMove);
+        document.addEventListener('mouseup', handleBuilderResizeEnd);
+        e.preventDefault();
+        e.stopPropagation();
+    }, [handleBuilderResizeMove, handleBuilderResizeEnd]);
     const [searchTerm, setSearchTerm] = useState('');
     const [extInfo, setExtInfo] = useState(DEFAULT_EXTENSION_INFO);
     const [workspaceLoaded, setWorkspaceLoaded] = useState(false);
     const [editingBlockId, setEditingBlockId] = useState(null);
     const [editingName, setEditingName] = useState('');
-    const [showExtensionSettings, setShowExtensionSettings] = useState(false);
     const [settingsDraft, setSettingsDraft] = useState(null);
     const [showBlockPreview, setShowBlockPreview] = useState(false);
 
@@ -252,6 +316,10 @@ const ExtensionBuilderInner = () => {
     const [authError, setAuthError] = useState('');
     const [authBusy, setAuthBusy] = useState(false);
     const [authRemember, setAuthRemember] = useState(true); // 自动登录（记住我）默认开启
+    const [prevSession, setPrevSession] = useState(() => getPrevSession()); // 切换账号时记住的上一个会话
+    const [hcaptchaLoaded, setCaptchaLoaded] = useState(false); // hCaptcha JS 是否加载完成
+    const [hcaptchaWidgetId, setCaptchaWidgetId] = useState(null); // hCaptcha widget 实例 ID
+    const hcaptchaContainerRef = useRef(null); // hCaptcha 容器 DOM 引用
     const [showSavesPanel, setShowSavesPanel] = useState(false);
     const [savesList, setSavesList] = useState([]);
     const [saveNameInput, setSaveNameInput] = useState('');
@@ -263,6 +331,21 @@ const ExtensionBuilderInner = () => {
     const [showAddonsPanel, setShowAddonsPanel] = useState(false);
     const [addonState, setAddonStateInternal] = useState(() => getAddonState());
     const [addonSearch, setAddonSearch] = useState('');
+    // 安装插件对话框（对齐 DSH 的 dsh plugin add）
+    const [showInstallModal, setShowInstallModal] = useState(false);
+    const [installSource, setInstallSource] = useState('');
+    const [installStatus, setInstallStatus] = useState('');
+    const [installError, setInstallError] = useState('');
+    const [installLoading, setInstallLoading] = useState(false);
+    const installFileRef = useRef(null);
+    // 统一设置面板（含编辑器设置 + 插件管理标签页）
+    const [showSettingsPanel, setShowSettingsPanel] = useState(false);
+    const [settingsTab, setSettingsTab] = useState('editor'); // 'editor' | 'addons'
+    const settingsPanelRef = useRef(null); // 设置悬浮框 DOM 引用
+    const [settingsMinimized, setSettingsMinimized] = useState(false); // 是否最小化
+    const [settingsMaximized, setSettingsMaximized] = useState(false); // 是否最大化
+    const settingsBoundsRef = useRef(null); // 最大化前保存的位置尺寸
+    const [settingsResizeLayerOn, setSettingsResizeLayerOn] = useState(false); // resize 层显隐
     const [addonOpts, setAddonOptsInternal] = useState(() => {
         // 初始化所有有 options 的插件的子选项状态
         const opts = {};
@@ -271,6 +354,14 @@ const ExtensionBuilderInner = () => {
         });
         return opts;
     });
+    // 插件市场（从 GitHub 仓库清单加载可安装插件）
+    const [marketView, setMarketView] = useState(false); // 是否在插件管理内显示市场
+    const [marketList, setMarketList] = useState([]);
+    const [marketLoading, setMarketLoading] = useState(false);
+    const [marketError, setMarketError] = useState('');
+    const [marketInstalled, setMarketInstalled] = useState({}); // { dir: true }
+    const [marketInstalling, setMarketInstalling] = useState(''); // 正在安装的 dir
+    const MARKET_TOPIC = 'scratch-extension-editot-addon'; // 插件市场主题（github.com/topics/...）
     const extAddonsCleanupRef = useRef(null);
 
     // 个人主页
@@ -282,6 +373,27 @@ const ExtensionBuilderInner = () => {
     const [showFriendsPanel, setShowFriendsPanel] = useState(false);
     const [friendsTab, setFriendsTab] = useState('friends'); // 'friends' | 'following' | 'followers'
     const [friendsRelations, setFriendsRelations] = useState([]); // [{follower, followee}]
+
+    // 用户下拉菜单
+    const [showUserMenu, setShowUserMenu] = useState(false);
+    const [showToolsMenu, setShowToolsMenu] = useState(false);
+    const [showStatsPanel, setShowStatsPanel] = useState(false);
+    const [showAIPanel, setShowAIPanel] = useState(false);
+    const statsPanelRef = useRef(null);
+    const statsResizeLayerRef = useRef(null);
+    const [statsFloatBounds, setStatsFloatBounds] = useState({ x: 200, y: 100, w: 560, h: 480 });
+    const statsDragRef = useRef(null);
+    const statsResizeRef = useRef(null);
+    const [statsTick, setStatsTick] = useState(0); // 强制 projectStats 重算的计数器
+
+    // 用户面板悬浮框状态（个人主页/好友/存档共用一套，同时只开一个）
+    const [userPanelType, setUserPanelType] = useState(null); // 'profile' | 'friends' | 'saves'
+    const userFloatRef = useRef(null);
+    const [userFloatBounds, setUserFloatBounds] = useState({ x: 120, y: 70, w: 520, h: 520 });
+    const [userMaximized, setUserMaximized] = useState(false);
+    const [userMinimized, setUserMinimized] = useState(false);
+    const [userResizeLayerOn, setUserResizeLayerOn] = useState(false);
+    const userFloatSavedBounds = useRef(null);
     const [friendsSearch, setFriendsSearch] = useState('');
     const [friendsResults, setFriendsResults] = useState([]);
     const [friendsBusy, setFriendsBusy] = useState(false);
@@ -319,6 +431,61 @@ const ExtensionBuilderInner = () => {
                 '\n\n/* 原始生成代码 */\n' + generatedCode;
         }
     }, [extInfo, generatedCode, customBlocks]);
+
+    // ── 项目统计数据（积木数、代码大小、复杂度等）──
+    const projectStats = useMemo(() => {
+        // 优先统计工作区中实际放置的积木数量，回退到定义数量
+        let workspaceBlockCount = 0;
+        let wsHat = 0, wsCmd = 0, wsReporter = 0, wsBool = 0;
+        try {
+            const ws = workspaceRef.current;
+            if (ws) {
+                const allBlocks = ws.getAllBlocks ? ws.getAllBlocks() : [];
+                // 过滤掉 shadow 积木（placeholder）和 disabled 积木
+                const realBlocks = allBlocks.filter(b => !b.isShadow() && !b.disabled);
+                workspaceBlockCount = realBlocks.length;
+                realBlocks.forEach(b => {
+                    const opcode = b.type || '';
+                    // 从 opcode 或输出连接判断类型
+                    if (b.outputConnection) {
+                        if (b.outputConnection.check_ && b.outputConnection.check_.includes('Boolean')) wsBool++;
+                        else wsReporter++;
+                    } else if (b.previousConnection === null && b.nextConnection !== null) {
+                        wsHat++;
+                    } else {
+                        wsCmd++;
+                    }
+                });
+            }
+        } catch(e) { /* workspace 未就绪 */ }
+
+        // 如果工作区没有积木，回退到定义数量
+        const blockCount = workspaceBlockCount > 0 ? workspaceBlockCount : (customBlocks || []).length;
+
+        // 使用 exportableCode（代码面板实际显示的完整包装后代码）
+        const code = exportableCode || generatedCode || '';
+        const codeSize = new Blob([code], { type: 'text/javascript' }).size;
+        const fullSize = codeSize; // exportableCode 已经是完整导出代码
+        const lineCount = code.split('\n').length;
+
+        // 如果工作区有统计则使用，否则从定义推断
+        const hatCount = workspaceBlockCount > 0 ? wsHat : (customBlocks || []).filter(b => b.blockType === 'hat').length;
+        const cmdCount = workspaceBlockCount > 0 ? wsCmd : (customBlocks || []).filter(b => b.blockType === 'command' || !b.blockType).length;
+        const reporterCount = workspaceBlockCount > 0 ? wsReporter : (customBlocks || []).filter(b => b.blockType === 'reporter').length;
+        const boolCount = workspaceBlockCount > 0 ? wsBool : (customBlocks || []).filter(b => b.blockType === 'boolean').length;
+
+        // 复杂度评分（极高考门槛：至少约3000块积木才能取得高分）
+        // 积木分（上限70分）：每块0.024分，需约2900块才满
+        const blockScore = Math.min(70, blockCount * 0.024);
+        // 代码行数分（上限18分）：每行0.036分，需约500行才满（辅助项）
+        const lineScore = Math.min(18, lineCount * 0.036);
+        // 类型多样性分（上限12分）
+        const typeDiversity = Math.min(12, (hatCount + cmdCount + reporterCount + boolCount) * 1.0);
+        const complexityScore = Math.round(blockScore + lineScore + typeDiversity);
+        const complexityLevel = complexityScore < 15 ? '低' : complexityScore < 35 ? '中' : complexityScore < 55 ? '较高' : complexityScore < 78 ? '高' : '极高';
+        return { blockCount, codeSize, fullSize, lineCount, hatCount, cmdCount, reporterCount, boolCount, complexityScore, complexityLevel };
+    }, [customBlocks, generatedCode, exportableCode, workspaceLoaded, statsTick]);
+
     const [copyMsg, setCopyMsg] = useState('');
     const copyMsgTimerRef = useRef(null);
     const [currentBlockId, setCurrentBlockId] = useState('block_1');
@@ -1121,6 +1288,7 @@ const ExtensionBuilderInner = () => {
                             try {
                                 const code = javascriptGenerator.workspaceToCode(workspace);
                                 setGeneratedCode(code);
+                                setStatsTick(t => t + 1); // 触发 projectStats 重算
                             } catch (genErr) { /* silent */ }
                             try {
                                 const B = window._extBuilderBlockly || window.Blockly;
@@ -1169,6 +1337,7 @@ const ExtensionBuilderInner = () => {
             window._extBuilderWorkspace = workspace;
             window._extBuilderBlockly = Blockly;
             window._extBuilderGenerator = javascriptGenerator;
+            window._extBuilderCustomBlocks = customBlocks;
 
             // Seed the workspace with starter blocks for every existing
             // customBlock so the canvas is populated immediately. Subsequent
@@ -1769,12 +1938,359 @@ const ExtensionBuilderInner = () => {
     // Extension settings (creation) modal
     const handleOpenSettings = useCallback(() => {
         setSettingsDraft({...extInfo});
-        setShowExtensionSettings(true);
+        setShowSettingsPanel(true);
+        setSettingsTab('editor');
     }, [extInfo]);
 
     const handleCloseSettings = useCallback(() => {
-        setShowExtensionSettings(false);
+        setShowSettingsPanel(false);
         setSettingsDraft(null);
+        setSettingsMinimized(false);
+        setSettingsMaximized(false);
+    }, []);
+
+    // ─── 设置悬浮框：拖动 / 拉伸 / 最大化 ───
+    const settingsDragRef = useRef(null);
+    const settingsResizeRef = useRef(null);
+    const settingsResizeLayerRef = useRef(null);
+
+    // 将拉伸层定位到面板当前 rect（覆盖面板边缘，手柄才贴边可点）
+    const syncSettingsResizeLayerPos = useCallback(() => {
+        const panel = settingsPanelRef.current;
+        const layer = settingsResizeLayerRef.current;
+        if (!panel || !layer) return;
+        const rect = panel.getBoundingClientRect();
+        layer.style.top = rect.top + 'px';
+        layer.style.left = rect.left + 'px';
+        layer.style.width = rect.width + 'px';
+        layer.style.height = rect.height + 'px';
+    }, []);
+
+    const settingsSyncResizeLayer = useCallback(() => {
+        const panel = settingsPanelRef.current;
+        if (!panel) return;
+        if (panel.style.display === 'none' || settingsMaximized) { setSettingsResizeLayerOn(false); return; }
+        setSettingsResizeLayerOn(true);
+    }, [settingsMaximized]);
+
+    const handleSettingsHeaderMouseDown = useCallback((e) => {
+        if (settingsMaximized) return;
+        // 以下区域不触发拖拽：按钮 / tab / 表单控件 / 可滚动内容列表 / 拉伸手柄
+        if (e.target.closest('.ext-float-btn')) return;
+        if (e.target.closest('.ext-settings-tab')) return;
+        if (e.target.closest('.ext-float-resize-handle')) return;
+        if (e.target.closest('button, input, select, textarea, a, label, .ext-market-grid')) return;
+        const panel = settingsPanelRef.current;
+        if (!panel) return;
+        const rect = panel.getBoundingClientRect();
+        // 锁定宽度：防止 width:auto 被 content 撑开后右边缘贴屏
+        const lockedWidth = panel.style.width || (panel.offsetWidth + 'px');
+        settingsDragRef.current = {
+            startX: e.clientX,
+            startY: e.clientY,
+            origLeft: rect.left,
+            origTop: rect.top,
+            lockedWidth: lockedWidth
+        };
+        e.preventDefault();
+    }, [settingsMaximized]);
+
+    const handleSettingsMouseMove = useCallback((e) => {
+        const panel = settingsPanelRef.current;
+        if (!panel) return;
+        if (settingsDragRef.current) {
+            const d = settingsDragRef.current;
+            const dx = e.clientX - d.startX;
+            const dy = e.clientY - d.startY;
+            let newLeft = d.origLeft + dx;
+            let newTop = d.origTop + dy;
+            newTop = Math.max(0, Math.min(newTop, window.innerHeight - 60));
+            newLeft = Math.max(-panel.offsetWidth + 80, Math.min(newLeft, window.innerWidth - 80));
+            panel.style.left = newLeft + 'px';
+            panel.style.top = newTop + 'px';
+            panel.style.right = 'auto';
+            panel.style.width = d.lockedWidth || panel.style.width || (panel.offsetWidth + 'px');
+            panel.style.transform = 'none';
+            settingsSyncResizeLayer();
+            syncSettingsResizeLayerPos();
+        } else if (settingsResizeRef.current) {
+            const d = settingsResizeRef.current;
+            const dx = e.clientX - d.startX;
+            const dy = e.clientY - d.startY;
+            let newLeft = d.origLeft, newTop = d.origTop, newW = d.origW, newH = d.origH;
+            const minW = 420, minH = 360;
+            if (d.dir.indexOf('e') !== -1) newW = Math.max(minW, d.origW + dx);
+            if (d.dir.indexOf('s') !== -1) newH = Math.max(minH, d.origH + dy);
+            if (d.dir.indexOf('w') !== -1) { newW = Math.max(minW, d.origW - dx); newLeft = d.origLeft + (d.origW - newW); }
+            if (d.dir.indexOf('n') !== -1) { newH = Math.max(minH, d.origH - dy); newTop = d.origTop + (d.origH - newH); }
+            newLeft = Math.max(0, Math.min(newLeft, window.innerWidth - 40));
+            newTop = Math.max(0, Math.min(newTop, window.innerHeight - 40));
+            panel.style.left = newLeft + 'px';
+            panel.style.top = newTop + 'px';
+            panel.style.right = 'auto';
+            panel.style.width = newW + 'px';
+            panel.style.height = newH + 'px';
+            panel.style.transform = 'none';
+            settingsSyncResizeLayer();
+            syncSettingsResizeLayerPos();
+        }
+    }, [settingsSyncResizeLayer]);
+
+    const handleSettingsMouseUp = useCallback(() => {
+        settingsDragRef.current = null;
+        settingsResizeRef.current = null;
+        setSettingsResizeLayerOn(false);
+    }, []);
+
+    const handleSettingsResizeDown = useCallback((dir) => (e) => {
+        if (settingsMaximized) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const panel = settingsPanelRef.current;
+        if (!panel) return;
+        const rect = panel.getBoundingClientRect();
+        settingsResizeRef.current = { dir, startX: e.clientX, startY: e.clientY, origLeft: rect.left, origTop: rect.top, origW: rect.width, origH: rect.height };
+        setSettingsResizeLayerOn(true);
+    }, [settingsMaximized]);
+
+    const handleSettingsToggleMax = useCallback(() => {
+        const panel = settingsPanelRef.current;
+        if (!panel) return;
+        if (!settingsMaximized) {
+            const rect = panel.getBoundingClientRect();
+            settingsBoundsRef.current = { left: rect.left, top: rect.top, width: rect.width, height: rect.height };
+            panel.style.top = '8px';
+            panel.style.left = '8px';
+            panel.style.right = '8px';
+            panel.style.width = '';
+            panel.style.height = 'calc(100vh - 16px)';
+            panel.style.transform = 'none';
+            setSettingsMaximized(true);
+        } else {
+            if (settingsBoundsRef.current) {
+                panel.style.top = settingsBoundsRef.current.top + 'px';
+                panel.style.left = settingsBoundsRef.current.left + 'px';
+                panel.style.right = 'auto';
+                panel.style.width = settingsBoundsRef.current.width + 'px';
+                panel.style.height = settingsBoundsRef.current.height + 'px';
+                panel.style.transform = 'none';
+            }
+            setSettingsMaximized(false);
+        }
+        settingsSyncResizeLayer();
+        syncSettingsResizeLayerPos();
+    }, [settingsMaximized, settingsSyncResizeLayer, syncSettingsResizeLayerPos]);
+
+    const handleSettingsToggleMin = useCallback(() => {
+        const panel = settingsPanelRef.current;
+        if (!panel) return;
+        setSettingsMinimized(prev => !prev);
+        settingsSyncResizeLayer();
+        syncSettingsResizeLayerPos();
+    }, [settingsSyncResizeLayer, syncSettingsResizeLayerPos]);
+
+    // 全局鼠标监听（拖动/拉伸）
+    useEffect(() => {
+        if (!showSettingsPanel) return;
+        const move = (e) => handleSettingsMouseMove(e);
+        const up = () => handleSettingsMouseUp();
+        document.addEventListener('mousemove', move);
+        document.addEventListener('mouseup', up);
+        // 面板打开后同步拉伸层定位（等面板渲染完成）
+        const raf = requestAnimationFrame(syncSettingsResizeLayerPos);
+        return () => {
+            document.removeEventListener('mousemove', move);
+            document.removeEventListener('mouseup', up);
+            cancelAnimationFrame(raf);
+        };
+    }, [showSettingsPanel, handleSettingsMouseMove, handleSettingsMouseUp, syncSettingsResizeLayerPos]);
+
+    // ─── 统计面板：拖动 / 拉伸 ───
+    const syncStatsResizeLayerPos = useCallback(() => {
+        const panel = statsPanelRef.current;
+        const layer = statsResizeLayerRef.current;
+        if (!panel || !layer) return;
+        const r = panel.getBoundingClientRect();
+        layer.style.left = r.left + 'px';
+        layer.style.top = r.top + 'px';
+        layer.style.width = r.width + 'px';
+        layer.style.height = r.height + 'px';
+    }, []);
+
+    const handleStatsHeaderMouseDown = useCallback((e) => {
+        if (e.target.closest('.ext-float-btn')) return;
+        const panel = statsPanelRef.current;
+        if (!panel) return;
+        const rect = panel.getBoundingClientRect();
+        statsDragRef.current = { startX: e.clientX, startY: e.clientY, origLeft: rect.left, origTop: rect.top };
+        e.preventDefault();
+    }, []);
+
+    const handleStatsMouseMove = useCallback((e) => {
+        const panel = statsPanelRef.current;
+        if (!panel) return;
+        if (statsDragRef.current) {
+            const d = statsDragRef.current;
+            const dx = e.clientX - d.startX;
+            const dy = e.clientY - d.startY;
+            let newLeft = d.origLeft + dx;
+            let newTop = d.origTop + dy;
+            newTop = Math.max(0, Math.min(newTop, window.innerHeight - 60));
+            newLeft = Math.max(-panel.offsetWidth + 80, Math.min(newLeft, window.innerWidth - 80));
+            panel.style.left = newLeft + 'px';
+            panel.style.top = newTop + 'px';
+            panel.style.right = 'auto';
+            panel.style.transform = 'none';
+            syncStatsResizeLayerPos();
+        } else if (statsResizeRef.current) {
+            const d = statsResizeRef.current;
+            const dx = e.clientX - d.startX;
+            const dy = e.clientY - d.startY;
+            let newLeft = d.origLeft, newTop = d.origTop, newW = d.origW, newH = d.origH;
+            const minW = 400, minH = 300;
+            if (d.dir.indexOf('e') !== -1) newW = Math.max(minW, d.origW + dx);
+            if (d.dir.indexOf('s') !== -1) newH = Math.max(minH, d.origH + dy);
+            if (d.dir.indexOf('w') !== -1) { newW = Math.max(minW, d.origW - dx); newLeft = d.origLeft + (d.origW - newW); }
+            if (d.dir.indexOf('n') !== -1) { newH = Math.max(minH, d.origH - dy); newTop = d.origTop + (d.origH - newH); }
+            newLeft = Math.max(0, Math.min(newLeft, window.innerWidth - 40));
+            newTop = Math.max(0, Math.min(newTop, window.innerHeight - 40));
+            panel.style.left = newLeft + 'px';
+            panel.style.top = newTop + 'px';
+            panel.style.right = 'auto';
+            panel.style.width = newW + 'px';
+            panel.style.height = newH + 'px';
+            panel.style.transform = 'none';
+            syncStatsResizeLayerPos();
+        }
+    }, [syncStatsResizeLayerPos]);
+
+    const handleStatsMouseUp = useCallback(() => {
+        statsDragRef.current = null;
+        statsResizeRef.current = null;
+    }, []);
+
+    const handleStatsResizeDown = useCallback((dir) => (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const panel = statsPanelRef.current;
+        if (!panel) return;
+        const rect = panel.getBoundingClientRect();
+        statsResizeRef.current = { dir, startX: e.clientX, startY: e.clientY, origLeft: rect.left, origTop: rect.top, origW: rect.width, origH: rect.height };
+    }, []);
+
+    useEffect(() => {
+        if (!showStatsPanel) return;
+        const move = (e) => handleStatsMouseMove(e);
+        const up = () => handleStatsMouseUp();
+        document.addEventListener('mousemove', move);
+        document.addEventListener('mouseup', up);
+        const raf = requestAnimationFrame(syncStatsResizeLayerPos);
+        return () => { document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); cancelAnimationFrame(raf); };
+    }, [showStatsPanel, handleStatsMouseMove, handleStatsMouseUp, syncStatsResizeLayerPos]);
+
+    // ─── 用户面板悬浮框：拖动 / 拉伸 / 最大化 / 最小化 ───
+    const userDragRef = useRef(null);
+    const userResizeRef = useRef(null);
+
+    const openUserPanel = useCallback((type) => {
+        setUserPanelType(type);
+        setUserMinimized(false);
+        setUserMaximized(false);
+        // 关闭其他用户面板状态
+        setShowProfilePanel(false);
+        setShowFriendsPanel(false);
+        setShowSavesPanel(false);
+    }, []);
+
+    const closeUserPanel = useCallback(() => {
+        setUserPanelType(null);
+        setUserMinimized(false);
+        setUserMaximized(false);
+    }, []);
+
+    const handleUserHeaderMouseDown = useCallback((e) => {
+        if (userMaximized) return;
+        if (e.target.closest('.ext-float-btn')) return;
+        const panel = userFloatRef.current;
+        if (!panel) return;
+        const rect = panel.getBoundingClientRect();
+        userDragRef.current = { startX: e.clientX, startY: e.clientY, origLeft: rect.left, origTop: rect.top };
+        e.preventDefault();
+    }, [userMaximized]);
+
+    const handleUserMouseMove = useCallback((e) => {
+        const panel = userFloatRef.current;
+        if (!panel) return;
+        if (userDragRef.current) {
+            const d = userDragRef.current;
+            const dx = e.clientX - d.startX, dy = e.clientY - d.startY;
+            let newLeft = d.origLeft + dx, newTop = d.origTop + dy;
+            newTop = Math.max(0, Math.min(newTop, window.innerHeight - 60));
+            newLeft = Math.max(-panel.offsetWidth + 80, Math.min(newLeft, window.innerWidth - 80));
+            panel.style.left = newLeft + 'px'; panel.style.top = newTop + 'px';
+            panel.style.right = 'auto'; panel.style.transform = 'none';
+        } else if (userResizeRef.current) {
+            const d = userResizeRef.current;
+            const dx = e.clientX - d.startX, dy = e.clientY - d.startY;
+            let newLeft = d.origLeft, newTop = d.origTop, newW = d.origW, newH = d.origH;
+            const minW = 420, minH = 360;
+            if (d.dir.indexOf('e') !== -1) newW = Math.max(minW, d.origW + dx);
+            if (d.dir.indexOf('s') !== -1) newH = Math.max(minH, d.origH + dy);
+            if (d.dir.indexOf('w') !== -1) { newW = Math.max(minW, d.origW - dx); newLeft = d.origLeft + (d.origW - newW); }
+            if (d.dir.indexOf('n') !== -1) { newH = Math.max(minH, d.origH - dy); newTop = d.origTop + (d.origH - newH); }
+            newLeft = Math.max(0, Math.min(newLeft, window.innerWidth - 40));
+            newTop = Math.max(0, Math.min(newTop, window.innerHeight - 40));
+            panel.style.left = newLeft + 'px'; panel.style.top = newTop + 'px';
+            panel.style.right = 'auto'; panel.style.width = newW + 'px'; panel.style.height = newH + 'px';
+            panel.style.transform = 'none';
+        }
+    }, []);
+
+    const handleUserMouseUp = useCallback(() => { userDragRef.current = null; userResizeRef.current = null; setUserResizeLayerOn(false); }, []);
+
+    const handleUserResizeDown = useCallback((dir) => (e) => {
+        if (userMaximized) return; e.preventDefault(); e.stopPropagation();
+        const panel = userFloatRef.current; if (!panel) return;
+        const rect = panel.getBoundingClientRect();
+        userResizeRef.current = { dir, startX: e.clientX, startY: e.clientY, origLeft: rect.left, origTop: rect.top, origW: rect.width, origH: rect.height };
+        setUserResizeLayerOn(true);
+    }, [userMaximized]);
+
+    const handleUserToggleMax = useCallback(() => {
+        const panel = userFloatRef.current; if (!panel) return;
+        if (!userMaximized) {
+            const rect = panel.getBoundingClientRect();
+            userFloatSavedBounds.current = { left: rect.left, top: rect.top, width: rect.width, height: rect.height };
+            panel.style.top = '8px'; panel.style.left = '8px'; panel.style.right = '8px';
+            panel.style.width = ''; panel.style.height = 'calc(100vh - 16px)'; panel.style.transform = 'none';
+            setUserMaximized(true);
+        } else {
+            if (userFloatSavedBounds.current) {
+                panel.style.top = userFloatSavedBounds.current.top + 'px';
+                panel.style.left = userFloatSavedBounds.current.left + 'px'; panel.style.right = 'auto';
+                panel.style.width = userFloatSavedBounds.current.width + 'px';
+                panel.style.height = userFloatSavedBounds.current.height + 'px'; panel.style.transform = 'none';
+            }
+            setUserMaximized(false);
+        }
+    }, [userMaximized]);
+
+    const handleUserToggleMin = useCallback(() => { setUserMinimized(v => !v); }, []);
+
+    // 用户面板全局鼠标监听
+    useEffect(() => {
+        if (!userPanelType) return;
+        const move = (e) => handleUserMouseMove(e);
+        const up = () => handleUserMouseUp();
+        document.addEventListener('mousemove', move);
+        document.addEventListener('mouseup', up);
+        return () => { document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); };
+    }, [userPanelType, handleUserMouseMove, handleUserMouseUp]);
+
+    // 打开设置面板并直接切到插件标签页（供原插件按钮入口复用）
+    const handleOpenAddonsInSettings = useCallback(() => {
+        setShowSettingsPanel(true);
+        setSettingsTab('addons');
     }, []);
 
     // ---- Block preview: render each block in a hidden workspace, capture SVG XML ----
@@ -1873,8 +2389,7 @@ const ExtensionBuilderInner = () => {
         // punctuation).
         const safeId = id.toLowerCase().replace(/[^a-z0-9]/g, '') || 'myextension';
         setExtInfo({...settingsDraft, name: trimmed, id: safeId});
-        setShowExtensionSettings(false);
-        setSettingsDraft(null);
+        handleCloseSettings();
     }, [settingsDraft]);
 
     const handlePickColor = useCallback((preset) => {
@@ -2088,48 +2603,6 @@ const ExtensionBuilderInner = () => {
         }
     }, []);
 
-    // ExtAddons：从本地 JS 文件导入自定义插件（导出 {id,name,description,category,css,setup} 或数组）
-    const handleImportPlugin = useCallback(() => {
-        try {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.js,.mjs,text/javascript';
-            input.onchange = (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = () => {
-                    try {
-                        const imported = importCustomAddonFromFile(String(reader.result));
-                        if (!imported.length) throw new Error('文件中没有有效的插件对象');
-                        // 导入后自动启用这些插件并重激活
-                        const nextState = {...addonState};
-                        imported.forEach(p => { nextState[p.id] = true; });
-                        setAddonState(nextState);
-                        setAddonStateInternal(nextState);
-                        const Blockly = window._extBuilderBlockly || window.Blockly;
-                        if (Blockly && workspaceRef.current) {
-                            if (extAddonsCleanupRef.current) {
-                                try { extAddonsCleanupRef.current(); } catch (er) { /* silent */ }
-                                extAddonsCleanupRef.current = null;
-                            }
-                            applyExtAddons({Blockly, getWorkspace: () => workspaceRef.current})
-                                .then(cleanup => { extAddonsCleanupRef.current = cleanup; });
-                        }
-                        alert('已导入 ' + imported.length + ' 个插件：\n' + imported.map(p => p.name).join('、'));
-                    } catch (err) {
-                        alert('导入失败: ' + (err.message || String(err)));
-                    }
-                };
-                reader.onerror = () => alert('读取文件失败');
-                reader.readAsText(file);
-            };
-            input.click();
-        } catch (e) {
-            console.error('Import plugin failed:', e);
-        }
-    }, [addonState]);
-
     // ExtAddons：删除一个自定义插件（按 id）
     const handleRemoveCustomAddon = useCallback((id) => {
         if (!confirm('确定删除自定义插件「' + id + '」？此操作不可撤销。')) return;
@@ -2155,6 +2628,168 @@ const ExtensionBuilderInner = () => {
             console.error('Remove custom addon failed:', e);
         }
     }, [addonState]);
+
+    // 重新激活所有插件（导入/更新/删除后调用）
+    const reapplyAddons = useCallback(() => {
+        const Blockly = window._extBuilderBlockly || window.Blockly;
+        if (!Blockly || !workspaceRef.current) return;
+        if (extAddonsCleanupRef.current) {
+            try { extAddonsCleanupRef.current(); } catch (er) { /* silent */ }
+            extAddonsCleanupRef.current = null;
+        }
+        applyExtAddons({Blockly, getWorkspace: () => workspaceRef.current})
+            .then(cleanup => { extAddonsCleanupRef.current = cleanup; });
+    }, []);
+
+    // 从来源安装插件（对齐 DSH：dsh plugin add <npm/github/git/url>）
+    const handleInstallFromSource = useCallback(async (sourceSpec) => {
+        if (!sourceSpec || !sourceSpec.trim()) { setInstallError('请输入来源（npm 包名 / github:owner/repo / 直链 URL）'); return; }
+        setInstallLoading(true);
+        setInstallError('');
+        setInstallStatus('正在解析来源：' + sourceSpec.trim() + ' …');
+        try {
+            const imported = await importAddonFromSource(sourceSpec.trim());
+            if (!imported.length) throw new Error('来源中没有有效的插件对象');
+            const nextState = {...addonState};
+            imported.forEach(p => { nextState[p.id] = true; });
+            setAddonState(nextState);
+            setAddonStateInternal(nextState);
+            reapplyAddons();
+            setInstallStatus('已安装 ' + imported.length + ' 个插件：' + imported.map(p => p.name).join('、'));
+            setInstallLoading(false);
+        } catch (err) {
+            setInstallLoading(false);
+            setInstallError('安装失败：' + (err && err.message ? err.message : String(err)));
+        }
+    }, [addonState, reapplyAddons]);
+
+    // 通用：导入成功后激活
+    const _activateImported = useCallback((imported, label) => {
+        const nextState = {...addonState};
+        imported.forEach(p => { nextState[p.id] = true; });
+        setAddonState(nextState);
+        setAddonStateInternal(nextState);
+        reapplyAddons();
+        setInstallStatus('已安装 ' + imported.length + ' 个插件：' + imported.map(p => p.name).join('、'));
+        setInstallLoading(false);
+    }, [addonState, reapplyAddons]);
+
+    // 选择本地文件安装（支持：单个 JS / 文件夹 / ZIP 三种模式）
+    // mode: 'file' 单 JS | 'folder' 文件夹(webkitdirectory) | 'zip' ZIP 包
+    const handleInstallLocalFile = useCallback((mode) => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        if (mode === 'folder') {
+            input.webkitdirectory = true;
+            input.setAttribute('webkitdirectory', '');
+            input.mozdirectory = true;
+            input.setAttribute('mozdirectory', '');
+        } else if (mode === 'zip') {
+            input.accept = '.zip,application/zip,application/x-zip-compressed';
+        } else {
+            input.accept = '.js,.mjs,text/javascript';
+        }
+        input.onchange = async (e) => {
+            const fileList = e.target.files;
+            if (!fileList || !fileList.length) return;
+            setInstallLoading(true);
+            setInstallError('');
+            try {
+                if (mode === 'folder') {
+                    setInstallStatus('正在读取文件夹（' + fileList.length + ' 个文件）…');
+                    const imported = await importAddonBundle([...fileList], 'local:folder:' + (fileList[0].webkitRelativePath || fileList[0].name));
+                    if (!imported.length) throw new Error('文件夹中没有有效的插件包');
+                    _activateImported(imported, 'folder');
+                } else if (mode === 'zip') {
+                    const file = fileList[0];
+                    setInstallStatus('正在解压 ZIP：' + file.name + ' …');
+                    const buf = await file.arrayBuffer();
+                    const imported = await importAddonFromZip(buf, 'local:zip:' + file.name);
+                    if (!imported.length) throw new Error('ZIP 中没有有效的插件包');
+                    _activateImported(imported, 'zip');
+                } else {
+                    const file = fileList[0];
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        setInstallStatus('正在安装本地文件：' + file.name + ' …');
+                        importAddonFromSource('local:' + file.name, {fileText: String(reader.result)})
+                            .then(imported => {
+                                if (!imported.length) throw new Error('文件中没有有效的插件对象');
+                                _activateImported(imported, 'file');
+                            })
+                            .catch(err => {
+                                setInstallLoading(false);
+                                setInstallError('安装失败：' + (err && err.message ? err.message : String(err)));
+                            });
+                    };
+                    reader.onerror = () => { setInstallLoading(false); setInstallError('读取文件失败'); };
+                    reader.readAsText(file);
+                }
+            } catch (err) {
+                setInstallLoading(false);
+                setInstallError('安装失败：' + (err && err.message ? err.message : String(err)));
+            }
+        };
+        input.click();
+    }, [_activateImported]);
+
+    // 按来源更新已安装插件
+    const handleUpdateAddon = useCallback(async (id) => {
+        try {
+            await updateCustomAddonSource(id);
+            reapplyAddons();
+            alert('已更新插件：' + id);
+        } catch (e) {
+            alert('更新失败：' + (e && e.message ? e.message : String(e)));
+        }
+    }, [reapplyAddons]);
+
+    // 打开/刷新插件市场（从 GitHub 主题聚合页加载所有带该 topic 的仓库插件）
+    const handleOpenMarket = useCallback(async () => {
+        setMarketView(true);
+        setMarketError('');
+        setMarketList([]); // 先清空旧数据，避免拉取失败时显示过期内容
+        if (marketLoading) return; // 防止重复并发请求
+        setMarketLoading(true);
+        try {
+            const list = await fetchAddonMarketFromTopic(MARKET_TOPIC);
+            console.log('[ExtAddons] 市场返回', list.length, '个插件:', list.map(p => p.dir));
+            setMarketList(list);
+            // 标记已安装（按 source 匹配已装自定义插件）
+            const installed = {};
+            const customSources = loadCustomAddons().map(a => (a.source || '').replace(/\/$/, ''));
+            list.forEach(p => {
+                if (customSources.indexOf(p.source.replace(/\/$/, '')) >= 0) installed[p.dir] = true;
+            });
+            setMarketInstalled(installed);
+        } catch (e) {
+            setMarketError('加载市场失败：' + (e && e.message ? e.message : String(e)));
+        } finally {
+            setMarketLoading(false);
+        }
+    }, [marketLoading]);
+
+    // 从市场安装单个插件（source 已含 owner/repo/dir，动态解析）
+    const handleMarketInstall = useCallback(async (item) => {
+        setMarketInstalling(item.dir);
+        try {
+            const m = /^github:([^/]+)\/([^/]+)\/(.+)$/.exec(item.source || '');
+            if (!m) throw new Error('插件来源格式不正确：' + (item.source || ''));
+            const imported = await importAddonFromGithubDir(m[1], m[2], m[3]);
+            // 安装后默认启用（与 _activateImported 一致）
+            const nextState = {...addonState};
+            (imported || []).forEach(p => { nextState[p.id] = true; });
+            setAddonState(nextState);
+            setAddonStateInternal(nextState);
+            reapplyAddons();
+            setMarketInstalled(prev => ({...prev, [item.dir]: true}));
+            alert('已安装插件：' + item.name);
+        } catch (e) {
+            alert('安装失败：' + (e && e.message ? e.message : String(e)));
+        } finally {
+            setMarketInstalling('');
+        }
+    }, [addonState, reapplyAddons]);
 
     const handleLoadExtension = useCallback(() => {
         console.log('Load clicked');
@@ -2221,8 +2856,8 @@ const ExtensionBuilderInner = () => {
         setSyncLinkText('');
         setSyncInput('');
         refreshSaves();
-        setShowSavesPanel(true);
-    }, [refreshSaves]);
+        openUserPanel('saves');
+    }, [refreshSaves, openUserPanel]);
 
     // 打开个人主页：加载账号资料 + 刷新存档列表 + 拉取关注/粉丝数
     const handleOpenProfile = useCallback(() => {
@@ -2231,7 +2866,7 @@ const ExtensionBuilderInner = () => {
         setProfileMeta(getUserMeta(username));
         setProfileCounts({following: 0, followers: 0});
         refreshSaves();
-        setShowProfilePanel(true);
+        openUserPanel('profile');
         // 云端可用时拉取关注关系，统计关注数 / 粉丝数（本地模式为 0）
         cloudListRelations(username).then((rows) => {
             if (!Array.isArray(rows)) return;
@@ -2243,9 +2878,9 @@ const ExtensionBuilderInner = () => {
             }
             setProfileCounts({following, followers});
         }).catch(() => {
-            // 拉取失败不影响主页其余内容，保持 0
+            // 拉取不影响主页其余内容，保持 0
         });
-    }, [session, refreshSaves]);
+    }, [session, refreshSaves, openUserPanel]);
 
     // ---- 好友 / 关注 ----
     // 拉取我与他人的全部关注关系，并重算好友（互关）/ 我关注的 / 关注我的
@@ -2265,9 +2900,9 @@ const ExtensionBuilderInner = () => {
         setFriendsResults([]);
         setFriendsSearch('');
         setFriendsTab('friends');
-        setShowFriendsPanel(true);
+        openUserPanel('friends');
         loadFriendsRelations();
-    }, [loadFriendsRelations]);
+    }, [loadFriendsRelations, openUserPanel]);
 
     const handleFriendSearch = useCallback(() => {
         if (!session) return;
@@ -2311,9 +2946,16 @@ const ExtensionBuilderInner = () => {
         e.preventDefault();
         setAuthError('');
         setAuthBusy(true);
+        // 获取 hCaptcha token（注册模式必须）
+        let captchaToken = null;
+        if (authMode === 'register' && hcaptchaWidgetId !== null) {
+            try {
+                captchaToken = window.hcaptcha.getResponse(hcaptchaWidgetId);
+            } catch (err) { /* hcaptcha 未加载 */ }
+        }
         const doAuth = authMode === 'register'
             ? (authPass === authPass2
-                ? register(authUser, authPass, authRemember)
+                ? register(authUser, authPass, authRemember, captchaToken)
                 : Promise.reject(new Error('两次输入的密码不一致')))
             : login(authUser, authPass, authRemember);
         doAuth.then((s) => {
@@ -2322,18 +2964,123 @@ const ExtensionBuilderInner = () => {
             setAuthUser('');
             setAuthPass('');
             setAuthPass2('');
+            // 注册成功后重置 hCaptcha
+            if (authMode === 'register' && hcaptchaWidgetId !== null) {
+                try { window.hcaptcha.reset(hcaptchaWidgetId); } catch (err) { /* ignore */ }
+            }
         }).catch((err) => {
             setAuthError(err && err.message ? err.message : String(err));
+            // 验证失败时重置 hCaptcha 让用户重试
+            if (authMode === 'register' && hcaptchaWidgetId !== null) {
+                try { window.hcaptcha.reset(hcaptchaWidgetId); } catch (err) { /* ignore */ }
+            }
         }).then(() => {
             setAuthBusy(false);
         });
-    }, [authMode, authUser, authPass, authPass2, authRemember]);
+    }, [authMode, authUser, authPass, authPass2, authRemember, hcaptchaWidgetId]);
 
     const handleLogout = useCallback(() => {
+        // 切换账号前保存当前会话（支持一键切回）
+        if (session) savePrevSession(session);
         authLogout();
         setSession(null);
-        setShowSavesPanel(false);
+        setUserPanelType(null);
+        setPrevSession(getPrevSession());
+    }, [session]);
+
+    // 切换账号：记住当前 → 退出 → 打开登录弹窗
+    const handleSwitchAccount = useCallback(() => {
+        if (session) savePrevSession(session);
+        authLogout();
+        setSession(null);
+        setUserPanelType(null);
+        setPrevSession(getPrevSession());
+        setAuthMode('login');
+        setAuthError('');
+        setShowAuthModal(true);
+    }, [session]);
+
+    // 一键切回到上一个账号
+    const handleSwitchBack = useCallback(() => {
+        const restored = switchToPrevSession();
+        if (restored) {
+            setSession(restored);
+            setPrevSession(null); // 已切回，清除 prev
+            setUserPanelType(null);
+        }
     }, []);
+
+    // ---- hCaptcha 动态加载（仅注册模式） ----
+    useEffect(() => {
+        if (!showAuthModal || authMode !== 'register') return;
+        let mounted = true;
+        let retryTimer = null;
+
+        const SITEKEY = 'b272a274-3bee-4e2e-92cc-ed16bf1a2584';
+
+        // 尝试渲染 widget（带重试）
+        const tryRender = (attempt) => {
+            if (!mounted) return;
+            const el = hcaptchaContainerRef.current || document.getElementById('ext-hcaptcha-container');
+            if (!el) {
+                if (attempt < 10) {
+                    retryTimer = setTimeout(() => tryRender(attempt + 1), 100);
+                } else {
+                    console.warn('[hCaptcha] 容器未找到，已重试 10 次');
+                }
+                return;
+            }
+            if (!window.hcaptcha) {
+                console.warn('[hCaptcha] SDK 未加载');
+                return;
+            }
+            // 如果已有 widget 且容器有子节点，跳过
+            if (el.hasChildNodes() && hcaptchaWidgetId !== null) return;
+            try {
+                const wid = window.hcaptcha.render(el, {
+                    sitekey: SITEKEY,
+                    theme: 'light',
+                    size: 'normal',
+                    'hl': 'zh-cn'
+                });
+                if (mounted) setCaptchaWidgetId(wid);
+                console.log('[hCaptcha] widget 渲染成功, id=', wid);
+            } catch (err) {
+                console.error('[hCaptcha] render 失败:', err);
+                // 某些情况下需要等一帧再试
+                if (attempt < 5) {
+                    retryTimer = setTimeout(() => tryRender(attempt + 1), 200);
+                }
+            }
+        };
+
+        // 加载 hCaptcha JS SDK（如果还没加载）
+        if (!window.hcaptcha) {
+            const script = document.createElement('script');
+            script.src = 'https://js.hcaptcha.com/1/api.js?render=explicit&hl=zh-cn';
+            script.async = true;
+            script.onload = () => {
+                if (!mounted) return;
+                console.log('[hCaptcha] JS SDK 加载完成');
+                setCaptchaLoaded(true);
+                // 延迟 200ms 确保容器 DOM 已 commit
+                setTimeout(() => tryRender(0), 200);
+            };
+            script.onerror = (e) => {
+                console.error('[hCaptcha] JS SDK 加载失败:', e);
+            };
+            document.head.appendChild(script);
+        } else {
+            // SDK 已存在，直接尝试渲染
+            setCaptchaLoaded(true);
+            setTimeout(() => tryRender(0), 100);
+        }
+
+        return () => {
+            mounted = false;
+            if (retryTimer) clearTimeout(retryTimer);
+        };
+    }, [showAuthModal, authMode]);
 
     // 保存当前项目为新存档
     const handleSaveProject = useCallback(() => {
@@ -2467,8 +3214,7 @@ const ExtensionBuilderInner = () => {
             customBlockXmlRef.current = restored.workspaceXmlMap;
             setGeneratedCode(restored.generatedCode);
             rebuildWorkspaceFromState(restored.customBlocks, restored.workspaceXmlMap);
-            setShowSavesPanel(false);
-            setShowProfilePanel(false);
+            setUserPanelType(null);
             setSaveMsg('已加载存档：' + save.name);
             alert('已加载存档：' + save.name);
         } catch (err) {
@@ -2596,47 +3342,88 @@ const ExtensionBuilderInner = () => {
                         <span className="ext-menu-logo">⊞</span>
                         <span className="ext-menu-title">扩展编辑器</span>
                     </div>
-                    <button className="ext-menu-btn" onClick={handleOpenSettings} title="设置扩展元数据">
-                        <span className="ext-menu-btn-icon">⚙</span>
+                    <button className="ext-menu-btn" onClick={handleOpenSettings} title="编辑器设置与插件管理">
+                        <svg className="ext-menu-btn-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
                         <span className="ext-menu-btn-label">设置</span>
                     </button>
-                    <button className="ext-menu-btn" onClick={() => setShowAddonsPanel(true)} title="扩展编辑器插件（ExtAddons）">
-                        <span className="ext-menu-btn-icon">🧩</span>
-                        <span className="ext-menu-btn-label">插件</span>
-                    </button>
                     <button className="ext-menu-btn" onClick={handleOpenPreview} title="预览所有积木">
-                        <span className="ext-menu-btn-icon">👁</span>
+                        <svg className="ext-menu-btn-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                         <span className="ext-menu-btn-label">预览</span>
                     </button>
-                    {!session ? (
+                    {/* 工具下拉菜单 */}
+                    <div className="ext-tools-dropdown" onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setShowToolsMenu(false); }}>
                         <button
-                            className="ext-menu-btn"
-                            onClick={() => { setAuthMode('login'); setAuthError(''); setShowAuthModal(true); }}
-                            title="登录 / 注册"
+                            className="ext-menu-btn ext-menu-tools-btn"
+                            onClick={() => setShowToolsMenu(v => !v)}
+                            title="工具"
                         >
-                            <span className="ext-menu-btn-icon">👤</span>
-                            <span className="ext-menu-btn-label">登录</span>
+                            <svg className="ext-menu-btn-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+                            <span className="ext-menu-btn-label">工具</span>
+                            <span className="ext-menu-arrow">▾</span>
                         </button>
-                    ) : (
+                        {showToolsMenu && (
+                            <div className="ext-tools-menu">
+                                <button className="ext-tools-menu-item" onClick={() => { setShowToolsMenu(false); window.dispatchEvent(new CustomEvent('ext-toggle-realtime-collab')); }}>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5f6368" strokeWidth="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                                    实时协作
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                    {!session ? (
                         <React.Fragment>
+                            {prevSession && (
+                                <button
+                                    className="ext-menu-btn ext-menu-btn-switch"
+                                    onClick={handleSwitchBack}
+                                    title={'切回上一个账号（' + prevSession.username + '）'}
+                                >
+                                    <span className="ext-menu-btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 010 11H13"/></svg></span>
+                                    <span className="ext-menu-btn-label">切回</span>
+                                </button>
+                            )}
                             <button
-                                className="ext-menu-user"
-                                title="打开个人主页"
-                                onClick={handleOpenProfile}
-                            >👤 {session.username}</button>
-                            <button className="ext-menu-btn" onClick={handleOpenSavesPanel} title="存档管理">
-                                <span className="ext-menu-btn-icon">💾</span>
-                                <span className="ext-menu-btn-label">存档</span>
-                            </button>
-                            <button className="ext-menu-btn" onClick={handleOpenFriends} title="好友 / 关注">
-                                <span className="ext-menu-btn-icon">👥</span>
-                                <span className="ext-menu-btn-label">好友</span>
-                            </button>
-                            <button className="ext-menu-btn ext-menu-btn-warn" onClick={handleLogout} title="退出登录">
-                                <span className="ext-menu-btn-icon">⏻</span>
-                                <span className="ext-menu-btn-label">退出</span>
+                                className="ext-menu-btn"
+                                onClick={() => { setAuthMode('login'); setAuthError(''); setShowAuthModal(true); }}
+                                title="登录 / 注册"
+                            >
+                                <span className="ext-menu-btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+                                <span className="ext-menu-btn-label">登录</span>
                             </button>
                         </React.Fragment>
+                    ) : (
+                        <div className="ext-user-dropdown" onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setShowUserMenu(false); }}>
+                            <button
+                                className="ext-menu-user"
+                                onClick={() => setShowUserMenu(v => !v)}
+                                title="用户菜单"
+                            ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{verticalAlign:'middle',marginRight:'4px'}}><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>{session.username} ▼</button>
+                            {showUserMenu && (
+                                <div className="ext-user-menu">
+                                    <button className="ext-user-menu-item" onClick={() => { setShowUserMenu(false); handleOpenProfile(); }}>
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5f6368" strokeWidth="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                        个人主页
+                                    </button>
+                                    <button className="ext-user-menu-item" onClick={() => { setShowUserMenu(false); handleOpenSavesPanel(); }}>
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5f6368" strokeWidth="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,9 15,9"/></svg>
+                                        存档管理
+                                    </button>
+                                    <button className="ext-user-menu-item" onClick={() => { setShowUserMenu(false); handleOpenFriends(); }}>
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5f6368" strokeWidth="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                                        好友 / 关注
+                                    </button>
+                                    <div className="ext-user-menu-divider"></div>
+                                    <button className="ext-user-menu-item" onClick={() => { setShowUserMenu(false); handleSwitchAccount(); }}>
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5f6368" strokeWidth="2"><polyline points="17,1 21,5 17,9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7,23 3,19 7,15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
+                                        切换账号
+                                    </button>
+                                    <button className="ext-user-menu-item ext-user-menu-logout" onClick={() => { setShowUserMenu(false); handleLogout(); }}>
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d32f2f" strokeWidth="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                                        退出登录
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     )}
                 </div>
                 <div className="ext-menu-bar-center">
@@ -2645,17 +3432,35 @@ const ExtensionBuilderInner = () => {
                 </div>
                 <div className="ext-menu-bar-right">
                     <button className="ext-menu-btn" onClick={handleLoadExtension} title="加载扩展">
-                        <span className="ext-menu-btn-icon">⬆</span>
+                        <svg className="ext-menu-btn-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                         <span className="ext-menu-btn-label">加载</span>
                     </button>
                     <button className="ext-menu-btn" onClick={handleExport} title="导出 .js 文件">
-                        <span className="ext-menu-btn-icon">⬇</span>
+                        <svg className="ext-menu-btn-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                         <span className="ext-menu-btn-label">导出</span>
                     </button>
                     <button className="ext-menu-btn ext-menu-btn-warn" onClick={handleReset} title="重置工作区">
-                        <span className="ext-menu-btn-icon">↻</span>
+                        <svg className="ext-menu-btn-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23,4 23,10 17,10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
                         <span className="ext-menu-btn-label">重置</span>
                     </button>
+                    <div className="ext-block-count-badge" onClick={() => setShowStatsPanel(v => !v)} title="点击查看项目数据分析">
+                        <span className="ext-block-count-num">{projectStats.blockCount}</span>
+                        <span className="ext-block-count-label">个积木</span>
+                    </div>
+                    {addonState['extedit-ai'] && (
+                    <button
+                        className={`ext-menu-btn ${showAIPanel ? 'active' : ''}`}
+                        onClick={() => setShowAIPanel(v => !v)}
+                        title="AI 助手"
+                        style={{marginLeft: 6, background: showAIPanel ? '#e8f0fe' : '', color: showAIPanel ? '#1a73e8' : ''}}
+                    >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill={showAIPanel ? '#1a73e8' : 'currentColor'} style={{verticalAlign:'middle',marginRight:4}}>
+                            <path d="M12 2a2 2 0 012 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 017 7h1a1 1 0 011 1v3a1 1 0 01-1 1h-1v1a2 2 0 01-2 2H5a2 2 0 01-2-2v-1H2a1 1 0 01-1-1v-3a1 1 0 011-1h1a7 7 0 017-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 012-2z"/>
+                            <circle cx="9" cy="13" r="1.25"/><circle cx="15" cy="13" r="1.25"/>
+                        </svg>
+                        <span className="ext-menu-btn-label">AI</span>
+                    </button>
+                    )}
                 </div>
             </div>
 
@@ -2663,7 +3468,7 @@ const ExtensionBuilderInner = () => {
             <div className="ext-builder-left">
                 <button
                     className={`ext-left-btn ${showBlockBuilder ? 'active' : ''}`}
-                    onClick={() => setShowBlockBuilder(true)}
+                    onClick={() => { setShowBlockBuilder(true); setBuilderMinimized(false); setBuilderMaximized(false); setBuilderModalPos(null); setBuilderSize(null); }}
                     title="制作积木"
                 >
                     <img
@@ -2682,14 +3487,14 @@ const ExtensionBuilderInner = () => {
                         className={`ext-tab ${activeTab === 'editor' ? 'active' : ''}`}
                         onClick={() => setActiveTab('editor')}
                     >
-                        <span className="ext-tab-icon">🧩</span>
+                        <span className="ext-tab-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/><path d="M14 4l-4 16"/></svg></span>
                         代码
                     </button>
                     <button
                         className={`ext-tab ${activeTab === 'debugger' ? 'active' : ''}`}
                         onClick={() => setActiveTab('debugger')}
                     >
-                        <span className="ext-tab-icon">🐞</span>
+                        <span className="ext-tab-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/><circle cx="12" cy="12" r="3"/></svg></span>
                         调试器
                     </button>
                 </div>
@@ -2701,26 +3506,55 @@ const ExtensionBuilderInner = () => {
                         <div
                             ref={builderModalRef}
                             className="ext-builder-modal"
-                            style={builderModalPos ? {
-                                left: builderModalPos.x,
-                                top: builderModalPos.y,
-                                margin: 0
-                            } : undefined}
+                            style={{
+                                ...(builderModalPos ? { left: builderModalPos.x, top: builderModalPos.y, right: 'auto' } : null),
+                                ...(builderSize ? { width: builderSize.width, height: builderSize.height } : null),
+                                ...(builderMaximized ? { top: 8, left: 8, right: 8, bottom: 8, height: 'auto', maxHeight: 'none' } : null),
+                                ...(builderMinimized ? { display: 'none' } : null)
+                            }}
                         >
                             <div
                                 className="ext-builder-modal-header"
                                 onMouseDown={handleBuilderDragStart}
                                 title="拖动移动窗口"
                             >
-                                <span className="ext-builder-modal-title">🧩 制作积木</span>
-                                <button
-                                    type="button"
-                                    className="ext-builder-modal-close"
-                                    onClick={() => setShowBlockBuilder(false)}
-                                    aria-label="关闭制作积木"
-                                    title="关闭"
-                                >✕</button>
+                                <span className="ext-builder-modal-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="#5b21b6" stroke="#5b21b6" strokeWidth="1.5" style={{verticalAlign:'middle',marginRight:'4px'}}><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>制作积木</span>
+                                <div className="ext-builder-modal-controls">
+                                    <button
+                                        type="button"
+                                        className="ext-builder-tb-btn"
+                                        onClick={handleBuilderMinimize}
+                                        aria-label="最小化制作积木"
+                                        title="最小化"
+                                    >─</button>
+                                    <button
+                                        type="button"
+                                        className="ext-builder-tb-btn"
+                                        onClick={handleBuilderMaximize}
+                                        aria-label={builderMaximized ? '还原制作积木' : '最大化制作积木'}
+                                        title={builderMaximized ? '还原' : '最大化'}
+                                    >{builderMaximized ? '❐' : '□'}</button>
+                                    <button
+                                        type="button"
+                                        className="ext-builder-tb-btn"
+                                        onClick={() => setShowBlockBuilder(false)}
+                                        aria-label="关闭制作积木"
+                                        title="关闭"
+                                    >×</button>
+                                </div>
                             </div>
+                            {/* 8 方向拉伸手柄层（与实时协作一致） */}
+                            {!builderMinimized && !builderMaximized && (
+                                <div className="ext-builder-resize-layer">
+                                    {BUILDER_RESIZE_DIRS.map((dir) => (
+                                        <div
+                                            key={dir}
+                                            className={`ext-builder-rz-${dir}`}
+                                            onMouseDown={(e) => handleBuilderResizeStart(e, dir)}
+                                        />
+                                    ))}
+                                </div>
+                            )}
                             <div className="ext-builder-modal-body">
                     <div className="ext-block-list">
                         <button
@@ -2728,7 +3562,7 @@ const ExtensionBuilderInner = () => {
                             onClick={handleOpenSettings}
                             title="扩展设置"
                         >
-                            ⚙ 扩展设置
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg> 扩展设置
                         </button>
                         <div className="ext-block-list-title">积木列表</div>
                         <div className="ext-block-list-items">
@@ -2769,7 +3603,7 @@ const ExtensionBuilderInner = () => {
                                             className="ext-block-list-delete"
                                             onClick={(e) => { e.stopPropagation(); handleDeleteBlock(block.id); }}
                                             title="删除积木"
-                                        >✕</button>
+                                        ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
                                     )}
                                 </div>
                             ))}
@@ -3020,22 +3854,22 @@ const ExtensionBuilderInner = () => {
                 {/* Right code panel */}
                 <div className="ext-builder-stage">
                     <div className="ext-stage-header">
-                        <span className="ext-stage-title">📋 JavaScript 代码</span>
+                        <span className="ext-stage-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{verticalAlign:'middle',marginRight:'6px'}}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>JavaScript 代码</span>
                         <div className="ext-stage-actions">
                             <button className="ext-stage-btn" onClick={handleOpenPreview} title="扩展积木预览">
-                                👁
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                             </button>
                             <button className="ext-stage-btn ext-stage-btn-copy" onClick={handleCopyCode} title="复制完整代码，可直接粘贴到 TurboWarp">
-                                {copyMsg ? '✅ 已复制' : '📋 复制'}
+                                {copyMsg ? <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4caf50" strokeWidth="2"><polyline points="20,6 9,17 4,12"/></svg> 已复制</> : <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> 复制</>}
                             </button>
                             <button className="ext-stage-btn" onClick={handleExport} title="导出">
-                                ⬇
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                             </button>
                             <button className="ext-stage-btn" onClick={handleLoadExtension} title="加载">
-                                ⬆
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                             </button>
                             <button className="ext-stage-btn" onClick={handleReset} title="重置">
-                                ✕
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                             </button>
                         </div>
                     </div>
@@ -3048,20 +3882,92 @@ const ExtensionBuilderInner = () => {
                         </pre>
                     </div>
                     <div className="ext-stage-footer">
-                        <button onClick={handleUndo}>↩ 撤销</button>
-                        <button onClick={handleRedo}>↪ 重做</button>
+                        <div className="ext-stage-footer-left">
+                            <button onClick={handleUndo} title="撤销"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 010 11H13"/></svg> 撤销</button>
+                            <button onClick={handleRedo} title="重做"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="17,1 21,5 17,9"/><path d="M3 11V9a4 4 0 014-4h14"/></svg> 重做</button>
+                        </div>
+                        <div className="ext-stage-footer-right">
+                            <span className="ext-stat-item" title="代码行数"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg> {projectStats.lineCount} 行</span>
+                            <span className="ext-stat-item" title="导出文件大小">{formatBytes(projectStats.fullSize)}</span>
+                        </div>
                     </div>
                 </div>
                 </div>
             </div>
 
-            {/* Extension settings modal — mimics the "创建扩展" form */}
-            {showExtensionSettings && settingsDraft && (
-                <div className="ext-modal-backdrop" onClick={handleCloseSettings}>
+            {/* 统一设置面板（编辑器设置 + 插件管理）— 实时协作风格悬浮框 */}
+            {showSettingsPanel && settingsDraft && (
+                <React.Fragment>
+                {/* 自由拉伸层（8 方向手柄，面板打开时常驻显示） */}
+                {!settingsMinimized && !settingsMaximized && (
+                    <div className="ext-float-resize-layer" ref={settingsResizeLayerRef}>
+                        {['n','s','e','w','ne','nw','se','sw'].map(dir => (
+                            <div
+                                key={dir}
+                                className={`ext-float-resize-handle ext-fz-${dir}`}
+                                onMouseDown={handleSettingsResizeDown(dir)}
+                            />
+                        ))}
+                    </div>
+                )}
+                <div
+                    ref={settingsPanelRef}
+                    className={`ext-float-panel ext-settings-unified ${settingsMinimized ? 'ext-float-minimized' : ''}`}
+                    style={{ display: settingsMinimized ? 'none' : '' }}
+                    onMouseDown={handleSettingsHeaderMouseDown}
+                >
                     <div
-                        className="ext-modal ext-settings-modal"
-                        onClick={(e) => e.stopPropagation()}
+                        className="ext-settings-unified-header ext-float-header"
+                        onMouseDown={handleSettingsHeaderMouseDown}
                     >
+                        <h2 className="ext-settings-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{verticalAlign:'middle',marginRight:'6px'}}><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>设置</h2>
+                        <div className="ext-float-btns">
+                            <button
+                                type="button"
+                                className="ext-float-btn"
+                                onClick={handleSettingsToggleMin}
+                                aria-label="最小化"
+                                title="最小化"
+                            >−</button>
+                            <button
+                                type="button"
+                                className="ext-float-btn"
+                                onClick={handleSettingsToggleMax}
+                                aria-label={settingsMaximized ? '还原' : '最大化'}
+                                title={settingsMaximized ? '还原' : '最大化'}
+                            >{settingsMaximized ? '❐' : '□'}</button>
+                            <button
+                                type="button"
+                                className="ext-float-btn ext-float-btn-close"
+                                onClick={handleCloseSettings}
+                                aria-label="关闭"
+                                title="关闭"
+                            ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                        </div>
+                    </div>
+
+                        {/* 标签页栏 */}
+                        <div className="ext-settings-tabs" onMouseDown={handleSettingsHeaderMouseDown}>
+                            <button
+                                type="button"
+                                className={`ext-settings-tab ${settingsTab === 'editor' ? 'active' : ''}`}
+                                onClick={() => setSettingsTab('editor')}
+                            ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5b21b6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>编辑器设置</button>
+                            <button
+                                type="button"
+                                className={`ext-settings-tab ${settingsTab === 'addons' ? 'active' : ''}`}
+                                onClick={() => { setSettingsTab('addons'); setMarketView(false); }}
+                            ><svg width="14" height="14" viewBox="0 0 24 24" fill="#5b21b6" stroke="#5b21b6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{verticalAlign:'middle',marginRight:'4px'}}><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>插件管理</button>
+                            <button
+                                type="button"
+                                className={`ext-settings-tab ${settingsTab === 'addons' && marketView ? 'active' : ''}`}
+                                onClick={() => { setSettingsTab('addons'); handleOpenMarket(); }}
+                            ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5b21b6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{verticalAlign:'middle',marginRight:'4px'}}><rect x="3" y="3" width="18" height="16" rx="2"/><path d="M3 10h18"/><path d="M8 3v7"/><path d="M16 3v7"/><line x1="9" y1="15" x2="15" y2="15"/><line x1="12" y1="12" x2="12" y2="18"/></svg>插件市场</button>
+                        </div>
+
+                        {/* ===== 编辑器设置标签页 ===== */}
+                        {settingsTab === 'editor' && (
+                            <div className="ext-settings-tab-content">
                         <div
                             className="ext-settings-banner"
                             style={{
@@ -3243,8 +4149,186 @@ const ExtensionBuilderInner = () => {
                                 onClick={handleApplySettings}
                             >完成</button>
                         </div>
+                            </div>
+                        )}
+
+                        {/* ===== 插件管理标签页 ===== */}
+                        {settingsTab === 'addons' && (
+                            <div className="ext-settings-tab-content ext-addons-tab-content">
+                                {marketView ? (
+                                    <div className="ext-market">
+                                        <div className="ext-market-head">
+                                            <button
+                                                type="button"
+                                                className="ext-market-back"
+                                                onClick={() => setMarketView(false)}
+                                                title="返回插件管理"
+                                            >← 返回</button>
+                                            <span className="ext-market-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5b21b6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{verticalAlign:'middle',marginRight:'4px'}}><rect x="3" y="3" width="18" height="16" rx="2"/><path d="M3 10h18"/><path d="M8 3v7"/><path d="M16 3v7"/></svg>插件市场</span>
+                                            <span className="ext-market-repo">主题：{MARKET_TOPIC}</span>
+                                            {!marketLoading && marketList.length > 0 && (
+                                                <span className="ext-market-count">共 {marketList.length} 个</span>
+                                            )}
+                                            <button
+                                                type="button"
+                                                className="ext-market-refresh-btn"
+                                                onClick={() => { setMarketList([]); handleOpenMarket(); }}
+                                                disabled={marketLoading}
+                                                title="刷新插件列表"
+                                            ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23,4 23,10 17,10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg> 刷新</button>
+                                        </div>
+                                        {marketLoading && <div className="ext-market-loading">正在加载插件市场…</div>}
+                                        {marketError && <div className="ext-market-error">⚠ {marketError}</div>}
+                                        {!marketLoading && !marketError && marketList.length === 0 && (
+                                            <div className="ext-market-empty">市场暂时没有可安装的插件</div>
+                                        )}
+                                        {!marketLoading && !marketError && marketList.length > 0 && (
+                                        <div className="ext-market-grid">
+                                            {marketList.map(item => (
+                                                <div key={item.source} className="ext-market-card">
+                                                    <div className="ext-market-card-name">{item.name}</div>
+                                                    <div className="ext-market-card-cat">{item.category}</div>
+                                                    <div className="ext-market-card-repo">{item.repoOwner}/{item.repoName}</div>
+                                                    <div className="ext-market-card-desc">{item.description}</div>
+                                                    <button
+                                                        type="button"
+                                                        className={`ext-market-install-btn ${marketInstalled[item.dir] ? 'installed' : ''}`}
+                                                        disabled={marketInstalled[item.dir] || marketInstalling === item.dir}
+                                                        onClick={() => handleMarketInstall(item)}
+                                                    >
+                                                        {marketInstalled[item.dir] ? '已安装' : (marketInstalling === item.dir ? '安装中…' : '安装')}
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                <div>
+                                <div className="ext-addons-search">
+                                    <input
+                                        type="search"
+                                        className="ext-addons-search-input"
+                                        placeholder="搜索插件..."
+                                        value={addonSearch}
+                                        onChange={(e) => setAddonSearch(e.target.value)}
+                                    />
+                                </div>
+                                <div className="ext-addons-list">
+                                    {getAllAddons()
+                                        .filter(addon => {
+                                            if (!addonSearch.trim()) return true;
+                                            const q = addonSearch.trim().toLowerCase();
+                                            return addon.name.toLowerCase().indexOf(q) >= 0 ||
+                                                addon.description.toLowerCase().indexOf(q) >= 0 ||
+                                                addon.category.toLowerCase().indexOf(q) >= 0;
+                                        })
+                                        .map(addon => (
+                                        <div key={addon.id} className="ext-addon-item">
+                                            <label className="ext-addon-label">
+                                                <input
+                                                    type="checkbox"
+                                                    className="ext-addon-check"
+                                                    checked={!!addonState[addon.id]}
+                                                    disabled={!!addon.builtin}
+                                                    onChange={(e) => handleToggleAddon(addon.id, e.target.checked)}
+                                                />
+                                                <span className="ext-addon-name">{addon.name}</span>
+                                                {addon.recommended && <span className="ext-addon-recommend">推荐</span>}
+                                                {addon.builtin && <span className="ext-addon-builtin">内置</span>}
+                                                <span className="ext-addon-cat">{addon.category}</span>
+                                                {addon.custom && (
+                                                    <span className="ext-addon-source">来自：{addon.source || '本地文件'}</span>
+                                                )}
+                                                {addon.custom && (
+                                                    <button
+                                                        type="button"
+                                                        className="ext-addon-del"
+                                                        title="删除此自定义插件"
+                                                        aria-label="删除自定义插件"
+                                                        onClick={() => handleRemoveCustomAddon(addon.id)}
+                                                    >删除</button>
+                                                )}
+                                                {addon.custom && addon.source && (
+                                                    <button
+                                                        type="button"
+                                                        className="ext-addon-update"
+                                                        title="按来源重新拉取并更新"
+                                                        aria-label="更新插件"
+                                                        onClick={() => handleUpdateAddon(addon.id)}
+                                                    >更新</button>
+                                                )}
+                                            </label>
+                                            <div className="ext-addon-desc">{addon.description}</div>
+                                            {addonState[addon.id] && addon.options && addon.options.length > 0 && (
+                                                <div className="ext-addon-opts">
+                                                    {addon.options.map(opt => (
+                                                        <label key={opt.id} className="ext-addon-opt-item">
+                                                            <input
+                                                                type="checkbox"
+                                                                className="ext-addon-opt-check"
+                                                                checked={!!(addonOpts[addon.id] && addonOpts[addon.id][opt.id])}
+                                                                onChange={(e) => handleToggleAddonOption(addon.id, opt.id, e.target.checked)}
+                                                            />
+                                                            <span className="ext-opt-label">{opt.label}</span>
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                    {getAllAddons().filter(addon => {
+                                        if (!addonSearch.trim()) return true;
+                                        const q = addonSearch.trim().toLowerCase();
+                                        return addon.name.toLowerCase().indexOf(q) >= 0 ||
+                                            addon.description.toLowerCase().indexOf(q) >= 0 ||
+                                            addon.category.toLowerCase().indexOf(q) >= 0;
+                                    }).length === 0 && (
+                                        <div className="ext-addon-empty">没有匹配的插件</div>
+                                    )}
+                                </div>
+                                <div className="ext-addons-actions">
+                                    <button
+                                        type="button"
+                                        className="ext-addons-action-btn ext-addons-action-btn-primary"
+                                        onClick={() => { setInstallError(''); setInstallStatus(''); setInstallSource(''); setShowInstallModal(true); }}
+                                        title="从 npm / GitHub / 直链 / 本地文件安装插件（对齐 DeepSeek Harness 的 dsh plugin add）"
+                                    >安装插件</button>
+                                    <button
+                                        type="button"
+                                        className="ext-addons-action-btn ext-addons-action-btn-info"
+                                        onClick={() => window.open('ext-addons-doc.html', '_blank')}
+                                        title="打开插件开发文档与使用教程（独立页面）"
+                                    >开发教程</button>
+                                    <button
+                                        type="button"
+                                        className="ext-addons-action-btn"
+                                        onClick={handleAddonExport}
+                                    >导出设置</button>
+                                    <button
+                                        type="button"
+                                        className="ext-addons-action-btn"
+                                        onClick={handleAddonImport}
+                                    >导入设置</button>
+                                    <button
+                                        type="button"
+                                        className="ext-addons-action-btn ext-addons-action-btn-warn"
+                                        onClick={handleAddonReset}
+                                    >全部重置</button>
+                                </div>
+                                <div className="ext-addons-foot">
+                                    <button
+                                        type="button"
+                                        className="ext-auth-btn"
+                                        onClick={handleCloseSettings}
+                                    >完成</button>
+                                </div>
+                                </div>
+                                )}
+                            </div>
+                        )}
                     </div>
-                </div>
+                </React.Fragment>
             )}
 
             {/* Block preview modal (mimics AstraEditor "扩展预览") */}
@@ -3266,7 +4350,7 @@ const ExtensionBuilderInner = () => {
                                 className="ext-preview-modal-close"
                                 onClick={handleClosePreview}
                                 aria-label="关闭预览"
-                            >✕</button>
+                            ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
                         </div>
                         <div className="ext-preview-modal-sub">
                             <span className="ext-preview-ext-name">{extInfo.name}</span>
@@ -3304,7 +4388,7 @@ const ExtensionBuilderInner = () => {
                     <div className="ext-auth-card">
                         <div className="ext-auth-header">
                             <span className="ext-auth-title">
-                                {authMode === 'login' ? '👤 登录' : '📝 注册'}
+                                {authMode === 'login' ? <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{verticalAlign:'middle',marginRight:'6px'}}><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>登录</> : <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{verticalAlign:'middle',marginRight:'6px'}}><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>注册</>}
                             </span>
                             <button
                                 type="button"
@@ -3312,7 +4396,7 @@ const ExtensionBuilderInner = () => {
                                 onClick={() => setShowAuthModal(false)}
                                 aria-label="关闭"
                                 title="关闭"
-                            >✕</button>
+                            ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
                         </div>
                         <form className="ext-auth-form" onSubmit={handleAuthSubmit}>
                                 <label className="ext-auth-label">用户名</label>
@@ -3341,6 +4425,8 @@ const ExtensionBuilderInner = () => {
                                             onChange={(e) => setAuthPass2(e.target.value)}
                                             placeholder="再次输入密码"
                                         />
+                                        {/* hCaptcha 人机验证 */}
+                                        <div id="ext-hcaptcha-container" className="ext-hcaptcha-container" ref={hcaptchaContainerRef}></div>
                                     </React.Fragment>
                                 )}
                                 {authError && <div className="ext-auth-error">{authError}</div>}
@@ -3370,130 +4456,82 @@ const ExtensionBuilderInner = () => {
                 </div>
             )}
 
-            {/* 插件设置 弹窗（ExtAddons） */}
-            {showAddonsPanel && (
+            {/* 安装插件对话框（对齐 DeepSeek Harness 的 dsh plugin add） */}
+            {showInstallModal && (
                 <div
                     className="ext-auth-backdrop"
-                    onClick={(e) => { if (e.target === e.currentTarget) setShowAddonsPanel(false); }}
+                    onClick={(e) => { if (e.target === e.currentTarget) setShowInstallModal(false); }}
                 >
-                    <div className="ext-auth-card ext-addons-card">
+                    <div className="ext-auth-card ext-install-card">
                         <div className="ext-auth-header">
-                            <span className="ext-auth-title">🧩 编辑器插件</span>
+                            <span className="ext-auth-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5b21b6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{verticalAlign:'middle',marginRight:'4px'}}><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>安装插件</span>
                             <button
                                 type="button"
                                 className="ext-builder-modal-close"
-                                onClick={() => setShowAddonsPanel(false)}
+                                onClick={() => setShowInstallModal(false)}
                                 aria-label="关闭"
                                 title="关闭"
-                            >✕</button>
+                            ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
                         </div>
-                        <div className="ext-addons-intro">
-                            精选自 TurboWarp 插件（addons），只保留对扩展制作有用的积木编辑器增强。
-                            开关即时生效，无需刷新。
-                        </div>
-                        <div className="ext-addons-search">
+                        <div className="ext-install-body">
+                            <p className="ext-install-hint">
+                                粘贴来源后点击「安装」。支持：
+                            </p>
+                            <ul className="ext-install-sources">
+                                <li><code>npm 包名</code>（如 <code>my-addon</code> 或 <code>@scope/addon</code>）</li>
+                                <li><code>github:owner/repo</code> 或 <code>owner/repo</code></li>
+                                <li>直链 <code>https://…/plugin.js</code> 或 <code>.tgz</code> 包</li>
+                                <li>本地 <code>.js</code> 文件 / 文件夹（含 HTML·CSS·图片·JS）/ <code>.zip</code> 包</li>
+                            </ul>
                             <input
-                                type="search"
-                                className="ext-addons-search-input"
-                                placeholder="搜索插件..."
-                                value={addonSearch}
-                                onChange={(e) => setAddonSearch(e.target.value)}
+                                type="text"
+                                className="ext-install-input"
+                                placeholder="npm 包名 / github:owner/repo / 直链 URL"
+                                value={installSource}
+                                onChange={(e) => setInstallSource(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === 'Enter' && !installLoading) handleInstallFromSource(installSource); }}
                             />
-                        </div>
-                        <div className="ext-addons-list">
-                            {getAllAddons()
-                                .filter(addon => {
-                                    if (!addonSearch.trim()) return true;
-                                    const q = addonSearch.trim().toLowerCase();
-                                    return addon.name.toLowerCase().indexOf(q) >= 0 ||
-                                        addon.description.toLowerCase().indexOf(q) >= 0 ||
-                                        addon.category.toLowerCase().indexOf(q) >= 0;
-                                })
-                                .map(addon => (
-                                <div key={addon.id} className="ext-addon-item">
-                                    <label className="ext-addon-label">
-                                        <input
-                                            type="checkbox"
-                                            className="ext-addon-check"
-                                            checked={!!addonState[addon.id]}
-                                            onChange={(e) => handleToggleAddon(addon.id, e.target.checked)}
-                                        />
-                                        <span className="ext-addon-name">{addon.name}</span>
-                                        {addon.recommended && <span className="ext-addon-recommend">推荐</span>}
-                                        <span className="ext-addon-cat">{addon.category}</span>
-                                        {addon.custom && (
-                                            <button
-                                                type="button"
-                                                className="ext-addon-del"
-                                                title="删除此自定义插件"
-                                                aria-label="删除自定义插件"
-                                                onClick={() => handleRemoveCustomAddon(addon.id)}
-                                            >删除</button>
-                                        )}
-                                    </label>
-                                    <div className="ext-addon-desc">{addon.description}</div>
-                                    {/* 子选项：仅在插件启用且有 options 时显示 */}
-                                    {addonState[addon.id] && addon.options && addon.options.length > 0 && (
-                                        <div className="ext-addon-opts">
-                                            {addon.options.map(opt => (
-                                                <label key={opt.id} className="ext-addon-opt-item">
-                                                    <input
-                                                        type="checkbox"
-                                                        className="ext-addon-opt-check"
-                                                        checked={!!(addonOpts[addon.id] && addonOpts[addon.id][opt.id])}
-                                                        onChange={(e) => handleToggleAddonOption(addon.id, opt.id, e.target.checked)}
-                                                    />
-                                                    <span className="ext-opt-label">{opt.label}</span>
-                                                </label>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                            {getAllAddons().filter(addon => {
-                                if (!addonSearch.trim()) return true;
-                                const q = addonSearch.trim().toLowerCase();
-                                return addon.name.toLowerCase().indexOf(q) >= 0 ||
-                                    addon.description.toLowerCase().indexOf(q) >= 0 ||
-                                    addon.category.toLowerCase().indexOf(q) >= 0;
-                            }).length === 0 && (
-                                <div className="ext-addon-empty">没有匹配的插件</div>
-                            )}
-                        </div>
-                        <div className="ext-addons-actions">
-                            <button
-                                type="button"
-                                className="ext-addons-action-btn ext-addons-action-btn-primary"
-                                onClick={handleImportPlugin}
-                            >导入插件</button>
-                            <button
-                                type="button"
-                                className="ext-addons-action-btn ext-addons-action-btn-info"
-                                onClick={() => window.open('ext-addons-doc.html', '_blank')}
-                                title="打开插件开发文档与使用教程（独立页面）"
-                            >开发教程</button>
-                            <button
-                                type="button"
-                                className="ext-addons-action-btn"
-                                onClick={handleAddonExport}
-                            >导出设置</button>
-                            <button
-                                type="button"
-                                className="ext-addons-action-btn"
-                                onClick={handleAddonImport}
-                            >导入设置</button>
-                            <button
-                                type="button"
-                                className="ext-addons-action-btn ext-addons-action-btn-warn"
-                                onClick={handleAddonReset}
-                            >全部重置</button>
-                        </div>
-                        <div className="ext-addons-foot">
-                            <button
-                                type="button"
-                                className="ext-auth-btn"
-                                onClick={() => setShowAddonsPanel(false)}
-                            >完成</button>
+                            <div className="ext-install-actions">
+                                <button
+                                    type="button"
+                                    className="ext-addons-action-btn ext-addons-action-btn-primary"
+                                    disabled={installLoading}
+                                    onClick={() => handleInstallFromSource(installSource)}
+                                >{installLoading ? '安装中…' : '安装'}</button>
+                                <button
+                                    type="button"
+                                    className="ext-addons-action-btn"
+                                    disabled={installLoading}
+                                    onClick={() => handleInstallLocalFile('file')}
+                                    title="导入单个 JS 插件文件"
+                                >单个 JS</button>
+                                <button
+                                    type="button"
+                                    className="ext-addons-action-btn"
+                                    disabled={installLoading}
+                                    onClick={() => handleInstallLocalFile('folder')}
+                                    title="导入整个文件夹（含 index.js 与 HTML/CSS/图片/JS 等资源）"
+                                >文件夹</button>
+                                <button
+                                    type="button"
+                                    className="ext-addons-action-btn"
+                                    disabled={installLoading}
+                                    onClick={() => handleInstallLocalFile('zip')}
+                                    title="导入 ZIP 包（含 index.js 与 HTML/CSS/图片/JS 等资源）"
+                                >ZIP 包</button>
+                                <button
+                                    type="button"
+                                    className="ext-addons-action-btn"
+                                    onClick={() => { setShowInstallModal(false); }}
+                                >取消</button>
+                            </div>
+                            {installStatus && <div className="ext-install-status">✓ {installStatus}</div>}
+                            {installError && <div className="ext-install-error">✕ {installError}</div>}
+                            <p className="ext-install-note">
+                                文件夹 / ZIP 需含 <code>index.js</code> 入口；其它 HTML·CSS·图片·JS 会作为资源随插件持久化，
+                                可在 <code>setup(ctx)</code> 中通过 <code>ctx.loadAsset()</code> / <code>ctx.fileOverride()</code> 读取并改写网页底层文件。
+                                文档见右上角「开发教程」。
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -3501,41 +4539,67 @@ const ExtensionBuilderInner = () => {
 
             {/* 插件开发与使用教程已移至独立页面：ext-addons-doc.html */}
 
-            {/* 好友 / 关注 弹窗 */}
-            {showFriendsPanel && session && (() => {
-                const me = session.username;
-                const following = friendsRelations
-                    .filter(r => r.follower === me).map(r => r.followee);
-                const followers = friendsRelations
-                    .filter(r => r.followee === me).map(r => r.follower);
-                const friendSet = following.filter(f => followers.indexOf(f) >= 0);
-                let listItems = [];
-                let emptyText = '暂无';
-                if (friendsTab === 'friends') {
-                    listItems = friendSet.map(u => ({u, action: 'unfriend', label: '取消关注'}));
-                    emptyText = '还没有好友。关注他人，对方也关注你后即成为好友。';
-                } else if (friendsTab === 'following') {
-                    listItems = following.map(u => ({u, action: 'unfollow-following', label: '取消关注'}));
-                    emptyText = '你还没有关注任何人。';
-                } else {
-                    listItems = followers.map(u => ({u, action: 'unfollow-follower', label: '移除', followBack: true}));
-                    emptyText = '还没有人关注你。';
-                }
-                return (
+
+            {/* 用户面板悬浮框 */}
+            {userPanelType && session && (
+                <React.Fragment>
+                {userResizeLayerOn && !userMinimized && (
+                    <div className="ext-float-resize-layer">
+                        {['n','s','e','w','ne','nw','se','sw'].map(dir => (
+                            <div key={dir} className={"ext-fz-" + dir} onMouseDown={handleUserResizeDown(dir)} />
+                        ))}
+                    </div>
+                )}
                 <div
-                    className="ext-auth-backdrop"
-                    onClick={(e) => { if (e.target === e.currentTarget) setShowFriendsPanel(false); }}
+                    ref={userFloatRef}
+                    className={`ext-float-panel ${userMinimized ? 'ext-float-minimized' : ''}`}
+                    style={{ display: userMinimized ? 'none' : '', left: userFloatBounds.x, top: userFloatBounds.y, width: userFloatBounds.w, height: userFloatBounds.h }}
+                    onMouseDown={handleUserHeaderMouseDown}
                 >
-                    <div className="ext-auth-card ext-friends-card">
+                    <div className="ext-float-header">
+                        <span className="ext-float-title">
+                            {userPanelType === 'profile' && <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{verticalAlign:'middle',marginRight:'6px'}}><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>个人主页</>}
+                            {userPanelType === 'friends' && <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{verticalAlign:'middle',marginRight:'6px'}}><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>好友 / 关注</>}
+                            {userPanelType === 'saves' && <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{verticalAlign:'middle',marginRight:'6px'}}><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,9 15,9"/></svg>存档管理</>}
+                        </span>
+                        <div className="ext-float-btns">
+                            <button type="button" className="ext-float-btn" onClick={handleUserToggleMin} title="最小化">−</button>
+                            <button type="button" className="ext-float-btn" onClick={handleUserToggleMax} aria-label={userMaximized ? '还原' : '最大化'} title={userMaximized ? '还原' : '最大化'}>{userMaximized ? '❐' : '□'}</button>
+                            <button type="button" className="ext-float-btn" onClick={closeUserPanel} aria-label="关闭" title="关闭"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                        </div>
+                    </div>
+                    <div className="ext-float-body" style={{overflow:'auto'}}>
+                        {/* 从 friendsRelations 推导好友/关注/粉丝列表 */}
+                        {(() => {
+                            const me = session ? session.username : '';
+                            const following = [], followers = [];
+                            const fwd = new Set(), bwd = new Set();
+                            for (const r of friendsRelations) {
+                                if (r.follower === me) { following.push(r.followee); fwd.add(r.followee); }
+                                if (r.followee === me) { followers.push(r.follower); bwd.add(r.follower); }
+                            }
+                            // 互关 = 好友
+                            const friendSet = new Set([...fwd].filter(u => bwd.has(u)));
+                            const emptyText = friendsTab === 'friends' ? '暂无好友' : friendsTab === 'following' ? '你还没有关注任何人' : '还没有人关注你';
+                            let listItems = [];
+                            if (friendsTab === 'friends') listItems = [...friendSet].map(u => ({u, followBack: false, action: 'unfriend', label: '解除好友'}));
+                            else if (friendsTab === 'following') listItems = following.map(u => ({u, followBack: bwd.has(u), action: 'unfollow-following', label: '取消关注'}));
+                            else listItems = followers.map(u => ({u, followBack: fwd.has(u), action: 'unfollow-follower', label: '移除粉丝'}));
+                            // 将推导结果挂到 window 上供闭包内 JSX 使用（避免在 return 外声明额外 state）
+                            window.__extFriends = { friendSet, following, followers, listItems, emptyText };
+                            return null;
+                        })()}
+                        {userPanelType === 'friends' && (
+                    <div className="ext-float-content ext-friends-card">
                         <div className="ext-auth-header">
-                            <span className="ext-auth-title">👥 好友 / 关注</span>
+                            <span className="ext-auth-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{verticalAlign:'middle',marginRight:'6px'}}><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>好友 / 关注</span>
                             <button
                                 type="button"
                                 className="ext-builder-modal-close"
-                                onClick={() => setShowFriendsPanel(false)}
+                                onClick={() => closeUserPanel()}
                                 aria-label="关闭"
                                 title="关闭"
-                            >✕</button>
+                            ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
                         </div>
                         <div className="ext-friends-intro">
                             关注他人即可建立联系；互相关注会自动成为好友。数据存储在云端，跨设备同步。
@@ -3564,7 +4628,7 @@ const ExtensionBuilderInner = () => {
                         {friendsResults.length > 0 && (
                             <div className="ext-friends-results">
                                 {friendsResults.map(r => {
-                                    const isFollowing = following.indexOf(r.username) >= 0;
+                                    const isFollowing = (window.__extFriends ? window.__extFriends.following : []).indexOf(r.username) >= 0;
                                     return (
                                         <div key={r.username} className="ext-friends-item">
                                             <span className="ext-friends-name">{r.username}</span>
@@ -3586,25 +4650,25 @@ const ExtensionBuilderInner = () => {
                                 type="button"
                                 className={'ext-friends-tab' + (friendsTab === 'friends' ? ' ext-friends-tab-active' : '')}
                                 onClick={() => setFriendsTab('friends')}
-                            >好友 ({friendSet.length})</button>
+                            >好友 ({(window.__extFriends ? window.__extFriends.friendSet : new Set()).length})</button>
                             <button
                                 type="button"
                                 className={'ext-friends-tab' + (friendsTab === 'following' ? ' ext-friends-tab-active' : '')}
                                 onClick={() => setFriendsTab('following')}
-                            >我关注的 ({following.length})</button>
+                            >我关注的 ({(window.__extFriends ? window.__extFriends.following : []).length})</button>
                             <button
                                 type="button"
                                 className={'ext-friends-tab' + (friendsTab === 'followers' ? ' ext-friends-tab-active' : '')}
                                 onClick={() => setFriendsTab('followers')}
-                            >关注我的 ({followers.length})</button>
+                            >关注我的 ({(window.__extFriends ? window.__extFriends.followers : []).length})</button>
                         </div>
 
                         {/* 列表 */}
                         <div className="ext-friends-list">
-                            {listItems.length === 0 ? (
-                                <div className="ext-friends-empty">{emptyText}</div>
+                            {(window.__extFriends ? window.__extFriends.listItems : []).length === 0 ? (
+                                <div className="ext-friends-empty">{window.__extFriends ? window.__extFriends.emptyText : ''}</div>
                             ) : (
-                                listItems.map((it) => (
+                                (window.__extFriends ? window.__extFriends.listItems : []).map((it) => (
                                     <div key={it.u} className="ext-friends-item">
                                         <span className="ext-friends-name">{it.u}</span>
                                         <span className="ext-friends-actions">
@@ -3630,26 +4694,18 @@ const ExtensionBuilderInner = () => {
 
                         {friendsMsg && <div className="ext-friends-msg">{friendsMsg}</div>}
                     </div>
-                </div>
-                );
-            })()}
-
-            {/* 个人主页 弹窗 */}
-            {showProfilePanel && session && (
-                <div
-                    className="ext-auth-backdrop"
-                    onClick={(e) => { if (e.target === e.currentTarget) setShowProfilePanel(false); }}
-                >
-                    <div className="ext-auth-card ext-profile-card">
+                        )}
+                        {userPanelType === 'profile' && (
+                    <div className="ext-float-content ext-profile-card">
                         <div className="ext-auth-header">
-                            <span className="ext-auth-title">👤 个人主页</span>
+                            <span className="ext-auth-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{verticalAlign:'middle',marginRight:'6px'}}><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>个人主页</span>
                             <button
                                 type="button"
                                 className="ext-builder-modal-close"
-                                onClick={() => setShowProfilePanel(false)}
+                                onClick={() => closeUserPanel()}
                                 aria-label="关闭"
                                 title="关闭"
-                            >✕</button>
+                            ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
                         </div>
                         <div className="ext-profile-body">
                             <div className="ext-profile-head">
@@ -3728,25 +4784,18 @@ const ExtensionBuilderInner = () => {
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
-
-            {/* 存档管理 弹窗 */}
-            {showSavesPanel && session && (
-                <div
-                    className="ext-auth-backdrop"
-                    onClick={(e) => { if (e.target === e.currentTarget) setShowSavesPanel(false); }}
-                >
-                    <div className="ext-auth-card ext-saves-card">
+                        )}
+                        {userPanelType === 'saves' && (
+                    <div className="ext-float-content ext-saves-card">
                         <div className="ext-auth-header">
-                            <span className="ext-auth-title">💾 存档管理 · {session.username}</span>
+                            <span className="ext-auth-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{verticalAlign:'middle',marginRight:'6px'}}><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,9 15,9"/></svg>存档管理 · {session.username}</span>
                             <button
                                 type="button"
                                 className="ext-builder-modal-close"
-                                onClick={() => setShowSavesPanel(false)}
+                                onClick={() => closeUserPanel()}
                                 aria-label="关闭"
                                 title="关闭"
-                            >✕</button>
+                            ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
                         </div>
                         <div className="ext-saves-body">
                             <div className="ext-saves-new">
@@ -3847,12 +4896,117 @@ const ExtensionBuilderInner = () => {
                             </div>
                         </div>
                     </div>
+                        )}
+                    </div>
                 </div>
+                </React.Fragment>
             )}
-        </div>
-    );
-};
 
+            {/* 项目数据分析面板（悬浮框，可拖拽/拉伸） */}
+            {showStatsPanel && (
+                <React.Fragment>
+                {/* 自由拉伸层（8 方向手柄，常驻显示） */}
+                <div className="ext-float-resize-layer" ref={statsResizeLayerRef}>
+                    {['n','s','e','w','ne','nw','se','sw'].map(dir => (
+                        <div key={dir} className={`ext-float-resize-handle ext-fz-${dir}`} onMouseDown={handleStatsResizeDown(dir)} />
+                    ))}
+                </div>
+                <div
+                    ref={statsPanelRef}
+                    className="ext-float-panel ext-stats-panel"
+                    style={{left: statsFloatBounds.x, top: statsFloatBounds.y, width: statsFloatBounds.w, height: statsFloatBounds.h}}
+                >
+                    <div className="ext-float-header" onMouseDown={handleStatsHeaderMouseDown}>
+                        <span className="ext-float-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5f6368" strokeWidth="2" style={{verticalAlign:'middle',marginRight:'6px'}}>
+                                <path d="M21.21 15.89A10 10 0 118 2.83"/>
+                                <path d="M22 12A10 10 0 0012 2v10z"/>
+                            </svg>
+                            项目数据分析
+                        </span>
+                        <div className="ext-float-btns">
+                            <button className="ext-float-btn ext-float-btn-close" onClick={() => setShowStatsPanel(false)} title="关闭">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div className="ext-stats-body">
+                        {/* 复杂度评分 */}
+                        <div style={{background:'#e8f0fe',border:'1px solid #c5d8f7',borderRadius:8,padding:'12px 14px',marginBottom:14,display:'flex',alignItems:'center',gap:14}}>
+                            <div style={{fontSize:32,fontWeight:800,color:'#1a73e8',lineHeight:1}}>{projectStats.complexityScore}<span style={{fontSize:14,fontWeight:400,color:'#888',marginLeft:2}}>/100</span></div>
+                            <div style={{flex:1}}>
+                                <div style={{fontSize:14,fontWeight:600,color:'#333',marginBottom:2}}>复杂度：{projectStats.complexityLevel}</div>
+                                <div style={{fontSize:12,color:'#666'}}>{projectStats.blockCount} 个积木，{projectStats.lineCount} 行代码</div>
+                            </div>
+                        </div>
+
+                        {/* 概览 */}
+                        <div className="rtc-section-title">概览</div>
+                        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8,marginBottom:14}}>
+                            {[
+                                [projectStats.blockCount,'积木总数','#4C97FF'],
+                                [projectStats.hatCount,'帽积木','#FF6680'],
+                                [projectStats.cmdCount,'命令积木','#4C97FF'],
+                                [projectStats.reporterCount,'报告积木','#9966FF'],
+                                [projectStats.boolCount,'布尔积木','#FF8C1A']
+                            ].filter(v=>v[0]>0).map(([val,label,color])=>(
+                                <div key={label} style={{background:'#f8f9fa',border:'1px solid #e9ecef',borderRadius:8,padding:'10px 12px'}}>
+                                    <div style={{fontSize:20,fontWeight:700,color:'#333'}}>{val}</div>
+                                    <div style={{fontSize:11,color:'#777',marginTop:2}}>{label}</div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* 项目数据 */}
+                        <div className="rtc-section-title">项目数据</div>
+                        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
+                            <div style={{background:'#f8f9fa',border:'1px solid #e9ecef',borderRadius:8,padding:'10px 12px'}}>
+                                <div style={{fontSize:20,fontWeight:700,color:'#333'}}>{projectStats.lineCount}</div>
+                                <div style={{fontSize:11,color:'#777',marginTop:2}}>代码行数</div>
+                            </div>
+                            <div style={{background:'#f8f9fa',border:'1px solid #e9ecef',borderRadius:8,padding:'10px 12px'}}>
+                                <div style={{fontSize:20,fontWeight:700,color:'#333'}}>{formatBytes(projectStats.codeSize)}</div>
+                                <div style={{fontSize:11,color:'#777',marginTop:2}}>核心代码</div>
+                            </div>
+                            <div style={{background:'#f8f9fa',border:'1px solid #e9ecef',borderRadius:8,padding:'10px 12px'}}>
+                                <div style={{fontSize:20,fontWeight:700,color:'#333'}}>{formatBytes(projectStats.fullSize)}</div>
+                                <div style={{fontSize:11,color:'#777',marginTop:2}}>导出大小</div>
+                            </div>
+                        </div>
+
+                        {/* 建议 */}
+                        <div className="rtc-section-title" style={{marginTop:10}}>建议</div>
+                        <div style={{background:'#fffbe6',border:'1px solid #f5e6a3',borderRadius:6,padding:'10px 14px',fontSize:12,color:'#856404'}}>
+                            {projectStats.blockCount === 0 ? '还没有添加积木。点击左侧「制作积木」开始创建。'
+                             : projectStats.complexityScore < 15 ? '项目复杂度较低，继续添加更多积木和代码来丰富功能。'
+                             : projectStats.complexityScore > 78 ? '项目较复杂，建议拆分为多个扩展以保持可维护性。'
+                             : '项目结构良好，复杂度在合理范围内。'}
+                        </div>
+                    </div>
+                </div>
+                </React.Fragment>
+            )}
+
+            {/* AI 助手面板（全屏覆盖）— 仅在「扩展编辑AI」插件启用时渲染 */}
+            {addonState['extedit-ai'] && (
+            <AIAssistant
+                workspaceRef={workspaceRef}
+                javascriptGenerator={javascriptGenerator}
+                customBlocks={customBlocks}
+                visible={showAIPanel}
+                onClose={() => setShowAIPanel(false)}
+            />
+            )}
+            </div>
+        );
+    }
+function formatBytes(bytes) {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
 function wrapAsExtension(extInfo, generatedCode, customBlocks) {
     const esc = (s) => String(s || '').replace(/'/g, "\\'");
     const headerLines = [
