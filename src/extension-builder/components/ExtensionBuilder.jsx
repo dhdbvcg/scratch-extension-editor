@@ -6,7 +6,6 @@
 
 import React, {useState, useEffect, useRef, useCallback, useMemo, Component} from 'react';
 import LazyScratchBlocks from '../lib/tw-lazy-scratch-blocks.js';
-import AIAssistant from '../lib/ai-assistant/AIAssistant.jsx';
 import {
     TOOLBOX_CONFIG,
     BLOCK_DEFINITIONS,
@@ -162,7 +161,7 @@ class ErrorBoundary extends Component {
                         {this.state.error.toString()}
                     </pre>
                     <button onClick={() => window.location.reload()}>刷新页面</button>
-                </div>
+            </div>
             );
         }
         return this.props.children;
@@ -378,7 +377,6 @@ const ExtensionBuilderInner = () => {
     const [showUserMenu, setShowUserMenu] = useState(false);
     const [showToolsMenu, setShowToolsMenu] = useState(false);
     const [showStatsPanel, setShowStatsPanel] = useState(false);
-    const [showAIPanel, setShowAIPanel] = useState(false);
     const statsPanelRef = useRef(null);
     const statsResizeLayerRef = useRef(null);
     const [statsFloatBounds, setStatsFloatBounds] = useState({ x: 200, y: 100, w: 560, h: 480 });
@@ -805,11 +803,53 @@ const ExtensionBuilderInner = () => {
                 requestAnimationFrame(forceResize);
                 // Re-apply scale after resize (resizeSvg may reset it)
                 try { if (workspace.setScale) workspace.setScale(0.55); } catch(e) {}
+
+                // 修复 flyout clip-path 尺寸不匹配问题：
+                // Blockly 默认创建的 clipPath rect (248×438) 比 flyout 实际尺寸 (250×442) 小，
+                // 导致边缘积木被多余裁切。此处同步 clip-path 到 flyout 实际尺寸。
+                try {
+                    const flyout = document.querySelector('.blocklyFlyout');
+                    const clipRect = document.getElementById('blocklyBlockMenuClipRect');
+                    if (flyout && clipRect) {
+                        const fr = flyout.getBoundingClientRect();
+                        clipRect.setAttribute('width', Math.max(1, Math.round(fr.width)));
+                        clipRect.setAttribute('height', Math.max(1, Math.round(fr.height)));
+                    }
+
+                    // 修复 flyout 积木左侧被裁切：
+                    // Blockly 默认 translateX=0 导致积木左边缘紧贴 flyout 左边界，
+                    // 帽子形状弧形和文字开头被截断。右移 15px 给积木留出左侧边距。
+                    const canvas = flyout.querySelector('.blocklyBlockCanvas');
+                    if (canvas) {
+                        const t = canvas.getAttribute('transform') || '';
+                        const m = t.match(/translate\(([^,]+),\s*([^)]+)\)/);
+                        if (m) {
+                            const x = parseFloat(m[1]) + 15;
+                            const y = m[2];
+                            canvas.setAttribute('transform',
+                                'translate(' + x + ',' + y + ') scale(0.55)');
+                        }
+                    }
+                } catch(e) { console.warn('[ExtBuilder] flyout fix failed:', e); }
             });
             // Also resize on a delayed schedule as a safety net
             const resizeTimer = setTimeout(() => {
                 forceResize();
                 try { if (workspace.setScale) workspace.setScale(0.55); } catch(e) {}
+                // 延迟修复：flyout 可能在 250ms 后才完全渲染，再次右移积木
+                try {
+                    const flyout2 = document.querySelector('.blocklyFlyout');
+                    const canvas2 = flyout2 ? flyout2.querySelector('.blocklyBlockCanvas') : null;
+                    if (canvas2) {
+                        const t2 = canvas2.getAttribute('transform') || '';
+                        const m2 = t2.match(/translate\(([^,]+),\s*([^)]+)\)/);
+                        if (m2) {
+                            const x2 = parseFloat(m2[1]) + 15;
+                            canvas2.setAttribute('transform',
+                                'translate(' + x2 + ',' + m2[2] + ') scale(0.55)');
+                        }
+                    }
+                } catch(e2) {}
             }, 250);
 
             // Translate default Scratch toolbox categories from English to Chinese.
@@ -3447,20 +3487,6 @@ const ExtensionBuilderInner = () => {
                         <span className="ext-block-count-num">{projectStats.blockCount}</span>
                         <span className="ext-block-count-label">个积木</span>
                     </div>
-                    {addonState['extedit-ai'] && (
-                    <button
-                        className={`ext-menu-btn ${showAIPanel ? 'active' : ''}`}
-                        onClick={() => setShowAIPanel(v => !v)}
-                        title="AI 助手"
-                        style={{marginLeft: 6, background: showAIPanel ? '#e8f0fe' : '', color: showAIPanel ? '#1a73e8' : ''}}
-                    >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill={showAIPanel ? '#1a73e8' : 'currentColor'} style={{verticalAlign:'middle',marginRight:4}}>
-                            <path d="M12 2a2 2 0 012 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 017 7h1a1 1 0 011 1v3a1 1 0 01-1 1h-1v1a2 2 0 01-2 2H5a2 2 0 01-2-2v-1H2a1 1 0 01-1-1v-3a1 1 0 011-1h1a7 7 0 017-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 012-2z"/>
-                            <circle cx="9" cy="13" r="1.25"/><circle cx="15" cy="13" r="1.25"/>
-                        </svg>
-                        <span className="ext-menu-btn-label">AI</span>
-                    </button>
-                    )}
                 </div>
             </div>
 
@@ -4230,7 +4256,7 @@ const ExtensionBuilderInner = () => {
                                                     type="checkbox"
                                                     className="ext-addon-check"
                                                     checked={!!addonState[addon.id]}
-                                                    disabled={!!addon.builtin}
+                                                    disabled={!!addon.locked}
                                                     onChange={(e) => handleToggleAddon(addon.id, e.target.checked)}
                                                 />
                                                 <span className="ext-addon-name">{addon.name}</span>
@@ -4590,17 +4616,7 @@ const ExtensionBuilderInner = () => {
                             return null;
                         })()}
                         {userPanelType === 'friends' && (
-                    <div className="ext-float-content ext-friends-card">
-                        <div className="ext-auth-header">
-                            <span className="ext-auth-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{verticalAlign:'middle',marginRight:'6px'}}><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>好友 / 关注</span>
-                            <button
-                                type="button"
-                                className="ext-builder-modal-close"
-                                onClick={() => closeUserPanel()}
-                                aria-label="关闭"
-                                title="关闭"
-                            ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-                        </div>
+                    <div className="ext-float-content">
                         <div className="ext-friends-intro">
                             关注他人即可建立联系；互相关注会自动成为好友。数据存储在云端，跨设备同步。
                         </div>
@@ -4696,18 +4712,7 @@ const ExtensionBuilderInner = () => {
                     </div>
                         )}
                         {userPanelType === 'profile' && (
-                    <div className="ext-float-content ext-profile-card">
-                        <div className="ext-auth-header">
-                            <span className="ext-auth-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{verticalAlign:'middle',marginRight:'6px'}}><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>个人主页</span>
-                            <button
-                                type="button"
-                                className="ext-builder-modal-close"
-                                onClick={() => closeUserPanel()}
-                                aria-label="关闭"
-                                title="关闭"
-                            ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-                        </div>
-                        <div className="ext-profile-body">
+                    <div className="ext-profile-body">
                             <div className="ext-profile-head">
                                 <div className="ext-profile-avatar">
                                     {(session.username || '?').charAt(0).toUpperCase()}
@@ -4783,20 +4788,8 @@ const ExtensionBuilderInner = () => {
                                 )}
                             </div>
                         </div>
-                    </div>
                         )}
                         {userPanelType === 'saves' && (
-                    <div className="ext-float-content ext-saves-card">
-                        <div className="ext-auth-header">
-                            <span className="ext-auth-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{verticalAlign:'middle',marginRight:'6px'}}><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,9 15,9"/></svg>存档管理 · {session.username}</span>
-                            <button
-                                type="button"
-                                className="ext-builder-modal-close"
-                                onClick={() => closeUserPanel()}
-                                aria-label="关闭"
-                                title="关闭"
-                            ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-                        </div>
                         <div className="ext-saves-body">
                             <div className="ext-saves-new">
                                 <input
@@ -4895,7 +4888,6 @@ const ExtensionBuilderInner = () => {
                                 </div>
                             </div>
                         </div>
-                    </div>
                         )}
                     </div>
                 </div>
@@ -4987,16 +4979,6 @@ const ExtensionBuilderInner = () => {
                 </React.Fragment>
             )}
 
-            {/* AI 助手面板（全屏覆盖）— 仅在「扩展编辑AI」插件启用时渲染 */}
-            {addonState['extedit-ai'] && (
-            <AIAssistant
-                workspaceRef={workspaceRef}
-                javascriptGenerator={javascriptGenerator}
-                customBlocks={customBlocks}
-                visible={showAIPanel}
-                onClose={() => setShowAIPanel(false)}
-            />
-            )}
             </div>
         );
     }

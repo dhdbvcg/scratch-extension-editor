@@ -26,8 +26,8 @@
 // realtime-collab：多人实时协作（房间/聊天/工作区同步）
 // 源文件位于 src/extension-builder/lib/builtin/（随 src 打包，babel 可转译 ES2020 语法）
 import realtimeCollab from './builtin/realtime-collab.js';
-// extedit-ai：AI 助手面板（内置 UI 开关，无 Blockly 改装）
-import extEditAi from './builtin/extedit-ai.js';
+// Bilup Nova（novatheai）：从原版搬运移植的 AI 助手插件（悬浮聊天框 / 多模型 / 设置 / Agent / 会话）
+import bilupNova from './bilup-nova/bilup-nova.js';
 
 const STORAGE_KEY = 'extbuilder_ext_addons';
 
@@ -37,8 +37,8 @@ const MIGRATED_BUILTIN = ['block-duplicate', 'zebra-striping', 'editor-square-in
 const DEFAULT_STATE = {
     // 内置实时协作：默认开启
     'realtime-collab': true,
-    // 内置 AI 助手：默认开启
-    'extedit-ai': true,
+    // Bilup Nova（AI 助手）：从原版搬运移植，默认开启
+    'bilup-nova': true,
 };
 
 /**
@@ -53,10 +53,10 @@ const DEFAULT_STATE = {
  * 返回清理函数
  */
 export const EXT_ADDONS = [
-    // 标记为内置：插件管理列表里不可卸载、开关锁定为启用
+    // 实时协作：内置插件（不可卸载；可在插件管理里取消勾选 / 重新勾选）
     Object.assign({}, realtimeCollab, { builtin: true }),
-    // AI 助手：内置 UI 开关（无改装逻辑）
-    Object.assign({}, extEditAi, { builtin: true }),
+    // Bilup Nova（AI 助手）：内置插件（不可卸载；可在插件管理里取消勾选 / 重新勾选）
+    Object.assign({}, bilupNova, { builtin: true }),
 ];
 
 /** 提示文案：内置插件已迁移到外部仓库 */
