@@ -44,7 +44,7 @@ var GUI =
 /******/
 /******/ 	// script path function
 /******/ 	function jsonpScriptSrc(chunkId) {
-/******/ 		return __webpack_require__.p + "js/" + ({"sb":"sb"}[chunkId]||chunkId) + ".js"
+/******/ 		return __webpack_require__.p + "js/pentapod-3/" + ({"sb":"sb"}[chunkId]||chunkId) + ".js"
 /******/ 	}
 /******/
 /******/ 	// The require function
@@ -2179,7 +2179,7 @@ exports = module.exports = __webpack_require__(/*! ../../../node_modules/css-loa
 
 
 // module
-exports.push([module.i, "/* ============================================================\n   Extension Builder - Blockly-based UI\n   Layout matches TurboWarp editor style\n\n   IMPORTANT: CSS Modules scoping. Each rule uses :global(.selector)\n   so the class name is preserved raw (e.g. \".ext-builder\") and can\n   be matched by React's className=\"ext-builder\". Wrapping in a\n   single :global {} block does NOT work with the webpack css-loader\n   version we have, so each rule is prefixed explicitly.\n   ============================================================ */\n\n/* ---- Global reset: make html/body/#app fill the viewport ---- */\n\nhtml, body, #app {\n    height: 100%;\n    margin: 0;\n    padding: 0;\n    overflow: hidden;\n}\n\nbody {\n    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;\n    background: #e5e5e5;\n    color: #1a1a1a;\n    font-size: 13px;\n}\n\n/* ---- Extension Builder root ---- */\n\n.ext-builder {\n    display: flex;\n    flex-direction: row;\n    width: 100%;\n    height: 100%;\n    background: #e5e5e5;\n    color: #1a1a1a;\n    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;\n    font-size: 13px;\n    overflow: hidden;\n    position: relative;\n}\n\n/* ---- Left icon rail (AstraEditor style: 制作积木 pinned to far left) ---- */\n\n.ext-builder-left {\n    width: 48px;\n    flex-shrink: 0;\n    background: #343434;\n    display: flex;\n    flex-direction: column;\n    align-items: center;\n    padding-top: 8px;\n    gap: 6px;\n    box-shadow: 1px 0 4px rgba(0, 0, 0, 0.25);\n    overflow: hidden;\n}\n\n.ext-left-btn {\n    width: 42px;\n    height: 42px;\n    border: none;\n    border-radius: 7px;\n    background: transparent;\n    cursor: pointer;\n    padding: 0;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    transition: background 0.15s;\n}\n\n.ext-left-btn:hover {\n    background: rgba(255, 255, 255, 0.12);\n}\n\n.ext-left-btn.active {\n    background: rgba(255, 255, 255, 0.18);\n    box-shadow: inset 0 0 0 2px #4c97ff;\n}\n\n.ext-left-btn-img {\n    width: 40px;\n    height: 40px;\n    border-radius: 6px;\n    object-fit: cover;\n    pointer-events: none;\n}\n\n/* Right side container (tab bar + main area) */\n\n.ext-builder-right {\n    flex: 1;\n    display: flex;\n    flex-direction: column;\n    min-width: 0;\n    overflow: hidden;\n}\n\n/* ---- Tab bar (matches TurboWarp's 代码/造型/声音 tabs) ---- */\n\n.ext-builder-tabs {\n    display: flex;\n    align-items: stretch;\n    background: #f7f7f7;\n    border-bottom: 1px solid #d0d0d0;\n    padding: 0;\n    height: 36px;\n    flex-shrink: 0;\n}\n\n.ext-tab {\n    display: flex;\n    align-items: center;\n    gap: 6px;\n    padding: 0 20px;\n    background: transparent;\n    color: #555;\n    border: none;\n    border-bottom: 2px solid transparent;\n    cursor: pointer;\n    font-size: 13px;\n    font-weight: 500;\n    transition: color 0.15s, border-color 0.15s, background 0.15s;\n}\n\n.ext-tab:hover {\n    background: #e8e8e8;\n    color: #1a1a1a;\n}\n\n.ext-tab.active {\n    color: #4c97ff;\n    border-bottom-color: #4c97ff;\n    background: #ffffff;\n}\n\n.ext-tab-icon {\n    font-size: 14px;\n}\n\n/* ---- Main Layout (2-column: workspace | stage) ---- */\n\n.ext-builder-main {\n    flex: 1;\n    display: flex;\n    overflow: hidden;\n    background: #ffffff;\n    min-height: 0;\n}\n\n/* ---- Floating block builder window ---- */\n\n.ext-builder-modal-backdrop {\n    position: fixed;\n    top: 0;\n    left: 0;\n    right: 0;\n    bottom: 0;\n    background: transparent;\n    z-index: 99999;\n    /* Do NOT block mouse events — the Blockly workspace behind must stay\n       fully interactive (drag blocks, click flyout, etc.) while the\n       builder window is open. Closing happens via ✕ / Esc instead. */\n    pointer-events: none;\n}\n\n.ext-builder-modal {\n    position: fixed;\n    top: 60px;\n    right: 20px;\n    width: 680px;\n    min-width: 300px;\n    min-height: 360px;\n    max-height: calc(100vh - 80px);\n    background: #fff;\n    color: #202124;\n    border-radius: 10px;\n    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.08);\n    display: flex;\n    flex-direction: column;\n    overflow: hidden;\n    pointer-events: auto;\n    z-index: 99999;\n}\n\n.ext-builder-modal-header {\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    padding: 12px 16px;\n    background: #f8f9fa;\n    border-bottom: 1px solid #e8eaed;\n    border-radius: 10px 10px 0 0;\n    flex-shrink: 0;\n    cursor: default;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n\n.ext-builder-modal-title {\n    font-size: 14px;\n    font-weight: 600;\n    color: #202124;\n}\n\n.ext-builder-modal-controls {\n    display: flex;\n    align-items: center;\n    gap: 4px;\n}\n\n.ext-builder-tb-btn {\n    width: 26px;\n    height: 26px;\n    border: none;\n    border-radius: 6px;\n    background: transparent;\n    color: #5f6368;\n    cursor: pointer;\n    font-size: 14px;\n    line-height: 1;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    padding: 0;\n    transition: background 0.1s;\n}\n\n.ext-builder-tb-btn:hover {\n    background: #e8eaed;\n}\n\n/* 8 方向自由拉伸手柄（与实时协作一致） */\n\n.ext-builder-resize-layer {\n    position: absolute;\n    inset: 0;\n    pointer-events: none;\n    z-index: 20;\n}\n\n.ext-builder-rz-n,\n.ext-builder-rz-s,\n.ext-builder-rz-e,\n.ext-builder-rz-w,\n.ext-builder-rz-ne,\n.ext-builder-rz-nw,\n.ext-builder-rz-se,\n.ext-builder-rz-sw {\n    position: absolute;\n    pointer-events: auto;\n    z-index: 21;\n}\n\n.ext-builder-rz-n  { top: 0; left: 8px; right: 8px; height: 6px; cursor: ns-resize; }\n\n.ext-builder-rz-s  { bottom: 0; left: 8px; right: 8px; height: 6px; cursor: ns-resize; }\n\n.ext-builder-rz-e  { top: 8px; bottom: 8px; right: 0; width: 6px; cursor: ew-resize; }\n\n.ext-builder-rz-w  { top: 8px; bottom: 8px; left: 0; width: 6px; cursor: ew-resize; }\n\n.ext-builder-rz-ne { top: 0; right: 0; width: 10px; height: 10px; cursor: nesw-resize; }\n\n.ext-builder-rz-nw { top: 0; left: 0; width: 10px; height: 10px; cursor: nwse-resize; }\n\n.ext-builder-rz-se { bottom: 0; right: 0; width: 10px; height: 10px; cursor: nwse-resize; }\n\n.ext-builder-rz-sw { bottom: 0; left: 0; width: 10px; height: 10px; cursor: nwse-resize; }\n\n.ext-builder-rz-n:hover,\n.ext-builder-rz-s:hover,\n.ext-builder-rz-e:hover,\n.ext-builder-rz-w:hover,\n.ext-builder-rz-ne:hover,\n.ext-builder-rz-nw:hover,\n.ext-builder-rz-se:hover,\n.ext-builder-rz-sw:hover {\n    background: rgba(26, 115, 232, 0.25);\n}\n\n.ext-builder-modal-body {\n    overflow-y: auto;\n    flex: 1;\n    min-height: 0;\n    padding: 4px 0;\n}\n\n/* ---- Add Block Panel: removed ---- */\n\n/* ---- Block List (left sidebar — like Scratch sprite list) ---- */\n\n.ext-block-list {\n    width: 260px;\n    flex-shrink: 0;\n    display: flex;\n    flex-direction: column;\n    background: #f7f7f7;\n    border-right: 1px solid #d0d0d0;\n    padding: 8px;\n    gap: 4px;\n    overflow-y: auto;\n}\n\n.ext-block-list-title {\n    font-size: 11px;\n    font-weight: 600;\n    color: #888;\n    text-transform: uppercase;\n    letter-spacing: 0.5px;\n    padding: 4px 4px 6px;\n}\n\n.ext-block-list-items {\n    display: flex;\n    flex-direction: column;\n    gap: 2px;\n    flex: 1;\n    overflow-y: auto;\n}\n\n.ext-block-list-item {\n    padding: 6px 8px;\n    border-radius: 4px;\n    cursor: pointer;\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    font-size: 12px;\n    color: #1a1a1a;\n    background: #ffffff;\n    border: 1px solid #e0e0e0;\n    transition: background 0.15s, border-color 0.15s;\n}\n\n.ext-block-list-item:hover {\n    background: #e8f0ff;\n}\n\n.ext-block-list-item.selected {\n    background: #4c97ff;\n    color: white;\n    border-color: #3373cc;\n}\n\n.ext-block-list-name {\n    overflow: hidden;\n    text-overflow: ellipsis;\n    white-space: nowrap;\n    flex: 1;\n}\n\n.ext-block-list-delete {\n    width: 18px;\n    height: 18px;\n    padding: 0;\n    background: transparent;\n    color: #999;\n    border: none;\n    cursor: pointer;\n    font-size: 12px;\n    border-radius: 3px;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.ext-block-list-item.selected .ext-block-list-delete {\n    color: rgba(255,255,255,0.7);\n}\n\n.ext-block-list-delete:hover {\n    background: rgba(0,0,0,0.1);\n}\n\n.ext-block-list-add {\n    padding: 6px 8px;\n    background: #4c97ff;\n    color: white;\n    border: none;\n    border-radius: 4px;\n    cursor: pointer;\n    font-size: 12px;\n    text-align: center;\n    transition: background 0.15s;\n    margin-top: 4px;\n}\n\n.ext-block-list-add:hover {\n    background: #3373cc;\n}\n\n/* ---- Block list: settings entry, rename input ---- */\n\n.ext-block-list-settings {\n    width: 100%;\n    padding: 6px 8px;\n    margin: 0 0 6px 0;\n    background: #f3f3f3;\n    border: 1px solid #d0d0d0;\n    border-radius: 4px;\n    color: #444;\n    cursor: pointer;\n    font-size: 12px;\n    text-align: left;\n}\n\n.ext-block-list-settings:hover {\n    background: #4c97ff;\n    color: white;\n    border-color: #4c97ff;\n}\n\n.ext-block-list-name-input {\n    flex: 1;\n    min-width: 0;\n    padding: 2px 4px;\n    border: 1px solid #4c97ff;\n    border-radius: 3px;\n    font-size: 12px;\n    background: white;\n    outline: none;\n}\n\n/* ---- Extension settings modal ---- */\n\n.ext-modal-backdrop {\n    position: fixed;\n    inset: 0;\n    background: rgba(0, 0, 0, 0.45);\n    z-index: 100;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.ext-modal {\n    background: #f3f3f3;\n    border-radius: 8px;\n    padding: 0;\n    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);\n    max-width: 1100px;\n    width: 80vw;\n    height: 80vh;\n    max-height: 80vh;\n    overflow-y: auto;\n}\n\n.ext-settings-modal {\n    padding-bottom: 16px;\n}\n\n.ext-settings-banner {\n    width: 100%;\n    height: 90px;\n    border-radius: 8px 8px 0 0;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.ext-settings-banner-icon {\n    width: 56px;\n    height: 56px;\n    border-radius: 10px;\n    background: rgba(255, 255, 255, 0.95);\n    object-fit: contain;\n    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);\n}\n\n.ext-settings-banner-placeholder {\n    color: #999;\n    font-size: 28px;\n    line-height: 56px;\n    text-align: center;\n}\n\n.ext-settings-title {\n    text-align: center;\n    font-size: 20px;\n    font-weight: 600;\n    margin: 16px 0 12px;\n    color: #333;\n}\n\n.ext-settings-label {\n    display: block;\n    margin: 8px 24px 4px;\n    font-size: 12px;\n    color: #555;\n}\n\n.ext-settings-label-row {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    gap: 8px;\n    margin: 10px 0 6px;\n    font-size: 12px;\n    color: #555;\n}\n\n.ext-settings-input {\n    display: block;\n    margin: 0 24px 8px;\n    width: calc(100% - 48px);\n    padding: 8px 10px;\n    border: 1px solid #ccc;\n    border-radius: 4px;\n    font-size: 13px;\n    box-sizing: border-box;\n    background: white;\n    color: #333;\n}\n\n.ext-settings-input:focus {\n    outline: none;\n    border-color: #4c97ff;\n    box-shadow: 0 0 0 2px rgba(76, 151, 255, 0.2);\n}\n\n.ext-settings-id-preview {\n    margin: 8px auto 6px;\n    width: 80px;\n    height: 60px;\n    border: 2px solid #f0c800;\n    border-radius: 6px;\n    background: #fffbe6;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    text-align: center;\n    font-size: 12px;\n    color: #b58a00;\n    word-break: break-all;\n    padding: 4px;\n    box-sizing: border-box;\n}\n\n.ext-settings-checkbox {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    gap: 6px;\n    font-size: 12px;\n    color: #555;\n    margin-bottom: 8px;\n}\n\n.ext-settings-color-picker {\n    width: 22px;\n    height: 22px;\n    border: 1px solid #ccc;\n    border-radius: 3px;\n    padding: 0;\n    background: none;\n    cursor: pointer;\n}\n\n.ext-settings-color-presets {\n    display: flex;\n    justify-content: center;\n    gap: 8px;\n    margin: 4px 0 12px;\n}\n\n.ext-settings-color-swatch {\n    width: 32px;\n    height: 24px;\n    border: 2px solid transparent;\n    border-radius: 4px;\n    cursor: pointer;\n    padding: 0;\n}\n\n.ext-settings-color-swatch.active {\n    border-color: #333;\n    box-shadow: 0 0 0 2px rgba(76, 151, 255, 0.4);\n}\n\n.ext-settings-icon-row {\n    display: flex;\n    justify-content: space-around;\n    margin: 12px 24px;\n    gap: 12px;\n}\n\n.ext-settings-icon-cell {\n    flex: 1;\n    text-align: center;\n}\n\n.ext-settings-icon-preview {\n    width: 80px;\n    height: 60px;\n    margin: 4px auto;\n    border: 1px dashed #bbb;\n    border-radius: 4px;\n    background: white;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    overflow: hidden;\n}\n\n.ext-settings-icon-preview img {\n    max-width: 100%;\n    max-height: 100%;\n    object-fit: contain;\n}\n\n.ext-settings-icon-empty {\n    font-size: 11px;\n    color: #999;\n}\n\n.ext-settings-icon-actions {\n    display: flex;\n    justify-content: center;\n    gap: 6px;\n    margin-top: 4px;\n}\n\n.ext-settings-icon-btn,\n.ext-settings-icon-clear {\n    padding: 4px 12px;\n    border: none;\n    border-radius: 4px;\n    cursor: pointer;\n    font-size: 12px;\n}\n\n.ext-settings-icon-btn {\n    background: #4c97ff;\n    color: white;\n}\n\n.ext-settings-icon-btn:hover {\n    background: #3373cc;\n}\n\n.ext-settings-icon-clear {\n    background: #e0e0e0;\n    color: #555;\n}\n\n.ext-settings-icon-clear:hover {\n    background: #ccc;\n}\n\n.ext-settings-actions {\n    display: flex;\n    justify-content: center;\n    gap: 12px;\n    margin-top: 16px;\n}\n\n.ext-settings-cancel {\n    padding: 6px 18px;\n    border: 1px solid #ccc;\n    background: white;\n    color: #555;\n    border-radius: 4px;\n    cursor: pointer;\n    font-size: 13px;\n}\n\n.ext-settings-cancel:hover {\n    background: #eee;\n}\n\n.ext-settings-done {\n    padding: 6px 22px;\n    border: none;\n    background: #4c97ff;\n    color: white;\n    border-radius: 4px;\n    cursor: pointer;\n    font-size: 13px;\n    font-weight: 500;\n}\n\n.ext-settings-done:hover {\n    background: #3373cc;\n}\n\n/* ---- Blockly Workspace (full width, native toolbox) ---- */\n\n.ext-builder-workspace-full {\n    flex: 1 1 0;\n    min-width: 0;\n    min-height: 0;\n    background: #1e1e1e;\n    position: relative;\n    overflow: hidden;\n    display: flex;\n    flex-direction: column;\n}\n\n.blockly-host {\n    flex: 1;\n    width: 100%;\n    min-height: 0;\n    position: relative;\n    /* Blockly will set height via SVG, but ensure host grows */\n    display: flex;\n}\n\n.blockly-host .injectionDiv {\n    width: 100% !important;\n    height: 100% !important;\n    position: relative !important;\n}\n\n.blockly-host .blocklySvg {\n    width: 100% !important;\n    height: 100% !important;\n    position: absolute !important;\n    top: 0 !important;\n    left: 0 !important;\n}\n\n/* ---- Stage (right side - where stage was in TurboWarp, now showing code) ---- */\n\n.ext-builder-stage {\n    flex-shrink: 0;\n    width: 380px;\n    max-width: 50vw;\n    display: flex;\n    flex-direction: column;\n    background: #ffffff;\n    border-left: 1px solid #d0d0d0;\n    min-height: 0;\n}\n\n.ext-stage-header {\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    padding: 8px 12px;\n    background: #f7f7f7;\n    border-bottom: 1px solid #d0d0d0;\n    flex-shrink: 0;\n}\n\n.ext-stage-title {\n    font-weight: 600;\n    font-size: 12px;\n    color: #1a1a1a;\n}\n\n.ext-stage-actions {\n    display: flex;\n    gap: 4px;\n}\n\n.ext-stage-btn {\n    width: 28px;\n    height: 28px;\n    background: #ffffff;\n    color: #555;\n    border: 1px solid #d0d0d0;\n    border-radius: 3px;\n    cursor: pointer;\n    font-size: 14px;\n    transition: background 0.15s, color 0.15s;\n}\n\n.ext-stage-btn:hover {\n    background: #f0f0f0;\n    color: #1a1a1a;\n}\n\n.ext-stage-btn-copy {\n    width: auto;\n    padding: 0 10px;\n    font-size: 12px;\n    color: #fff;\n    background: #2e7d32;\n    border-color: #2e7d32;\n}\n\n.ext-stage-btn-copy:hover {\n    background: #1b5e20;\n    color: #fff;\n}\n\n.ext-stage-screen {\n    flex: 1;\n    background: #1e1e1e;\n    margin: 8px;\n    border-radius: 4px;\n    overflow: auto;\n    border: 2px solid #d0d0d0;\n    min-height: 0;\n}\n\n.ext-code-content {\n    margin: 0;\n    padding: 12px;\n    background: #1e1e1e;\n    color: #d4d4d4;\n    font-family: 'Consolas', 'Monaco', monospace;\n    font-size: 11px;\n    line-height: 1.5;\n    overflow: auto;\n    white-space: pre;\n    word-wrap: normal;\n    height: 100%;\n    box-sizing: border-box;\n}\n\n.ext-code-content code {\n    font-family: inherit;\n    color: #d4d4d4;\n}\n\n.ext-stage-footer {\n    display: flex;\n    justify-content: space-between;\n    padding: 8px 12px;\n    background: #f7f7f7;\n    border-top: 1px solid #d0d0d0;\n    flex-shrink: 0;\n}\n\n.ext-stage-footer button {\n    padding: 4px 12px;\n    background: #ffffff;\n    color: #1a1a1a;\n    border: 1px solid #d0d0d0;\n    border-radius: 3px;\n    cursor: pointer;\n    font-size: 12px;\n    transition: background 0.15s;\n}\n\n.ext-stage-footer button:hover {\n    background: #f0f0f0;\n}\n\n/* ---- Bottom panel (variable/list creation): removed (variables/list now created via Blockly variable category) ---- */\n\n/* ---- Blockly theme overrides (these selectors are injected by Blockly at runtime) ---- */\n\n.blocklyToolboxDiv {\n    background-color: #f7f7f7 !important;\n    border-right: 1px solid #d0d0d0 !important;\n}\n\n/* ---- Flyout: 加宽至 280px（Blockly 默认 250px 太窄，长积木/多输入框积木右侧被裁切） ---- */\n\n.blocklyFlyout {\n    width: 280px !important;\n}\n\n.blocklyTreeRow {\n    margin: 0 !important;\n    padding: 6px 12px !important;\n    cursor: pointer !important;\n}\n\n.blocklyTreeRow:hover {\n    background-color: #e8e8e8 !important;\n}\n\n.blocklyTreeSelected {\n    background-color: #4c97ff !important;\n}\n\n.blocklyTreeLabel {\n    font-family: 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif !important;\n    font-size: 13px !important;\n}\n\n.blocklyMainBackground {\n    stroke: none !important;\n}\n\n.blocklyTrash {\n    opacity: 0.6;\n}\n\n/* ---- Top menu bar (TurboWarp-style red header) ---- */\n\n.ext-builder {\n    display: flex;\n    flex-direction: column;\n    height: 100%;\n    width: 100%;\n}\n\n.ext-menu-bar {\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    height: 40px;\n    background: linear-gradient(180deg, #fc4e4e 0%, #ff5757 50%, #e94545 100%);\n    color: white;\n    padding: 0 10px;\n    flex-shrink: 0;\n    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n\n.ext-menu-bar-left,\n.ext-menu-bar-right {\n    display: flex;\n    align-items: center;\n    gap: 6px;\n    flex: 1;\n}\n\n.ext-menu-bar-right {\n    justify-content: flex-end;\n}\n\n.ext-menu-bar-center {\n    display: flex;\n    align-items: center;\n    gap: 8px;\n    padding: 0 16px;\n    font-size: 13px;\n}\n\n.ext-menu-brand {\n    display: flex;\n    align-items: center;\n    gap: 6px;\n    padding-right: 8px;\n    margin-right: 4px;\n    border-right: 1px solid rgba(255, 255, 255, 0.25);\n    height: 26px;\n}\n\n.ext-menu-logo {\n    font-size: 18px;\n    color: #fff;\n    line-height: 1;\n}\n\n.ext-menu-title {\n    font-weight: 700;\n    font-size: 14px;\n    color: white;\n}\n\n.ext-menu-btn {\n    display: flex;\n    align-items: center;\n    gap: 4px;\n    padding: 4px 10px;\n    background: rgba(255, 255, 255, 0.1);\n    border: 1px solid rgba(255, 255, 255, 0.25);\n    border-radius: 4px;\n    color: white;\n    cursor: pointer;\n    font-size: 12px;\n    transition: background 0.1s;\n}\n\n.ext-menu-btn:hover {\n    background: rgba(255, 255, 255, 0.25);\n}\n\n.ext-menu-btn:active {\n    background: rgba(255, 255, 255, 0.35);\n}\n\n.ext-menu-btn-icon {\n    font-size: 13px;\n    line-height: 1;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.ext-menu-home-link {\n    display: flex;\n    align-items: center;\n    gap: 4px;\n    padding: 4px 10px;\n    background: rgba(255, 255, 255, 0.1);\n    border: 1px solid rgba(255, 255, 255, 0.25);\n    border-radius: 4px;\n    color: white;\n    cursor: pointer;\n    font-size: 12px;\n    text-decoration: none;\n    transition: background 0.1s;\n}\n\n.ext-menu-home-link:hover {\n    background: rgba(255, 255, 255, 0.25);\n}\n\n.ext-menu-home-icon {\n    font-size: 13px;\n    line-height: 1;\n}\n\n.ext-menu-btn-warn {\n    background: rgba(0, 0, 0, 0.15);\n    border-color: rgba(255, 255, 255, 0.35);\n}\n\n.ext-menu-btn-warn:hover {\n    background: rgba(0, 0, 0, 0.3);\n}\n\n.ext-menu-btn-switch {\n    background: rgba(255, 255, 255, 0.12);\n    border-color: rgba(255, 255, 255, 0.25);\n}\n\n.ext-menu-btn-switch:hover {\n    background: rgba(255, 255, 255, 0.22);\n}\n\n.ext-menu-ext-name {\n    font-weight: 600;\n    color: white;\n}\n\n.ext-menu-ext-id {\n    color: rgba(255, 255, 255, 0.85);\n    font-family: monospace;\n    font-size: 12px;\n}\n\n/* ---- Per-block editor (AstraEditor-style) ---- */\n\n.ext-block-editor {\n    margin-top: 10px;\n    padding: 10px;\n    background: #ffffff;\n    border: 1px solid #d0d0d0;\n    border-radius: 5px;\n    display: flex;\n    flex-direction: column;\n    gap: 4px;\n    font-size: 12px;\n}\n\n.ext-block-editor-header {\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    margin-bottom: 6px;\n    border-bottom: 1px solid #eee;\n    padding-bottom: 6px;\n}\n\n.ext-block-editor-title {\n    font-weight: 600;\n    color: #333;\n    font-size: 12px;\n}\n\n.ext-block-editor-name {\n    color: #999;\n    font-size: 11px;\n    max-width: 140px;\n    overflow: hidden;\n    text-overflow: ellipsis;\n    white-space: nowrap;\n}\n\n.ext-block-editor-preview {\n    width: 100%;\n    height: 70px;\n    background: #e8e8e8;\n    border-radius: 4px;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    gap: 10px;\n    margin-bottom: 8px;\n    color: #999;\n    position: relative;\n    overflow: hidden;\n}\n\n.ext-block-editor-icon-img {\n    max-width: 48px;\n    max-height: 48px;\n    object-fit: contain;\n}\n\n.ext-block-editor-icon-placeholder {\n    font-size: 30px;\n    color: #b0b0b0;\n}\n\n.ext-block-editor-preview-label {\n    color: #555;\n    font-size: 12px;\n}\n\n.ext-block-editor-label {\n    display: block;\n    color: #555;\n    font-size: 11px;\n    margin: 6px 0 2px;\n}\n\n.ext-block-editor-input {\n    display: block;\n    width: 100%;\n    padding: 4px 6px;\n    border: 1px solid #ccc;\n    border-radius: 3px;\n    font-size: 12px;\n    box-sizing: border-box;\n    background: #fff;\n    color: #333;\n}\n\n.ext-block-editor-input:focus {\n    outline: none;\n    border-color: #4c97ff;\n    box-shadow: 0 0 0 2px rgba(76, 151, 255, 0.2);\n}\n\n.ext-block-colour-picker {\n    display: flex;\n    align-items: center;\n    gap: 4px;\n    flex-wrap: wrap;\n    padding: 4px 0;\n}\n\n.ext-block-colour-input {\n    width: 30px;\n    height: 24px;\n    padding: 0;\n    border: 1px solid #ccc;\n    border-radius: 3px;\n    cursor: pointer;\n    background: #fff;\n}\n\n.ext-block-colour-swatch {\n    width: 22px;\n    height: 22px;\n    border-radius: 4px;\n    border: 2px solid transparent;\n    cursor: pointer;\n    padding: 0;\n}\n\n.ext-block-colour-swatch:hover {\n    transform: scale(1.1);\n}\n\n.ext-block-colour-swatch-active {\n    border-color: #1a1a1a;\n    box-shadow: 0 0 0 2px #fff inset;\n}\n\n.ext-block-colour-clear {\n    font-size: 11px;\n    color: #888;\n    border: 1px solid #ddd;\n    background: #fff;\n    border-radius: 3px;\n    padding: 2px 6px;\n    cursor: pointer;\n}\n\n.ext-block-colour-clear:hover {\n    color: #333;\n    border-color: #bbb;\n}\n\n.ext-block-editor-section {\n    margin: 8px 0 2px;\n    color: #333;\n    font-size: 12px;\n    font-weight: 500;\n}\n\n.ext-block-editor-checkbox {\n    display: flex;\n    align-items: center;\n    gap: 6px;\n    font-size: 11px;\n    color: #555;\n    padding: 2px 0;\n    cursor: pointer;\n}\n\n.ext-block-editor-checkbox input {\n    cursor: pointer;\n}\n\n.ext-block-editor-icon-btn {\n    margin-top: 10px;\n    width: 100%;\n    padding: 6px 8px;\n    border: none;\n    border-radius: 4px;\n    background: #4c97ff;\n    color: white;\n    cursor: pointer;\n    font-size: 12px;\n}\n\n.ext-block-editor-icon-btn:hover {\n    background: #3373cc;\n}\n\n.ext-block-editor-hint {\n    margin-top: 8px;\n    padding: 6px;\n    background: #f0f8ff;\n    border: 1px dashed #b3d9ff;\n    border-radius: 3px;\n    color: #4a7aac;\n    font-size: 10px;\n    line-height: 1.4;\n}\n\n/* ---- CB-ExtGallary field editor ---- */\n\n.ext-block-editor-fields-header {\n    display: grid;\n    grid-template-columns: 80px 1fr 60px;\n    gap: 6px;\n    padding: 0 0 4px 0;\n    font-size: 11px;\n    color: #aaa;\n    border-bottom: 1px solid #333;\n    margin-bottom: 4px;\n}\n\n.ext-block-editor-fields-list {\n    margin: 4px 0;\n}\n\n.ext-block-editor-fields-row {\n    display: grid;\n    grid-template-columns: 80px 1fr 60px auto;\n    gap: 6px;\n    align-items: center;\n    margin-bottom: 4px;\n}\n\n.ext-block-editor-input-type {\n    height: 24px;\n    font-size: 11px;\n}\n\n.ext-block-editor-input-text {\n    height: 24px;\n    font-size: 11px;\n}\n\n.ext-block-editor-input-default {\n    height: 24px;\n    font-size: 11px;\n}\n\n.ext-block-editor-fields-delete {\n    height: 24px;\n    padding: 0 6px;\n    background: transparent;\n    border: 1px solid #555;\n    color: #ccc;\n    border-radius: 3px;\n    cursor: pointer;\n    font-size: 10px;\n}\n\n.ext-block-editor-fields-delete:hover {\n    background: rgba(220, 60, 60, 0.2);\n    border-color: #d04040;\n    color: #ff8888;\n}\n\n.ext-block-editor-fields-add {\n    display: flex;\n    gap: 6px;\n    align-items: center;\n    margin-top: 4px;\n}\n\n.ext-block-editor-fields-add-btn {\n    height: 24px;\n    padding: 0 10px;\n    background: rgba(78, 161, 255, 0.15);\n    border: 1px solid #4ea1ff;\n    color: #4ea1ff;\n    border-radius: 3px;\n    cursor: pointer;\n    font-size: 11px;\n}\n\n.ext-block-editor-fields-add-btn:hover {\n    background: rgba(78, 161, 255, 0.3);\n}\n\n.ext-block-editor-fields-add-type {\n    flex: 1;\n    height: 24px;\n    font-size: 11px;\n}\n\n.ext-block-editor-preview-fields {\n    display: flex;\n    gap: 6px;\n    flex-wrap: wrap;\n    align-items: center;\n    margin-left: 8px;\n}\n\n.ext-block-editor-preview-field {\n    display: inline-block;\n    padding: 1px 6px;\n    background: #1a73e8;\n    border-radius: 8px;\n    color: white;\n    font-size: 10px;\n    font-weight: 500;\n}\n\n/* Live block SVG preview inside the builder panel */\n\n.ext-block-editor-preview-header {\n    margin-bottom: 6px;\n    padding-bottom: 4px;\n    border-bottom: 1px solid #333;\n}\n\n.ext-block-editor-preview-svg {\n    min-height: 50px;\n    background: #fff;\n    border-radius: 3px;\n    padding: 12px 8px;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    overflow-x: auto;\n    margin-bottom: 4px;\n}\n\n.ext-block-editor-preview-svg svg {\n    display: block;\n    max-width: 100%;\n}\n\n.ext-block-editor-preview-empty {\n    color: #aaa;\n    font-size: 11px;\n    font-style: italic;\n}\n\n.ext-block-editor-preview-host {\n    position: absolute;\n    width: 1px;\n    height: 1px;\n    overflow: hidden;\n    left: -9999px;\n    top: -9999px;\n}\n\n.ext-block-editor-meta {\n    margin-top: 10px;\n    border-top: 1px solid #333;\n    padding-top: 6px;\n}\n\n.ext-block-editor-meta summary {\n    cursor: pointer;\n    color: #aaa;\n    font-size: 11px;\n    padding: 4px 0;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n\n.ext-block-editor-meta summary:hover {\n    color: #fff;\n}\n\n.ext-block-editor-buttons {\n    display: flex;\n    gap: 6px;\n    margin-top: 8px;\n}\n\n.ext-block-editor-small-btn {\n    flex: 1;\n    padding: 5px 8px;\n    border: none;\n    border-radius: 3px;\n    background: #4c97ff;\n    color: white;\n    cursor: pointer;\n    font-size: 11px;\n}\n\n.ext-block-editor-small-btn:hover {\n    background: #3373cc;\n}\n\n.ext-block-editor-save-btn {\n    margin-top: 6px;\n    width: 100%;\n    padding: 6px 8px;\n    border: none;\n    border-radius: 3px;\n    background: #28a745;\n    color: white;\n    cursor: pointer;\n    font-size: 12px;\n    font-weight: 500;\n}\n\n.ext-block-editor-save-btn:hover {\n    background: #1f8a37;\n}\n\n/* ---- Block preview modal (AstraEditor-style 扩展预览) ---- */\n\n.ext-preview-host {\n    position: absolute;\n    width: 1px;\n    height: 1px;\n    overflow: hidden;\n    left: -9999px;\n    top: -9999px;\n}\n\n.ext-preview-modal {\n    width: 360px;\n    max-height: 80vh;\n    background: #1e1e1e;\n    color: #f1f1f1;\n    border-radius: 6px;\n    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);\n    display: flex;\n    flex-direction: column;\n}\n\n.ext-preview-modal-header {\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    padding: 10px 14px;\n    border-bottom: 1px solid #333;\n}\n\n.ext-preview-modal-header .ext-settings-title {\n    margin: 0;\n    color: #f1f1f1;\n    font-size: 16px;\n}\n\n.ext-preview-modal-close {\n    background: transparent;\n    border: none;\n    color: #aaa;\n    cursor: pointer;\n    font-size: 18px;\n    padding: 0 6px;\n}\n\n.ext-preview-modal-close:hover {\n    color: #fff;\n}\n\n.ext-preview-modal-sub {\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    padding: 8px 14px;\n    background: #262626;\n    border-bottom: 1px solid #333;\n    font-size: 11px;\n}\n\n.ext-preview-ext-name {\n    color: #4c97ff;\n    font-weight: 600;\n}\n\n.ext-preview-block-count {\n    color: #888;\n}\n\n.ext-preview-list {\n    overflow-y: auto;\n    padding: 8px;\n    max-height: 60vh;\n    background: #000;\n    color: #fff;\n    border-radius: 0 0 6px 6px;\n}\n\n.ext-preview-item {\n    margin-bottom: 6px;\n    padding: 2px 4px;\n    background: transparent;\n    border: none;\n    box-shadow: none;\n    position: relative;\n    min-height: 0;\n}\n\n.ext-preview-item-type {\n    display: none;  /* CB-ExtGallary style: no type label, just the SVG */\n}\n\n.ext-preview-item-svg {\n    line-height: 0;\n    display: flex;\n    align-items: center;\n    justify-content: flex-start;\n}\n\n.ext-preview-item-svg svg {\n    display: block;\n    max-width: 100%;\n}\n\n.ext-preview-empty {\n    text-align: center;\n    padding: 20px;\n    color: #999;\n    font-size: 12px;\n}\n\n/* ============================================================\n   登录 / 存档 / 跨站同步\n   (light theme: 浅色卡片 + 深色文字)\n   ============================================================ */\n\n.ext-menu-user {\n    display: flex;\n    align-items: center;\n    gap: 4px;\n    padding: 4px 10px;\n    background: rgba(255, 255, 255, 0.15);\n    border: 1px solid rgba(255, 255, 255, 0.3);\n    border-radius: 4px;\n    color: #fff;\n    font-size: 12px;\n    font-weight: 600;\n    white-space: nowrap;\n    max-width: 180px;\n    overflow: hidden;\n    text-overflow: ellipsis;\n    cursor: pointer;\n    transition: background .15s;\n}\n\n.ext-menu-user:hover {\n    background: rgba(255, 255, 255, 0.28);\n}\n\n/* ---- 用户下拉菜单 ---- */\n\n.ext-user-dropdown {\n    position: relative;\n    display: flex;\n    align-items: center;\n}\n\n.ext-user-menu {\n    position: absolute;\n    top: calc(100% + 4px);\n    right: 0;\n    min-width: 160px;\n    background: #fff;\n    border-radius: 8px;\n    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);\n    z-index: 1000;\n    padding: 6px 0;\n    display: flex;\n    flex-direction: column;\n    gap: 2px;\n}\n\n.ext-user-menu-item {\n    display: flex;\n    align-items: center;\n    gap: 8px;\n    width: 100%;\n    padding: 9px 16px;\n    border: none;\n    background: transparent;\n    color: #333;\n    font-size: 13px;\n    cursor: pointer;\n    text-align: left;\n    transition: background .12s;\n}\n\n.ext-user-menu-item:hover {\n    background: #f0f4ff;\n}\n\n.ext-user-menu-logout {\n    color: #d32f2f;\n}\n\n.ext-user-menu-logout:hover {\n    background: #ffebee;\n}\n\n.ext-user-menu-danger {\n    color: #d32f2f;\n}\n\n.ext-user-menu-danger:hover {\n    background: #ffebee;\n}\n\n.ext-user-menu-divider {\n    height: 1px;\n    background: #eee;\n    margin: 4px 10px;\n}\n\n/* ── 多账号切换子菜单 ── */\n\n.ext-account-switcher-list {\n    display: flex;\n    flex-direction: column;\n    gap: 2px;\n    padding: 4px 0;\n    max-height: 220px;\n    overflow-y: auto;\n}\n\n.ext-account-switcher-item {\n    display: flex;\n    align-items: center;\n    gap: 8px;\n    width: 100%;\n    padding: 8px 16px;\n    border: none;\n    background: transparent;\n    color: #333;\n    font-size: 13px;\n    cursor: pointer;\n    text-align: left;\n    transition: background .12s;\n}\n\n.ext-account-switcher-item:hover {\n    background: #f0f4ff;\n}\n\n.ext-account-switcher-current {\n    background: #e8f0fe;\n    color: #1a56db;\n    font-weight: 600;\n}\n\n.ext-account-switcher-current:hover {\n    background: #d2e3fc;\n}\n\n.ext-account-switcher-name {\n    flex: 1;\n    overflow: hidden;\n    text-overflow: ellipsis;\n    white-space: nowrap;\n}\n\n.ext-account-switcher-badge {\n    font-size: 10px;\n    color: #1a56db;\n    background: #c5d6fd;\n    padding: 1px 6px;\n    border-radius: 8px;\n    flex-shrink: 0;\n    font-weight: 600;\n}\n\n.ext-account-switcher-uid {\n    font-size: 11px;\n    color: #888;\n    background: #f0f0f0;\n    padding: 1px 7px;\n    border-radius: 8px;\n    flex-shrink: 0;\n    font-weight: 600;\n    font-variant-numeric: tabular-nums;\n}\n\n.ext-account-switcher-current .ext-account-switcher-uid {\n    color: #1a56db;\n    background: #d4e2fb;\n}\n\n.ext-account-switcher-empty {\n    padding: 8px 16px;\n    font-size: 12px;\n    color: #999;\n    text-align: center;\n}\n\n/* ── 工具下拉菜单 ── */\n\n.ext-tools-dropdown {\n    position: relative;\n    display: flex;\n    align-items: center;\n}\n\n.ext-menu-tools-btn {\n    position: relative;\n}\n\n.ext-menu-arrow {\n    font-size: 10px;\n    margin-left: 2px;\n    opacity: 0.8;\n}\n\n.ext-tools-menu {\n    position: absolute;\n    top: calc(100% + 4px);\n    left: 0;\n    min-width: 160px;\n    background: #fff;\n    border-radius: 8px;\n    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);\n    z-index: 1000;\n    padding: 6px 0;\n    display: flex;\n    flex-direction: column;\n    gap: 2px;\n}\n\n.ext-tools-menu-item {\n    display: flex;\n    align-items: center;\n    gap: 8px;\n    width: 100%;\n    padding: 9px 16px;\n    border: none;\n    background: transparent;\n    color: #333;\n    font-size: 13px;\n    cursor: pointer;\n    text-align: left;\n    transition: background .12s;\n}\n\n.ext-tools-menu-item:hover {\n    background: #f0f4ff;\n}\n\n.ext-auth-backdrop {\n    position: fixed;\n    top: 0;\n    left: 0;\n    right: 0;\n    bottom: 0;\n    background: rgba(0, 0, 0, 0.45);\n    z-index: 900;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.ext-auth-card {\n    width: 400px;\n    max-height: 86vh;\n    background: #ffffff;\n    color: #1a1a1a;\n    border-radius: 8px;\n    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);\n    display: flex;\n    flex-direction: column;\n    overflow: hidden;\n}\n\n/* ---- 插件设置弹窗（ExtAddons） ---- */\n\n.ext-addons-card {\n    width: 520px;\n}\n\n.ext-addons-list {\n    flex: 1;\n    overflow-y: auto;\n    padding: 8px 16px;\n    display: flex;\n    flex-direction: column;\n    gap: 6px;\n}\n\n.ext-addon-item {\n    border: 1px solid #e3e6ea;\n    border-radius: 6px;\n    padding: 8px 12px;\n    background: #fafbfc;\n}\n\n.ext-addon-label {\n    display: flex;\n    align-items: center;\n    gap: 8px;\n    cursor: pointer;\n}\n\n.ext-addon-check {\n    width: 16px;\n    height: 16px;\n    accent-color: #4c97ff;\n    cursor: pointer;\n    flex-shrink: 0;\n}\n\n.ext-addon-check:disabled {\n    cursor: not-allowed;\n    opacity: 0.55;\n}\n\n.ext-addon-name {\n    font-size: 14px;\n    font-weight: 600;\n    color: #1a1a1a;\n}\n\n.ext-addon-cat {\n    font-size: 11px;\n    color: #4c97ff;\n    background: #e8f1ff;\n    border-radius: 10px;\n    padding: 1px 8px;\n    margin-left: auto;\n}\n\n.ext-addon-desc {\n    font-size: 12px;\n    color: #777;\n    line-height: 1.5;\n    margin-top: 4px;\n    padding-left: 24px;\n}\n\n/* 推荐标签 */\n\n.ext-addon-recommend {\n    font-size: 10px;\n    color: #fff;\n    background: #4c97ff;\n    border-radius: 8px;\n    padding: 1px 7px;\n    margin-left: 6px;\n    font-weight: 500;\n    letter-spacing: 0.3px;\n    vertical-align: middle;\n}\n\n/* 内置插件标记（随编辑器打包、默认启用、不可关闭） */\n\n.ext-addon-builtin {\n    font-size: 10px;\n    color: #fff;\n    background: #4db6ac;\n    border-radius: 8px;\n    padding: 1px 7px;\n    margin-left: 6px;\n    font-weight: 500;\n    letter-spacing: 0.3px;\n    vertical-align: middle;\n}\n\n/* 自定义插件删除按钮 */\n\n.ext-addon-del {\n    font-size: 10px;\n    color: #d14;\n    background: transparent;\n    border: 1px solid #f0c0cc;\n    border-radius: 8px;\n    padding: 1px 7px;\n    margin-left: 6px;\n    cursor: pointer;\n    vertical-align: middle;\n    line-height: 1.4;\n}\n\n.ext-addon-del:hover {\n    background: #ffe8ee;\n    border-color: #e58aa0;\n}\n\n/* 子选项区域 */\n\n.ext-addon-opts {\n    margin-top: 6px;\n    padding-left: 24px;\n    display: flex;\n    flex-wrap: wrap;\n    gap: 4px 16px;\n}\n\n.ext-addon-opt-item {\n    display: inline-flex;\n    align-items: center;\n    gap: 4px;\n    font-size: 12px;\n    color: #555;\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n    line-height: 1.6;\n}\n\n.ext-addon-opt-item:hover {\n    color: #222;\n}\n\n.ext-addon-opt-check {\n    cursor: pointer;\n    accent-color: #4c97ff;\n}\n\n.ext-opt-label {\n    cursor: pointer;\n}\n\n.ext-addons-foot {\n    padding: 10px 16px;\n    border-top: 1px solid #eef0f3;\n    text-align: right;\n}\n\n/* ---- 插件面板：搜索框 ---- */\n\n.ext-addons-search {\n    padding: 0 16px 8px;\n}\n\n.ext-addons-search-input {\n    width: 100%;\n    box-sizing: border-box;\n    padding: 7px 12px;\n    border: 1px solid #d0d4d9;\n    border-radius: 4px;\n    font-size: 13px;\n    background: #fafbfc;\n    transition: border-color .15s;\n}\n\n.ext-addons-search-input:focus {\n    outline: none;\n    border-color: #4c97ff;\n    background: #fff;\n}\n\n.ext-addon-empty {\n    text-align: center;\n    color: #999;\n    font-size: 13px;\n    padding: 24px 12px;\n}\n\n/* ---- 插件面板：危险操作（导出/导入/全部重置） ---- */\n\n.ext-addons-actions {\n    padding: 10px 16px;\n    border-top: 1px solid #eef0f3;\n    display: flex;\n    gap: 8px;\n    flex-wrap: wrap;\n}\n\n.ext-addons-action-btn {\n    flex: 1;\n    min-width: 90px;\n    padding: 6px 12px;\n    background: #f5f7fa;\n    border: 1px solid #d0d4d9;\n    border-radius: 4px;\n    color: #444;\n    font-size: 12px;\n    cursor: pointer;\n    transition: background .15s, border-color .15s;\n}\n\n.ext-addons-action-btn:hover {\n    background: #eef1f4;\n    border-color: #b9c0c9;\n}\n\n.ext-addons-action-btn-warn {\n    color: #a33;\n    border-color: #e0c8c8;\n}\n\n.ext-addons-action-btn-warn:hover {\n    background: #fdf0f0;\n    border-color: #d0a8a8;\n}\n\n/* ===== 插件市场 ===== */\n\n.ext-market {\n    display: flex;\n    flex-direction: column;\n    gap: 12px;\n}\n\n.ext-market-head {\n    display: flex;\n    align-items: center;\n    gap: 12px;\n    flex-wrap: wrap;\n}\n\n.ext-market-back {\n    background: transparent;\n    border: 1px solid #c9d3e0;\n    border-radius: 6px;\n    color: #4c97ff;\n    padding: 4px 10px;\n    cursor: pointer;\n    font-size: 13px;\n}\n\n.ext-market-back:hover {\n    background: #eef4ff;\n}\n\n.ext-market-title {\n    font-size: 16px;\n    font-weight: 600;\n    color: #2b3a4a;\n}\n\n.ext-market-repo {\n    font-size: 12px;\n    color: #8896a6;\n    font-family: monospace;\n    background: #f1f4f8;\n    padding: 2px 8px;\n    border-radius: 4px;\n}\n\n.ext-market-refresh-btn {\n    background: transparent;\n    border: 1px solid #c9d3e0;\n    border-radius: 6px;\n    color: #4c97ff;\n    padding: 4px 10px;\n    cursor: pointer;\n    font-size: 13px;\n    margin-left: auto;\n}\n\n.ext-market-refresh-btn:hover:not(:disabled) {\n    background: #eef4ff;\n}\n\n.ext-market-refresh-btn:disabled {\n    opacity: 0.5;\n    cursor: not-allowed;\n}\n\n.ext-market-count {\n    font-size: 12px;\n    color: #0a956e;\n    background: #e6f7ef;\n    padding: 2px 8px;\n    border-radius: 10px;\n    font-weight: 600;\n}\n\n.ext-market-loading,\n.ext-market-error,\n.ext-market-empty {\n    font-size: 13px;\n    padding: 10px 12px;\n    border-radius: 6px;\n}\n\n.ext-market-loading {\n    color: #4c97ff;\n    background: #eef4ff;\n}\n\n.ext-market-error {\n    color: #a33;\n    background: #fdf0f0;\n}\n\n.ext-market-empty {\n    color: #8896a6;\n    background: #f5f7fa;\n}\n\n.ext-market-grid {\n    display: grid;\n    grid-template-columns: repeat(2, 1fr);\n    gap: 10px;\n}\n\n.ext-market-card {\n    background: #fff;\n    border: 1px solid #e2e8f0;\n    border-radius: 8px;\n    padding: 10px 12px;\n    display: flex;\n    flex-direction: column;\n    gap: 4px;\n    box-shadow: 0 1px 3px rgba(0,0,0,0.04);\n}\n\n.ext-market-card-name {\n    font-size: 13px;\n    font-weight: 600;\n    color: #2b3a4a;\n}\n\n.ext-market-card-cat {\n    font-size: 11px;\n    color: #4c97ff;\n    background: #eef4ff;\n    align-self: flex-start;\n    padding: 1px 6px;\n    border-radius: 8px;\n}\n\n.ext-market-card-desc {\n    font-size: 11px;\n    color: #6b7888;\n    line-height: 1.4;\n    min-height: 30px;\n}\n\n.ext-market-install-btn {\n    margin-top: 4px;\n    background: #4c97ff;\n    color: #fff;\n    border: none;\n    border-radius: 6px;\n    padding: 7px 0;\n    cursor: pointer;\n    font-size: 13px;\n    font-weight: 500;\n}\n\n.ext-market-install-btn:hover:not(:disabled) {\n    background: #3b86f0;\n}\n\n.ext-market-install-btn:disabled {\n    cursor: default;\n    opacity: 0.7;\n}\n\n.ext-market-install-btn.installed {\n    background: #2e9e5b;\n}\n\n/* 导入插件主按钮 */\n\n.ext-addons-action-btn-primary {\n    color: #fff;\n    background: #4c97ff;\n    border-color: #3b86f0;\n    font-weight: 500;\n}\n\n.ext-addons-action-btn-primary:hover {\n    background: #3b86f0;\n    border-color: #2f78e0;\n}\n\n/* 开发教程按钮 */\n\n.ext-addons-action-btn-info {\n    color: #1f7a4d;\n    background: #e8f6ee;\n    border-color: #b6e0c8;\n}\n\n.ext-addons-action-btn-info:hover {\n    background: #d8f0e2;\n    border-color: #9ed3b6;\n}\n\n/* 插件开发教程 弹窗 */\n\n.ext-addon-doc-card {\n    max-width: 780px;\n    width: 94%;\n    max-height: 88vh;\n    display: flex;\n    flex-direction: column;\n}\n\n.ext-doc-tabs {\n    display: flex;\n    gap: 4px;\n    padding: 8px 16px 0;\n    border-bottom: 1px solid #eee;\n}\n\n.ext-doc-tab {\n    padding: 8px 16px;\n    border: 1px solid transparent;\n    border-bottom: none;\n    background: transparent;\n    color: #555;\n    font-size: 13px;\n    cursor: pointer;\n    border-radius: 6px 6px 0 0;\n}\n\n.ext-doc-tab:hover {\n    color: #4c97ff;\n}\n\n.ext-doc-tab.active {\n    color: #4c97ff;\n    background: #f3f8ff;\n    border-color: #d6e6ff;\n    font-weight: 600;\n}\n\n.ext-doc-body {\n    padding: 16px 20px;\n    overflow-y: auto;\n    flex: 1;\n    line-height: 1.7;\n}\n\n.ext-doc-h3 {\n    margin: 18px 0 8px;\n    font-size: 15px;\n    color: #222;\n    border-left: 3px solid #4c97ff;\n    padding-left: 8px;\n}\n\n.ext-doc-h3:first-child {\n    margin-top: 0;\n}\n\n.ext-doc-p {\n    margin: 6px 0;\n    color: #444;\n    font-size: 13px;\n}\n\n.ext-doc-ul, .ext-doc-ol {\n    margin: 6px 0;\n    padding-left: 22px;\n    color: #444;\n    font-size: 13px;\n}\n\n.ext-doc-ul li, .ext-doc-ol li {\n    margin: 4px 0;\n}\n\n.ext-doc-table {\n    width: 100%;\n    border-collapse: collapse;\n    margin: 8px 0;\n    font-size: 12.5px;\n}\n\n.ext-doc-table th, .ext-doc-table td {\n    border: 1px solid #e2e6ea;\n    padding: 6px 10px;\n    text-align: left;\n    vertical-align: top;\n}\n\n.ext-doc-table th {\n    background: #f5f7fa;\n    color: #333;\n    font-weight: 600;\n}\n\n.ext-doc-table code, .ext-doc-p code, .ext-doc-ul code, .ext-doc-ol code {\n    background: #f0f2f5;\n    border-radius: 3px;\n    padding: 1px 5px;\n    font-family: 'Consolas', 'Menlo', monospace;\n    font-size: 12px;\n    color: #c0392b;\n}\n\n.ext-doc-code {\n    position: relative;\n    margin: 8px 0 14px;\n}\n\n.ext-doc-copy {\n    position: absolute;\n    top: 6px;\n    right: 6px;\n    z-index: 2;\n    padding: 3px 10px;\n    font-size: 11px;\n    color: #4c97ff;\n    background: rgba(255, 255, 255, 0.92);\n    border: 1px solid #cfe0ff;\n    border-radius: 4px;\n    cursor: pointer;\n}\n\n.ext-doc-copy:hover {\n    background: #fff;\n    border-color: #4c97ff;\n}\n\n.ext-doc-pre {\n    margin: 0;\n    padding: 12px 14px;\n    background: #1e1e2e;\n    color: #e6e6e6;\n    border-radius: 6px;\n    overflow-x: auto;\n    font-family: 'Consolas', 'Menlo', monospace;\n    font-size: 12px;\n    line-height: 1.55;\n    white-space: pre;\n    -moz-tab-size: 2;\n         tab-size: 2;\n}\n\n.ext-doc-pre code {\n    color: inherit;\n    background: transparent;\n    font-size: inherit;\n    padding: 0;\n}\n\n.ext-auth-header {\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    padding: 12px 16px;\n    background: #f2f2f2;\n    border-bottom: 1px solid #ddd;\n    flex-shrink: 0;\n}\n\n.ext-auth-title {\n    font-size: 15px;\n    font-weight: 700;\n    color: #1a1a1a;\n}\n\n.ext-auth-form {\n    display: flex;\n    flex-direction: column;\n    padding: 16px;\n    gap: 8px;\n}\n\n.ext-auth-label {\n    font-size: 12px;\n    color: #666;\n    margin-top: 4px;\n}\n\n.ext-auth-input {\n    padding: 8px 10px;\n    border: 1px solid #ccc;\n    border-radius: 4px;\n    font-size: 13px;\n    color: #1a1a1a;\n    background: #fff;\n    outline: none;\n    box-sizing: border-box;\n    width: 100%;\n}\n\n.ext-auth-input:focus {\n    border-color: #4c97ff;\n    box-shadow: 0 0 0 2px rgba(76, 151, 255, 0.25);\n}\n\n.ext-auth-btn {\n    margin-top: 10px;\n    padding: 8px 12px;\n    background: #4c97ff;\n    color: #fff;\n    border: none;\n    border-radius: 4px;\n    font-size: 13px;\n    font-weight: 600;\n    cursor: pointer;\n}\n\n.ext-auth-btn:hover {\n    background: #3d83e0;\n}\n\n.ext-auth-btn:disabled {\n    opacity: 0.6;\n    cursor: default;\n}\n\n.ext-auth-error {\n    color: #d83a3a;\n    font-size: 12px;\n    background: #fdecec;\n    border: 1px solid #f5c6c6;\n    border-radius: 4px;\n    padding: 6px 8px;\n}\n\n/* 邮箱验证码行（输入 + 发送按钮） */\n\n.ext-auth-code-row {\n    display: flex;\n    align-items: stretch;\n    gap: 8px;\n    margin-top: 2px;\n}\n\n.ext-auth-code-input {\n    flex: 1;\n    min-width: 0;\n}\n\n.ext-auth-code-btn {\n    flex-shrink: 0;\n    white-space: nowrap;\n    padding: 0 14px;\n    height: 36px;\n    border: 1px solid #4c97ff;\n    background: #4c97ff;\n    color: #fff;\n    border-radius: 4px;\n    cursor: pointer;\n    font-size: 13px;\n    font-weight: 600;\n}\n\n.ext-auth-code-btn:hover:not(:disabled) {\n    background: #3d83e0;\n    border-color: #3d83e0;\n}\n\n.ext-auth-code-btn:disabled {\n    background: #b8c6e0;\n    border-color: #b8c6e0;\n    cursor: not-allowed;\n}\n\n.ext-auth-switch {\n    background: transparent;\n    border: none;\n    color: #4c97ff;\n    font-size: 12px;\n    cursor: pointer;\n    padding: 6px;\n}\n\n.ext-auth-switch:hover {\n    text-decoration: underline;\n}\n\n/* GitHub 登录分隔线 + 按钮 */\n\n.ext-auth-divider {\n    display: flex;\n    align-items: center;\n    text-align: center;\n    color: #9aa0a6;\n    font-size: 12px;\n    margin: 12px 0 4px;\n}\n\n.ext-auth-divider::before,\n.ext-auth-divider::after {\n    content: '';\n    flex: 1;\n    height: 1px;\n    background: #e3e3e3;\n}\n\n.ext-auth-divider span {\n    padding: 0 10px;\n}\n\n.ext-auth-github-btn {\n    width: 100%;\n    margin-top: 6px;\n    padding: 9px 12px;\n    display: inline-flex;\n    align-items: center;\n    justify-content: center;\n    background: #24292f;\n    color: #fff;\n    border: 1px solid #24292f;\n    border-radius: 4px;\n    font-size: 13px;\n    font-weight: 600;\n    cursor: pointer;\n}\n\n.ext-auth-github-btn:hover {\n    background: #32383f;\n    border-color: #32383f;\n}\n\n/* Cloudflare Turnstile 人机验证容器（注册表单内） */\n\n.ext-turnstile-container {\n    margin-top: 4px;\n    min-height: 65px;\n    display: flex;\n    align-items: flex-start;\n}\n\n.ext-turnstile-container > div {\n    transform: scale(0.95);\n    transform-origin: left top;\n}\n\n/* ---- 存档面板（内容直接渲染在悬浮框 body 中，无需卡片包裹） ---- */\n\n/* ---- 个人主页 ---- */\n\n.ext-profile-body {\n    flex: 1;\n    min-height: 0;\n    padding: 16px 20px 18px;\n    overflow-y: auto;\n    display: flex;\n    flex-direction: column;\n    gap: 12px;\n}\n\n.ext-profile-head {\n    display: flex;\n    align-items: center;\n    gap: 14px;\n}\n\n.ext-profile-avatar {\n    width: 56px;\n    height: 56px;\n    border-radius: 50%;\n    background: linear-gradient(135deg, #4c97ff, #0f6fde);\n    color: #fff;\n    font-size: 26px;\n    font-weight: 700;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    flex-shrink: 0;\n    box-shadow: 0 2px 8px rgba(76, 151, 255, .35);\n}\n\n.ext-profile-info {\n    display: flex;\n    flex-direction: column;\n    gap: 2px;\n    min-width: 0;\n}\n\n.ext-profile-name {\n    font-size: 18px;\n    font-weight: 700;\n    color: #1a1a1a;\n    word-break: break-all;\n}\n\n.ext-profile-type {\n    font-size: 12px;\n    color: #4c97ff;\n    background: #e8f1ff;\n    border-radius: 10px;\n    padding: 1px 8px;\n    align-self: flex-start;\n}\n\n.ext-profile-email {\n    font-size: 12px;\n    color: #888;\n    word-break: break-all;\n}\n\n.ext-profile-stats {\n    display: flex;\n    flex-wrap: wrap;\n    gap: 8px;\n}\n\n.ext-profile-stat {\n    flex: 1;\n    min-width: 76px;\n    text-align: center;\n    background: #f5f7fa;\n    border: 1px solid #e6e9ed;\n    border-radius: 6px;\n    padding: 10px 4px;\n}\n\n.ext-profile-stat-num {\n    display: block;\n    font-size: 20px;\n    font-weight: 700;\n    color: #1a1a1a;\n}\n\n.ext-profile-stat-label {\n    display: block;\n    font-size: 11px;\n    color: #999;\n    margin-top: 2px;\n}\n\n.ext-profile-joined {\n    font-size: 12px;\n    color: #888;\n}\n\n.ext-profile-saves-title {\n    font-size: 13px;\n    font-weight: 600;\n    color: #333;\n    border-bottom: 1px solid #eef0f3;\n    padding-bottom: 6px;\n}\n\n.ext-profile-saves {\n    display: flex;\n    flex-direction: column;\n    gap: 6px;\n    max-height: 200px;\n    overflow-y: auto;\n}\n\n.ext-profile-save-item {\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    gap: 10px;\n    background: #fafbfc;\n    border: 1px solid #e6e9ed;\n    border-radius: 6px;\n    padding: 8px 12px;\n}\n\n.ext-profile-save-info {\n    min-width: 0;\n}\n\n.ext-profile-save-name {\n    font-size: 13px;\n    font-weight: 600;\n    color: #333;\n    white-space: nowrap;\n    overflow: hidden;\n    text-overflow: ellipsis;\n    max-width: 220px;\n}\n\n.ext-profile-save-time {\n    font-size: 11px;\n    color: #999;\n    margin-top: 2px;\n}\n\n.ext-profile-save-actions {\n    display: flex;\n    gap: 6px;\n    flex-shrink: 0;\n}\n\n.ext-profile-save-btn {\n    padding: 4px 12px;\n    font-size: 12px;\n    border-radius: 4px;\n    border: 1px solid #4c97ff;\n    background: #fff;\n    color: #2b6cb0;\n    cursor: pointer;\n}\n\n.ext-profile-save-btn:hover {\n    background: #eef4ff;\n}\n\n.ext-profile-save-btn-del {\n    border-color: #e0b8b8;\n    color: #a33;\n}\n\n.ext-profile-save-btn-del:hover {\n    background: #fdf0f0;\n}\n\n.ext-profile-saves-empty {\n    font-size: 12px;\n    color: #999;\n    text-align: center;\n    padding: 14px 8px;\n}\n\n.ext-saves-body {\n    padding: 14px 16px 18px;\n    overflow-y: auto;\n    display: flex;\n    flex-direction: column;\n    gap: 10px;\n    flex: 1;\n    min-height: 0;\n}\n\n.ext-saves-new {\n    display: flex;\n    gap: 8px;\n    align-items: center;\n}\n\n.ext-saves-name-input {\n    flex: 1;\n}\n\n.ext-saves-save-btn {\n    margin-top: 0;\n    white-space: nowrap;\n}\n\n.ext-saves-msg {\n    font-size: 12px;\n    color: #0b8e69;\n    background: #e8f7f1;\n    border: 1px solid #b9e5d5;\n    border-radius: 4px;\n    padding: 6px 8px;\n}\n\n.ext-saves-list-title {\n    font-size: 12px;\n    font-weight: 700;\n    color: #555;\n}\n\n.ext-saves-empty {\n    font-size: 12px;\n    color: #999;\n    padding: 6px 0;\n}\n\n.ext-saves-list {\n    display: flex;\n    flex-direction: column;\n    gap: 6px;\n    max-height: 240px;\n    overflow-y: auto;\n}\n\n.ext-saves-item {\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    gap: 8px;\n    padding: 8px 10px;\n    background: #f7f7f7;\n    border: 1px solid #e3e3e3;\n    border-radius: 5px;\n}\n\n.ext-saves-item-info {\n    min-width: 0;\n    flex: 1;\n}\n\n.ext-saves-item-name {\n    font-size: 13px;\n    font-weight: 600;\n    color: #1a1a1a;\n    overflow: hidden;\n    text-overflow: ellipsis;\n    white-space: nowrap;\n}\n\n.ext-saves-item-time {\n    font-size: 11px;\n    color: #999;\n    margin-top: 2px;\n}\n\n.ext-saves-item-actions {\n    display: flex;\n    gap: 4px;\n    flex-shrink: 0;\n}\n\n.ext-saves-act {\n    padding: 3px 8px;\n    font-size: 11px;\n    color: #333;\n    background: #fff;\n    border: 1px solid #ccc;\n    border-radius: 3px;\n    cursor: pointer;\n}\n\n.ext-saves-act:hover {\n    background: #eef4ff;\n    border-color: #4c97ff;\n    color: #2b6cb0;\n}\n\n.ext-saves-act-del:hover {\n    background: #fdecec;\n    border-color: #d83a3a;\n    color: #d83a3a;\n}\n\n/* ---- 跨站同步 ---- */\n\n.ext-sync-section {\n    border-top: 1px solid #e3e3e3;\n    padding-top: 12px;\n    display: flex;\n    flex-direction: column;\n    gap: 8px;\n}\n\n.ext-sync-title {\n    font-size: 13px;\n    font-weight: 700;\n    color: #1a1a1a;\n}\n\n.ext-sync-hint {\n    font-size: 12px;\n    color: #666;\n    margin: 0;\n    line-height: 1.5;\n}\n\n.ext-sync-link-box {\n    display: flex;\n    gap: 6px;\n    align-items: flex-start;\n}\n\n.ext-sync-link {\n    flex: 1;\n    font-size: 11px;\n    font-family: monospace;\n    color: #333;\n    border: 1px solid #ccc;\n    border-radius: 4px;\n    padding: 6px;\n    resize: none;\n    background: #fafafa;\n    box-sizing: border-box;\n}\n\n.ext-sync-import,\n.ext-sync-file {\n    display: flex;\n    gap: 8px;\n    align-items: center;\n}\n\n.ext-sync-import .ext-auth-input {\n    flex: 1;\n}\n\n.ext-auth-remember {\n    display: flex;\n    align-items: center;\n    gap: 6px;\n    font-size: 12px;\n    color: #555;\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n    padding: 2px 0;\n}\n\n.ext-auth-remember input {\n    accent-color: #4c97ff;\n    cursor: pointer;\n}\n\n.ext-auth-dhd-switch {\n    margin-top: 4px;\n    border-top: 1px solid #e3e3e3;\n    padding-top: 10px;\n    font-weight: 600;\n    color: #2b6cb0;\n}\n\n/* 工具箱拖动或初始化时残留的孤立 input 形状（比如 target_clone 块被\n   复制后只剩 input_value 字段）—— 强制隐藏无主机块的拖动预览残留 */\n\n.blocklyGhost {\n    opacity: 0 !important;\n    pointer-events: none !important;\n}\n\n/* 拖动时 BlockDragSurface 内部的 input_value socket 形状不显示 ——\n   否则按住积木时输入框会作为 ghost 出现在屏幕右上角（松开消失）。\n   dragSurface 内的 input socket 是 blocklyPath（无 data-argument-type\n   属性、无 .blocklyInputRow class），用 :not(.blocklyBlockBackground)\n   识别（背景 path 才是块主体） */\n\n.blocklyBlockDragSurface .blocklyPath:not(.blocklyBlockBackground),\n.blocklyBlockDragSurface .blocklyInputRow,\n.blocklyBlockDragSurface path[data-argument-type],\n.blocklyBlockDragSurface ellipse,\n.blocklyBlockDragSurface rect.blocklyInputRow,\n.blocklyBlockDragSurface .blocklyShape,\n.blocklyBlockDragSurface g.blocklyInsertionMarker,\n.blocklyBlockDragSurface .blocklyInsertionMarker {\n    display: none !important;\n}\n\n/* v11 — 隐藏 scratch-blocks 的 insertion marker（拖动 reporter 时\n   显示在主工作区的\"可放置位置\"提示）。这是 scratch-blocks 内部\n   行为：(块,_editingWorkspace) getInsertionMarkers 后台每帧调\n   onPendingConn()，但 ghost 元素偶尔残留。\n   用户描述\"拖动积木时出现、松开消失、位置随幕布改变\" 精准匹配此行为。 */\n\n.blocklyInsertionMarker,\ng.blocklyInsertionMarker {\n    display: none !important;\n    visibility: hidden !important;\n}\n\n/* v11 暴力兜底 — 任何 fill 与绿色椭圆颜色匹配的 path（默认\n   reporter shadow socket #529552、青色 #0FBD8C），在工具箱/flyout\n   内部显示但不连接子积木的，全部隐藏（保留主工作区已连接节点） */\n\n.blocklyFlyout path[fill=\"#529552\"]:not(.blocklyBlockBackground),\n.blocklyFlyout ellipse[fill=\"#529552\"],\n.blocklyFlyout path[fill=\"#0FBD8C\"]:not(.blocklyBlockBackground),\n.blocklyFlyout ellipse[fill=\"#0FBD8C\"] {\n    display: none !important;\n}\n\n/* ============ 好友 / 关注 面板 ============ */\n\n.ext-friends-intro {\n    font-size: 12px;\n    color: #666;\n    background: #f5f7fa;\n    border-radius: 4px;\n    padding: 8px 12px;\n    margin: 10px 16px 6px;\n    line-height: 1.5;\n}\n\n.ext-friends-search {\n    display: flex;\n    gap: 8px;\n    padding: 0 16px 8px;\n}\n\n.ext-friends-search-input {\n    flex: 1;\n    box-sizing: border-box;\n    padding: 7px 12px;\n    border: 1px solid #d0d4d9;\n    border-radius: 4px;\n    font-size: 13px;\n    background: #fafbfc;\n    transition: border-color .15s;\n}\n\n.ext-friends-search-input:focus {\n    border-color: #4c97ff;\n    outline: none;\n    background: #fff;\n}\n\n.ext-friends-search-btn {\n    flex-shrink: 0;\n    padding: 7px 16px;\n    border: none;\n    border-radius: 4px;\n    background: #4c97ff;\n    color: #fff;\n    font-size: 13px;\n    cursor: pointer;\n}\n\n.ext-friends-search-btn:disabled {\n    opacity: .6;\n    cursor: default;\n}\n\n.ext-friends-results {\n    margin: 0 16px 4px;\n    border: 1px solid #e3e6ea;\n    border-radius: 6px;\n    overflow: hidden;\n}\n\n.ext-friends-list {\n    flex: 1;\n    overflow-y: auto;\n    padding: 8px 16px;\n    display: flex;\n    flex-direction: column;\n    gap: 6px;\n}\n\n.ext-friends-item {\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    gap: 10px;\n    border: 1px solid #e3e6ea;\n    border-radius: 6px;\n    padding: 8px 12px;\n    background: #fafbfc;\n}\n\n.ext-friends-name {\n    font-size: 14px;\n    font-weight: 600;\n    color: #1a1a1a;\n    word-break: break-all;\n}\n\n.ext-friends-actions {\n    display: flex;\n    gap: 6px;\n    flex-shrink: 0;\n}\n\n.ext-friends-btn {\n    padding: 5px 12px;\n    border: 1px solid #4c97ff;\n    border-radius: 4px;\n    background: #fff;\n    color: #4c97ff;\n    font-size: 12px;\n    cursor: pointer;\n    white-space: nowrap;\n}\n\n.ext-friends-btn:hover {\n    background: #eaf2ff;\n}\n\n.ext-friends-btn:disabled {\n    opacity: .6;\n    cursor: default;\n}\n\n.ext-friends-btn-done {\n    border-color: #c4c9d1;\n    color: #888;\n    background: #f0f2f5;\n}\n\n.ext-friends-btn-warn {\n    border-color: #e0573e;\n    color: #e0573e;\n}\n\n.ext-friends-btn-warn:hover {\n    background: #fdeeea;\n}\n\n.ext-friends-tabs {\n    display: flex;\n    gap: 4px;\n    padding: 4px 16px 0;\n    border-bottom: 1px solid #eef0f3;\n}\n\n.ext-friends-tab {\n    flex: 1;\n    padding: 8px 4px;\n    border: none;\n    border-bottom: 2px solid transparent;\n    background: none;\n    color: #777;\n    font-size: 13px;\n    cursor: pointer;\n}\n\n.ext-friends-tab-active {\n    color: #4c97ff;\n    border-bottom-color: #4c97ff;\n    font-weight: 600;\n}\n\n.ext-friends-empty {\n    padding: 24px 12px;\n    text-align: center;\n    color: #999;\n    font-size: 13px;\n    line-height: 1.6;\n}\n\n.ext-friends-msg {\n    margin: 8px 16px 12px;\n    padding: 8px 12px;\n    border-radius: 4px;\n    background: #fff5f3;\n    color: #c0392b;\n    font-size: 12px;\n    line-height: 1.5;\n}\n\n/* ============ 插件 UI 注入（对齐 DeepSeek Harness 的网页改造能力） ============ */\n\n/* 插件注入的工具栏按钮（挂在 .ext-menu-bar-right 内） */\n\n.ext-plugin-btn {\n    display: inline-flex;\n    align-items: center;\n    gap: 4px;\n    height: 30px;\n    padding: 0 12px;\n    margin-left: 6px;\n    border: none;\n    border-radius: 4px;\n    background: #2b7de9;\n    color: #fff;\n    font-size: 13px;\n    cursor: pointer;\n    transition: background 0.15s;\n}\n\n.ext-plugin-btn:hover {\n    background: #1f6fd0;\n}\n\n/* 插件注入的浮动面板（默认挂到 .ext-builder-main 内） */\n\n.ext-plugin-panel {\n    position: absolute;\n    top: 60px;\n    right: 12px;\n    width: 320px;\n    max-height: 70vh;\n    overflow: auto;\n    background: #fff;\n    border: 1px solid #d9d9e3;\n    border-radius: 8px;\n    box-shadow: 0 8px 28px rgba(0,0,0,0.22);\n    z-index: 50;\n    display: flex;\n    flex-direction: column;\n}\n\n.ext-plugin-panel-title {\n    padding: 10px 14px;\n    font-weight: 700;\n    font-size: 14px;\n    color: #222;\n    border-bottom: 1px solid #eee;\n    background: #f6f7fb;\n    border-radius: 8px 8px 0 0;\n}\n\n.ext-plugin-panel-body {\n    padding: 12px 14px;\n    font-size: 13px;\n    color: #333;\n}\n\n/* ============ 安装插件对话框 ============ */\n\n.ext-install-card {\n    width: 560px;\n    max-width: 92vw;\n}\n\n.ext-install-body {\n    padding: 16px 20px 20px;\n}\n\n.ext-install-hint {\n    margin: 0 0 8px;\n    font-size: 13px;\n    color: #555;\n}\n\n.ext-install-sources {\n    margin: 0 0 14px;\n    padding-left: 18px;\n    font-size: 12px;\n    color: #666;\n    line-height: 1.7;\n}\n\n.ext-install-sources code {\n    background: #f0f1f6;\n    padding: 1px 5px;\n    border-radius: 3px;\n    font-size: 11px;\n    color: #d6336c;\n}\n\n.ext-install-input {\n    width: 100%;\n    box-sizing: border-box;\n    padding: 10px 12px;\n    border: 1px solid #ccc;\n    border-radius: 6px;\n    font-size: 13px;\n    outline: none;\n}\n\n.ext-install-input:focus {\n    border-color: #2b7de9;\n}\n\n.ext-install-actions {\n    display: flex;\n    gap: 10px;\n    margin-top: 12px;\n}\n\n.ext-install-status {\n    margin-top: 12px;\n    padding: 8px 12px;\n    border-radius: 5px;\n    background: #eafaf0;\n    color: #1e7e44;\n    font-size: 12px;\n    line-height: 1.5;\n}\n\n.ext-install-error {\n    margin-top: 12px;\n    padding: 8px 12px;\n    border-radius: 5px;\n    background: #fff5f3;\n    color: #c0392b;\n    font-size: 12px;\n    line-height: 1.5;\n    word-break: break-all;\n}\n\n.ext-install-note {\n    margin: 14px 0 0;\n    font-size: 11px;\n    color: #999;\n    line-height: 1.6;\n}\n\n/* 自定义插件项：来源标签 + 更新按钮 */\n\n.ext-addon-source {\n    margin-left: 8px;\n    font-size: 11px;\n    color: #8a8a99;\n    background: #f0f1f6;\n    padding: 1px 7px;\n    border-radius: 10px;\n    white-space: nowrap;\n}\n\n.ext-addon-update {\n    margin-left: 8px;\n    border: none;\n    background: #e8f0fe;\n    color: #2b7de9;\n    border-radius: 4px;\n    padding: 2px 10px;\n    font-size: 12px;\n    cursor: pointer;\n}\n\n.ext-addon-update:hover {\n    background: #d4e4fd;\n}\n\n/* ===== 统一设置面板（编辑器设置 + 插件管理标签页） ===== */\n\n/* 设置悬浮框（与实时协作一致的浮动面板） */\n\n.ext-float-panel {\n    position: fixed;\n    top: 70px;\n    right: 20px;\n    width: 680px;\n    height: 80vh;\n    max-height: calc(100vh - 90px);\n    background: #fff;\n    border-radius: 10px;\n    box-shadow: 0 8px 40px rgba(0,0,0,.18), 0 2px 8px rgba(0,0,0,.08);\n    z-index: 99990;\n    display: flex;\n    flex-direction: column;\n    overflow: hidden;\n    min-width: 420px;\n    min-height: 360px;\n}\n\n.ext-float-panel.ext-float-minimized {\n    display: none;\n}\n\n.ext-settings-unified {\n    width: auto;\n    max-height: none;\n    overflow: hidden;\n    padding: 0;\n}\n\n.ext-settings-unified-header {\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    padding: 12px 16px;\n    border-bottom: 1px solid #e0e0e0;\n    background: #f8f9fa;\n    border-radius: 10px 10px 0 0;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n    flex-shrink: 0;\n    cursor: default;\n}\n\n.ext-float-header {\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    padding: 12px 16px;\n    background: #f8f9fa;\n    border-bottom: 1px solid #e8eaed;\n    border-radius: 10px 10px 0 0;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n    flex-shrink: 0;\n    cursor: move;\n}\n\n.ext-float-title {\n    font-size: 14px;\n    font-weight: 600;\n    color: #202124;\n    display: flex;\n    align-items: center;\n}\n\n.ext-settings-unified-header .ext-settings-title {\n    margin: 0;\n    font-size: 16px;\n    font-weight: 600;\n    color: #333;\n}\n\n/* 悬浮框右上角按钮（最小化/最大化/关闭） */\n\n.ext-float-btns {\n    display: flex;\n    gap: 4px;\n}\n\n.ext-float-btn {\n    width: 26px;\n    height: 26px;\n    border: none;\n    border-radius: 6px;\n    background: transparent;\n    font-size: 14px;\n    cursor: pointer;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    color: #5f6368;\n    transition: background .1s;\n}\n\n.ext-float-btn:hover { background: #e8eaed; }\n\n.ext-float-btn-close:hover { background: #fce8e6; color: #d93025; }\n\n/* 自由拉伸层（由 JS 同步面板 rect 定位） */\n\n.ext-float-resize-layer {\n    position: fixed;\n    inset: auto;\n    pointer-events: none;\n    z-index: 99989;\n    overflow: visible;\n}\n\n.ext-float-resize-handle {\n    position: absolute;\n    pointer-events: auto;\n    z-index: 99990;\n    border-radius: 3px;\n}\n\n.ext-float-resize-handle:hover { background: rgba(26,115,232,.35); }\n\n.ext-fz-n  { top: -4px; left: 8px; right: 8px; height: 8px; cursor: ns-resize; }\n\n.ext-fz-s  { bottom: -4px; left: 8px; right: 8px; height: 8px; cursor: ns-resize; }\n\n.ext-fz-e  { right: -4px; top: 8px; bottom: 8px; width: 8px; cursor: ew-resize; }\n\n.ext-fz-w  { left: -4px; top: 8px; bottom: 8px; width: 8px; cursor: ew-resize; }\n\n.ext-fz-ne { top: -4px; right: -4px; width: 14px; height: 14px; cursor: nesw-resize; }\n\n.ext-fz-nw { top: -4px; left: -4px; width: 14px; height: 14px; cursor: nwse-resize; }\n\n.ext-fz-se { bottom: -4px; right: -4px; width: 14px; height: 14px; cursor: nwse-resize; }\n\n.ext-fz-sw { bottom: -4px; left: -4px; width: 14px; height: 14px; cursor: nesw-resize; }\n\n/* 悬浮框内容区 */\n\n.ext-float-body {\n    flex: 1;\n    display: flex;\n    flex-direction: column;\n    overflow: hidden;\n    min-height: 0;\n}\n\n.ext-float-content {\n    display: flex;\n    flex-direction: column;\n    flex: 1;\n    min-height: 0;\n    overflow-y: auto;\n}\n\n/* 标签页栏 */\n\n.ext-settings-tabs {\n    display: flex;\n    gap: 0;\n    border-bottom: 2px solid #e8e8e8;\n    background: #f4f5f7;\n    padding: 0 16px;\n}\n\n.ext-settings-tab {\n    padding: 10px 20px;\n    border: none;\n    background: transparent;\n    font-size: 14px;\n    font-weight: 500;\n    color: #666;\n    cursor: pointer;\n    position: relative;\n    transition: color .15s, background .15s;\n    border-bottom: 2px solid transparent;\n    margin-bottom: -2px;\n}\n\n.ext-settings-tab:hover {\n    color: #333;\n    background: rgba(0,0,0,.04);\n}\n\n.ext-settings-tab.active {\n    color: #1a73e8;\n    border-bottom-color: #1a73e8;\n    font-weight: 600;\n}\n\n/* 标签页内容区 */\n\n.ext-settings-tab-content {\n    padding: 16px 20px 20px;\n    overflow-y: auto;\n    flex: 1;\n}\n\n.ext-addons-tab-content {\n    max-height: none;\n    overflow-y: auto;\n    flex: 1;\n}\n\n/* 插件市场卡片：来源仓库名 */\n\n.ext-market-card-repo {\n    font-size: 11px;\n    color: #1a73e8;\n    opacity: .8;\n    margin: 2px 0 6px;\n    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;\n    word-break: break-all;\n}\n\n/* ── 积木数量徽章（菜单栏右侧）── */\n\n.ext-block-count-badge {\n    display: flex;\n    align-items: center;\n    gap: 4px;\n    padding: 3px 10px;\n    background: rgba(255, 255, 255, 0.18);\n    border: 1px solid rgba(255, 255, 255, 0.3);\n    border-radius: 12px;\n    color: #fff;\n    font-size: 12px;\n    cursor: pointer;\n    transition: background .15s;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n    white-space: nowrap;\n}\n\n.ext-block-count-badge:hover {\n    background: rgba(255, 255, 255, 0.3);\n}\n\n.ext-block-count-num {\n    font-weight: 700;\n    font-size: 14px;\n}\n\n.ext-block-count-label {\n    opacity: 0.9;\n}\n\n/* ── 代码区底部状态栏增强 ── */\n\n.ext-stage-footer {\n    display: flex !important;\n    align-items: center;\n    justify-content: space-between;\n    padding: 4px 10px !important;\n    background: rgba(0,0,0,.04);\n    border-top: 1px solid rgba(0,0,0,.08);\n    font-size: 11px;\n    color: #666;\n    gap: 8px;\n}\n\n.ext-stage-footer-left,\n.ext-stage-footer-right {\n    display: flex;\n    align-items: center;\n    gap: 8px;\n}\n\n.ext-stage-footer button {\n    display: flex;\n    align-items: center;\n    gap: 3px;\n    padding: 2px 6px;\n    border: 1px solid rgba(0,0,0,.1);\n    border-radius: 4px;\n    background: transparent;\n    color: #555;\n    font-size: 11px;\n    cursor: pointer;\n    transition: background .12s;\n}\n\n.ext-stage-footer button:hover {\n    background: rgba(0,0,0,.06);\n}\n\n.ext-stat-item {\n    display: flex;\n    align-items: center;\n    gap: 3px;\n    color: #777;\n    font-size: 11px;\n    white-space: nowrap;\n}\n\n.ext-stat-item svg {\n    opacity: .6;\n}\n\n/* ── 项目数据分析面板（悬浮框）── */\n\n.ext-stats-panel {\n    width: 560px !important;\n    height: 480px !important;\n    min-width: 400px !important;\n    min-height: 300px !important;\n    max-height: 80vh;\n}\n\n.ext-stats-panel .ext-float-header {\n    background: #f8f9fa;\n}\n\n.ext-stats-body {\n    padding: 12px 16px !important;\n    overflow-y: auto !important;\n    flex: 1 !important;\n}\n\n.ext-stats-content {\n    padding: 16px !important;\n}\n\n.ext-stats-score-card {\n    display: flex;\n    align-items: center;\n    gap: 16px;\n    padding: 14px 16px;\n    background: linear-gradient(135deg, #e8f0fe 0%, #f0f4ff 100%);\n    border: 1px solid #c5d8f7;\n    border-radius: 10px;\n    margin-bottom: 16px;\n}\n\n.ext-stats-score-num {\n    font-size: 32px;\n    font-weight: 800;\n    color: #1a73e8;\n    line-height: 1;\n}\n\n.ext-stats-score-max {\n    font-size: 14px;\n    font-weight: 400;\n    color: #888;\n}\n\n.ext-score-info {\n    flex: 1;\n}\n\n.ext-score-level {\n    font-size: 15px;\n    font-weight: 600;\n    color: #333;\n    margin-bottom: 2px;\n}\n\n.ext-score-desc {\n    font-size: 12px;\n    color: #666;\n}\n\n.ext-stats-section-title {\n    font-size: 13px;\n    font-weight: 600;\n    color: #444;\n    margin: 14px 0 8px;\n    padding-bottom: 4px;\n    border-bottom: 1px solid #eee;\n}\n\n.ext-stats-grid {\n    display: grid;\n    grid-template-columns: repeat(4, 1fr);\n    gap: 8px;\n}\n\n.ext-stat-card {\n    background: #f8f9fa;\n    border: 1px solid #e9ecef;\n    border-radius: 8px;\n    padding: 10px 12px;\n    text-align: left;\n}\n\n.ext-stat-card-val {\n    font-size: 22px;\n    font-weight: 700;\n    color: #333;\n    line-height: 1.2;\n}\n\n.ext-stat-card-label {\n    font-size: 11px;\n    color: #777;\n    margin-top: 2px;\n    line-height: 1.3;\n}\n\n.ext-stat-card-label small {\n    color: #aaa;\n    font-size: 10px;\n}\n\n.ext-stats-row {\n    display: flex;\n    gap: 16px;\n    margin-top: 8px;\n}\n\n.ext-stats-col {\n    flex: 1;\n    min-width: 0;\n}\n\n.ext-stats-mini-grid {\n    display: grid;\n    grid-template-columns: 1fr 1fr;\n    gap: 6px;\n}\n\n.ext-stat-mini {\n    background: #f8f9fa;\n    border: 1px solid #e9ecef;\n    border-radius: 6px;\n    padding: 8px 10px;\n    font-size: 12px;\n    color: #555;\n}\n\n.ext-stat-mini b {\n    font-size: 16px;\n    color: #333;\n    margin-right: 4px;\n}\n\n.ext-stats-dist {\n    background: #f8f9fa;\n    border: 1px solid #e9ecef;\n    border-radius: 8px;\n    padding: 10px 12px;\n    min-height: 100px;\n}\n\n.ext-stats-empty {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    height: 100%;\n    min-height: 80px;\n    color: #aaa;\n    font-size: 13px;\n}\n\n.ext-stats-bars {\n    display: flex;\n    flex-direction: column;\n    gap: 6px;\n}\n\n.ext-stats-bar-row {\n    display: flex;\n    align-items: center;\n    gap: 8px;\n    font-size: 12px;\n    color: #555;\n}\n\n.ext-stats-bar-label {\n    width: 28px;\n    flex-shrink: 0;\n    font-weight: 500;\n}\n\n.ext-stats-bar-track {\n    flex: 1;\n    height: 16px;\n    background: #eee;\n    border-radius: 4px;\n    overflow: hidden;\n}\n\n.ext-stats-bar-fill {\n    height: 100%;\n    border-radius: 4px;\n    transition: width .3s ease;\n    min-width: 2px;\n}\n\n.ext-stats-tips {\n    background: #fffbe6;\n    border: 1px solid #f5e6a3;\n    border-radius: 6px;\n    padding: 10px 14px;\n    font-size: 12px;\n    color: #856404;\n}\n\n.ext-stat-tip {\n    line-height: 1.5;\n}\n\n", ""]);
+exports.push([module.i, "/* ============================================================\n   Extension Builder - Blockly-based UI\n   Layout matches TurboWarp editor style\n\n   IMPORTANT: CSS Modules scoping. Each rule uses :global(.selector)\n   so the class name is preserved raw (e.g. \".ext-builder\") and can\n   be matched by React's className=\"ext-builder\". Wrapping in a\n   single :global {} block does NOT work with the webpack css-loader\n   version we have, so each rule is prefixed explicitly.\n   ============================================================ */\n\n/* ---- Global reset: make html/body/#app fill the viewport ---- */\n\nhtml, body, #app {\n    height: 100%;\n    margin: 0;\n    padding: 0;\n    overflow: hidden;\n}\n\nbody {\n    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;\n    background: #e5e5e5;\n    color: #1a1a1a;\n    font-size: 13px;\n}\n\n/* ---- Extension Builder root ---- */\n\n.ext-builder {\n    display: flex;\n    flex-direction: row;\n    width: 100%;\n    height: 100%;\n    background: #e5e5e5;\n    color: #1a1a1a;\n    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;\n    font-size: 13px;\n    overflow: hidden;\n    position: relative;\n}\n\n/* ---- Left icon rail (AstraEditor style: 制作积木 pinned to far left) ---- */\n\n.ext-builder-left {\n    width: 48px;\n    flex-shrink: 0;\n    background: #343434;\n    display: flex;\n    flex-direction: column;\n    align-items: center;\n    padding-top: 8px;\n    gap: 6px;\n    box-shadow: 1px 0 4px rgba(0, 0, 0, 0.25);\n    overflow: hidden;\n}\n\n.ext-left-btn {\n    width: 42px;\n    height: 42px;\n    border: none;\n    border-radius: 7px;\n    background: transparent;\n    cursor: pointer;\n    padding: 0;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    transition: background 0.15s;\n}\n\n.ext-left-btn:hover {\n    background: rgba(255, 255, 255, 0.12);\n}\n\n.ext-left-btn.active {\n    background: rgba(255, 255, 255, 0.18);\n    box-shadow: inset 0 0 0 2px #4c97ff;\n}\n\n.ext-left-btn-img {\n    width: 40px;\n    height: 40px;\n    border-radius: 6px;\n    object-fit: cover;\n    pointer-events: none;\n}\n\n/* Right side container (tab bar + main area) */\n\n.ext-builder-right {\n    flex: 1;\n    display: flex;\n    flex-direction: column;\n    min-width: 0;\n    overflow: hidden;\n}\n\n/* ---- Tab bar (matches TurboWarp's 代码/造型/声音 tabs) ---- */\n\n.ext-builder-tabs {\n    display: flex;\n    align-items: stretch;\n    background: #f7f7f7;\n    border-bottom: 1px solid #d0d0d0;\n    padding: 0;\n    height: 36px;\n    flex-shrink: 0;\n}\n\n.ext-tab {\n    display: flex;\n    align-items: center;\n    gap: 6px;\n    padding: 0 20px;\n    background: transparent;\n    color: #555;\n    border: none;\n    border-bottom: 2px solid transparent;\n    cursor: pointer;\n    font-size: 13px;\n    font-weight: 500;\n    transition: color 0.15s, border-color 0.15s, background 0.15s;\n}\n\n.ext-tab:hover {\n    background: #e8e8e8;\n    color: #1a1a1a;\n}\n\n.ext-tab.active {\n    color: #4c97ff;\n    border-bottom-color: #4c97ff;\n    background: #ffffff;\n}\n\n.ext-tab-icon {\n    font-size: 14px;\n}\n\n/* ---- Main Layout (2-column: workspace | stage) ---- */\n\n.ext-builder-main {\n    flex: 1;\n    display: flex;\n    overflow: hidden;\n    background: #ffffff;\n    min-height: 0;\n}\n\n/* ---- 调试器视图（与 CB-ExtGallery 调试页同款） ---- */\n\n.ext-debugger-view {\n    flex: 1 1 0;\n    min-width: 0;\n    min-height: 0;\n    display: flex;\n    flex-direction: column;\n    gap: 8px;\n    padding: 10px 12px;\n    background: #fff;\n    overflow-y: auto;\n}\n\n.ext-debugger-row {\n    display: flex;\n    align-items: center;\n    gap: 8px;\n    flex-wrap: wrap;\n    flex-shrink: 0;\n}\n\n.ext-debugger-row-label {\n    font-size: 13px;\n    color: #333;\n    line-height: 1.3;\n    white-space: nowrap;\n}\n\n.ext-debugger-ext-info {\n    font-size: 13px;\n    font-weight: 600;\n    color: #202124;\n}\n\n.ext-debugger-url-input {\n    flex: 1;\n    min-width: 160px;\n    padding: 6px 10px;\n    border: 1px solid #dadce0;\n    border-radius: 6px;\n    font-size: 13px;\n    color: #202124;\n    background: #fff;\n    outline: none;\n}\n\n.ext-debugger-url-input:focus {\n    border-color: #1a73e8;\n}\n\n.ext-debugger-green-btn {\n    padding: 6px 14px;\n    border: 1px solid #2e9e5b;\n    border-radius: 6px;\n    background: #e6f6ec;\n    color: #1e7e44;\n    font-size: 13px;\n    font-weight: 600;\n    cursor: pointer;\n    white-space: nowrap;\n    transition: background .12s;\n}\n\n.ext-debugger-green-btn:hover {\n    background: #d2efdd;\n}\n\n.ext-debugger-dataurl-box {\n    width: 100%;\n    flex: 1;\n    min-height: 120px;\n    padding: 8px 10px;\n    border: 1px solid #dadce0;\n    border-radius: 6px;\n    font-size: 12px;\n    font-family: Consolas, Monaco, monospace;\n    color: #444;\n    background: #fafafa;\n    resize: vertical;\n    outline: none;\n    word-break: break-all;\n    box-sizing: border-box;\n}\n\n.ext-debugger-dataurl-box:focus {\n    border-color: #1a73e8;\n    background: #fff;\n}\n\n.ext-debugger-hint {\n    font-size: 12px;\n    color: #888;\n    flex-shrink: 0;\n}\n\n/* ---- Floating block builder window ---- */\n\n.ext-builder-modal-backdrop {\n    position: fixed;\n    top: 0;\n    left: 0;\n    right: 0;\n    bottom: 0;\n    background: transparent;\n    z-index: 99999;\n    /* Do NOT block mouse events — the Blockly workspace behind must stay\n       fully interactive (drag blocks, click flyout, etc.) while the\n       builder window is open. Closing happens via ✕ / Esc instead. */\n    pointer-events: none;\n}\n\n.ext-builder-modal {\n    position: fixed;\n    top: 48px;\n    left: 12px;\n    right: 12px;\n    bottom: 12px;\n    width: calc(100vw - 24px);\n    height: calc(100vh - 60px);\n    min-width: 500px;\n    min-height: 400px;\n    max-width: none;\n    max-height: none;\n    background: #fff;\n    color: #202124;\n    border-radius: 10px;\n    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.08);\n    display: flex;\n    flex-direction: column;\n    overflow: hidden;\n    pointer-events: auto;\n    z-index: 99999;\n}\n\n.ext-builder-modal-header {\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    padding: 12px 16px;\n    background: #f8f9fa;\n    border-bottom: 1px solid #e8eaed;\n    border-radius: 10px 10px 0 0;\n    flex-shrink: 0;\n    cursor: default;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n\n.ext-builder-modal-title {\n    font-size: 14px;\n    font-weight: 600;\n    color: #202124;\n}\n\n.ext-builder-modal-controls {\n    display: flex;\n    align-items: center;\n    gap: 4px;\n}\n\n.ext-builder-tb-btn {\n    width: 26px;\n    height: 26px;\n    border: none;\n    border-radius: 6px;\n    background: transparent;\n    color: #5f6368;\n    cursor: pointer;\n    font-size: 14px;\n    line-height: 1;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    padding: 0;\n    transition: background 0.1s;\n}\n\n.ext-builder-tb-btn:hover {\n    background: #e8eaed;\n}\n\n/* 8 方向自由拉伸手柄（与实时协作一致） */\n\n.ext-builder-resize-layer {\n    position: absolute;\n    inset: 0;\n    pointer-events: none;\n    z-index: 20;\n}\n\n.ext-builder-rz-n,\n.ext-builder-rz-s,\n.ext-builder-rz-e,\n.ext-builder-rz-w,\n.ext-builder-rz-ne,\n.ext-builder-rz-nw,\n.ext-builder-rz-se,\n.ext-builder-rz-sw {\n    position: absolute;\n    pointer-events: auto;\n    z-index: 21;\n}\n\n.ext-builder-rz-n  { top: 0; left: 8px; right: 8px; height: 6px; cursor: ns-resize; }\n\n.ext-builder-rz-s  { bottom: 0; left: 8px; right: 8px; height: 6px; cursor: ns-resize; }\n\n.ext-builder-rz-e  { top: 8px; bottom: 8px; right: 0; width: 6px; cursor: ew-resize; }\n\n.ext-builder-rz-w  { top: 8px; bottom: 8px; left: 0; width: 6px; cursor: ew-resize; }\n\n.ext-builder-rz-ne { top: 0; right: 0; width: 10px; height: 10px; cursor: nesw-resize; }\n\n.ext-builder-rz-nw { top: 0; left: 0; width: 10px; height: 10px; cursor: nwse-resize; }\n\n.ext-builder-rz-se { bottom: 0; right: 0; width: 10px; height: 10px; cursor: nwse-resize; }\n\n.ext-builder-rz-sw { bottom: 0; left: 0; width: 10px; height: 10px; cursor: nwse-resize; }\n\n.ext-builder-rz-n:hover,\n.ext-builder-rz-s:hover,\n.ext-builder-rz-e:hover,\n.ext-builder-rz-w:hover,\n.ext-builder-rz-ne:hover,\n.ext-builder-rz-nw:hover,\n.ext-builder-rz-se:hover,\n.ext-builder-rz-sw:hover {\n    background: rgba(26, 115, 232, 0.25);\n}\n\n.ext-builder-modal-body {\n    display: flex;\n    flex-direction: row;\n    align-items: stretch;\n    overflow: hidden;\n    flex: 1;\n    min-height: 0;\n    padding: 4px;\n    gap: 8px;\n}\n\n/* ---- Add Block Panel: removed ---- */\n\n/* ---- Block List (left sidebar — like Scratch sprite list) ---- */\n\n.ext-block-list {\n    width: 260px;\n    flex-shrink: 0;\n    display: flex;\n    flex-direction: column;\n    background: #f7f7f7;\n    border-right: 1px solid #d0d0d0;\n    padding: 8px;\n    gap: 4px;\n    overflow-y: auto;\n}\n\n.ext-block-list-title {\n    font-size: 11px;\n    font-weight: 600;\n    color: #888;\n    text-transform: uppercase;\n    letter-spacing: 0.5px;\n    padding: 4px 4px 6px;\n}\n\n.ext-block-list-items {\n    display: flex;\n    flex-direction: column;\n    gap: 2px;\n    flex: 1;\n    overflow-y: auto;\n}\n\n.ext-block-list-item {\n    padding: 6px 8px;\n    border-radius: 4px;\n    cursor: pointer;\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    font-size: 12px;\n    color: #1a1a1a;\n    background: #ffffff;\n    border: 1px solid #e0e0e0;\n    transition: background 0.15s, border-color 0.15s;\n}\n\n.ext-block-list-item:hover {\n    background: #e8f0ff;\n}\n\n.ext-block-list-item.selected {\n    background: #4c97ff;\n    color: white;\n    border-color: #3373cc;\n}\n\n.ext-block-list-name {\n    overflow: hidden;\n    text-overflow: ellipsis;\n    white-space: nowrap;\n    flex: 1;\n}\n\n.ext-block-list-delete {\n    width: 18px;\n    height: 18px;\n    padding: 0;\n    background: transparent;\n    color: #999;\n    border: none;\n    cursor: pointer;\n    font-size: 12px;\n    border-radius: 3px;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.ext-block-list-item.selected .ext-block-list-delete {\n    color: rgba(255,255,255,0.7);\n}\n\n.ext-block-list-delete:hover {\n    background: rgba(0,0,0,0.1);\n}\n\n.ext-block-list-add {\n    padding: 6px 8px;\n    background: #4c97ff;\n    color: white;\n    border: none;\n    border-radius: 4px;\n    cursor: pointer;\n    font-size: 12px;\n    text-align: center;\n    transition: background 0.15s;\n    margin-top: 4px;\n}\n\n.ext-block-list-add:hover {\n    background: #3373cc;\n}\n\n/* ---- Block list: settings entry, rename input ---- */\n\n.ext-block-list-settings {\n    width: 100%;\n    padding: 6px 8px;\n    margin: 0 0 6px 0;\n    background: #f3f3f3;\n    border: 1px solid #d0d0d0;\n    border-radius: 4px;\n    color: #444;\n    cursor: pointer;\n    font-size: 12px;\n    text-align: left;\n}\n\n.ext-block-list-settings:hover {\n    background: #4c97ff;\n    color: white;\n    border-color: #4c97ff;\n}\n\n.ext-block-list-name-input {\n    flex: 1;\n    min-width: 0;\n    padding: 2px 4px;\n    border: 1px solid #4c97ff;\n    border-radius: 3px;\n    font-size: 12px;\n    background: white;\n    outline: none;\n}\n\n/* ---- Extension settings modal ---- */\n\n.ext-modal-backdrop {\n    position: fixed;\n    inset: 0;\n    background: rgba(0, 0, 0, 0.45);\n    z-index: 100;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.ext-modal {\n    background: #f3f3f3;\n    border-radius: 8px;\n    padding: 0;\n    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);\n    max-width: 1100px;\n    width: 80vw;\n    height: 80vh;\n    max-height: 80vh;\n    overflow-y: auto;\n}\n\n.ext-settings-modal {\n    padding-bottom: 16px;\n}\n\n.ext-settings-banner {\n    width: 100%;\n    height: 90px;\n    border-radius: 8px 8px 0 0;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.ext-settings-banner-icon {\n    width: 56px;\n    height: 56px;\n    border-radius: 10px;\n    background: rgba(255, 255, 255, 0.95);\n    object-fit: contain;\n    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);\n}\n\n.ext-settings-banner-placeholder {\n    color: #999;\n    font-size: 28px;\n    line-height: 56px;\n    text-align: center;\n}\n\n.ext-settings-title {\n    text-align: center;\n    font-size: 20px;\n    font-weight: 600;\n    margin: 16px 0 12px;\n    color: #333;\n}\n\n.ext-settings-label {\n    display: block;\n    margin: 8px 24px 4px;\n    font-size: 12px;\n    color: #555;\n}\n\n.ext-settings-label-row {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    gap: 8px;\n    margin: 10px 0 6px;\n    font-size: 12px;\n    color: #555;\n}\n\n.ext-settings-input {\n    display: block;\n    margin: 0 24px 8px;\n    width: calc(100% - 48px);\n    padding: 8px 10px;\n    border: 1px solid #ccc;\n    border-radius: 4px;\n    font-size: 13px;\n    box-sizing: border-box;\n    background: white;\n    color: #333;\n}\n\n.ext-settings-input:focus {\n    outline: none;\n    border-color: #4c97ff;\n    box-shadow: 0 0 0 2px rgba(76, 151, 255, 0.2);\n}\n\n.ext-settings-id-preview {\n    margin: 8px auto 6px;\n    width: 80px;\n    height: 60px;\n    border: 2px solid #f0c800;\n    border-radius: 6px;\n    background: #fffbe6;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    text-align: center;\n    font-size: 12px;\n    color: #b58a00;\n    word-break: break-all;\n    padding: 4px;\n    box-sizing: border-box;\n}\n\n.ext-settings-checkbox {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    gap: 6px;\n    font-size: 12px;\n    color: #555;\n    margin-bottom: 8px;\n}\n\n.ext-settings-color-picker {\n    width: 22px;\n    height: 22px;\n    border: 1px solid #ccc;\n    border-radius: 3px;\n    padding: 0;\n    background: none;\n    cursor: pointer;\n}\n\n.ext-settings-color-presets {\n    display: flex;\n    justify-content: center;\n    gap: 8px;\n    margin: 4px 0 12px;\n}\n\n.ext-settings-color-swatch {\n    width: 32px;\n    height: 24px;\n    border: 2px solid transparent;\n    border-radius: 4px;\n    cursor: pointer;\n    padding: 0;\n}\n\n.ext-settings-color-swatch.active {\n    border-color: #333;\n    box-shadow: 0 0 0 2px rgba(76, 151, 255, 0.4);\n}\n\n.ext-settings-icon-row {\n    display: flex;\n    justify-content: space-around;\n    margin: 12px 24px;\n    gap: 12px;\n}\n\n.ext-settings-icon-cell {\n    flex: 1;\n    text-align: center;\n}\n\n.ext-settings-icon-preview {\n    width: 80px;\n    height: 60px;\n    margin: 4px auto;\n    border: 1px dashed #bbb;\n    border-radius: 4px;\n    background: white;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    overflow: hidden;\n}\n\n.ext-settings-icon-preview img {\n    max-width: 100%;\n    max-height: 100%;\n    object-fit: contain;\n}\n\n.ext-settings-icon-empty {\n    font-size: 11px;\n    color: #999;\n}\n\n.ext-settings-icon-actions {\n    display: flex;\n    justify-content: center;\n    gap: 6px;\n    margin-top: 4px;\n}\n\n.ext-settings-icon-btn,\n.ext-settings-icon-clear {\n    padding: 4px 12px;\n    border: none;\n    border-radius: 4px;\n    cursor: pointer;\n    font-size: 12px;\n}\n\n.ext-settings-icon-btn {\n    background: #4c97ff;\n    color: white;\n}\n\n.ext-settings-icon-btn:hover {\n    background: #3373cc;\n}\n\n.ext-settings-icon-clear {\n    background: #e0e0e0;\n    color: #555;\n}\n\n.ext-settings-icon-clear:hover {\n    background: #ccc;\n}\n\n.ext-settings-actions {\n    display: flex;\n    justify-content: center;\n    gap: 12px;\n    margin-top: 16px;\n}\n\n.ext-settings-cancel {\n    padding: 6px 18px;\n    border: 1px solid #ccc;\n    background: white;\n    color: #555;\n    border-radius: 4px;\n    cursor: pointer;\n    font-size: 13px;\n}\n\n.ext-settings-cancel:hover {\n    background: #eee;\n}\n\n.ext-settings-done {\n    padding: 6px 22px;\n    border: none;\n    background: #4c97ff;\n    color: white;\n    border-radius: 4px;\n    cursor: pointer;\n    font-size: 13px;\n    font-weight: 500;\n}\n\n.ext-settings-done:hover {\n    background: #3373cc;\n}\n\n/* ---- Blockly Workspace (full width, native toolbox) ---- */\n\n.ext-builder-workspace-full {\n    flex: 1 1 0;\n    min-width: 0;\n    min-height: 0;\n    background: #1e1e1e;\n    position: relative;\n    overflow: hidden;\n    display: flex;\n    flex-direction: column;\n}\n\n.blockly-host {\n    flex: 1;\n    width: 100%;\n    min-height: 0;\n    position: relative;\n    /* Blockly will set height via SVG, but ensure host grows */\n    display: flex;\n}\n\n.blockly-host .injectionDiv {\n    width: 100% !important;\n    height: 100% !important;\n    position: relative !important;\n}\n\n.blockly-host .blocklySvg {\n    width: 100% !important;\n    height: 100% !important;\n    position: absolute !important;\n    top: 0 !important;\n    left: 0 !important;\n}\n\n/* ---- Stage (right side - where stage was in TurboWarp, now showing code) ---- */\n\n.ext-builder-stage {\n    flex-shrink: 0;\n    width: 380px;\n    max-width: 50vw;\n    display: flex;\n    flex-direction: column;\n    background: #ffffff;\n    border-left: 1px solid #d0d0d0;\n    min-height: 0;\n}\n\n.ext-stage-header {\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    padding: 8px 12px;\n    background: #f7f7f7;\n    border-bottom: 1px solid #d0d0d0;\n    flex-shrink: 0;\n}\n\n.ext-stage-title {\n    font-weight: 600;\n    font-size: 12px;\n    color: #1a1a1a;\n}\n\n.ext-stage-actions {\n    display: flex;\n    gap: 4px;\n}\n\n.ext-stage-btn {\n    width: 28px;\n    height: 28px;\n    background: #ffffff;\n    color: #555;\n    border: 1px solid #d0d0d0;\n    border-radius: 3px;\n    cursor: pointer;\n    font-size: 14px;\n    transition: background 0.15s, color 0.15s;\n}\n\n.ext-stage-btn:hover {\n    background: #f0f0f0;\n    color: #1a1a1a;\n}\n\n.ext-stage-btn-copy {\n    width: auto;\n    padding: 0 10px;\n    font-size: 12px;\n    color: #fff;\n    background: #2e7d32;\n    border-color: #2e7d32;\n}\n\n.ext-stage-btn-copy:hover {\n    background: #1b5e20;\n    color: #fff;\n}\n\n.ext-stage-screen {\n    flex: 1;\n    background: #1e1e1e;\n    margin: 8px;\n    border-radius: 4px;\n    overflow: auto;\n    border: 2px solid #d0d0d0;\n    min-height: 0;\n}\n\n.ext-code-content {\n    margin: 0;\n    padding: 12px;\n    background: #1e1e1e;\n    color: #d4d4d4;\n    font-family: 'Consolas', 'Monaco', monospace;\n    font-size: 11px;\n    line-height: 1.5;\n    overflow: auto;\n    white-space: pre;\n    word-wrap: normal;\n    height: 100%;\n    box-sizing: border-box;\n}\n\n.ext-code-content code {\n    font-family: inherit;\n    color: #d4d4d4;\n}\n\n.ext-stage-footer {\n    display: flex;\n    justify-content: space-between;\n    padding: 8px 12px;\n    background: #f7f7f7;\n    border-top: 1px solid #d0d0d0;\n    flex-shrink: 0;\n}\n\n.ext-stage-footer button {\n    padding: 4px 12px;\n    background: #ffffff;\n    color: #1a1a1a;\n    border: 1px solid #d0d0d0;\n    border-radius: 3px;\n    cursor: pointer;\n    font-size: 12px;\n    transition: background 0.15s;\n}\n\n.ext-stage-footer button:hover {\n    background: #f0f0f0;\n}\n\n/* ---- Bottom panel (variable/list creation): removed (variables/list now created via Blockly variable category) ---- */\n\n/* ---- Blockly theme overrides (these selectors are injected by Blockly at runtime) ---- */\n\n.blocklyToolboxDiv {\n    background-color: #f7f7f7 !important;\n    border-right: 1px solid #d0d0d0 !important;\n}\n\n/* ---- Flyout: 加宽至 280px（Blockly 默认 250px 太窄，长积木/多输入框积木右侧被裁切） ---- */\n\n.blocklyFlyout {\n    width: 280px !important;\n}\n\n/* 修复 flyout 积木文字在低 DPI 下左侧被裁切（SVG 文本亚像素栅格化伪影）。\n   geometricPrecision 让 Chrome 按精确坐标绘制字形，避免最左像素列被丢弃。\n   配合 ExtensionBuilder.jsx 里持续施加的 +15px 左间距，积木/文字不再贴边被切。 */\n\n.blocklyFlyout .blocklyText {\n    text-rendering: geometricPrecision;\n}\n\n.blocklyFlyout .blocklyBlockCanvas {\n    shape-rendering: geometricPrecision;\n}\n\n.blocklyTreeRow {\n    margin: 0 !important;\n    padding: 6px 12px !important;\n    cursor: pointer !important;\n}\n\n.blocklyTreeRow:hover {\n    background-color: #e8e8e8 !important;\n}\n\n.blocklyTreeSelected {\n    background-color: #4c97ff !important;\n}\n\n.blocklyTreeLabel {\n    font-family: 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif !important;\n    font-size: 13px !important;\n}\n\n.blocklyMainBackground {\n    stroke: none !important;\n}\n\n.blocklyTrash {\n    opacity: 0.6;\n}\n\n/* ---- Top menu bar (TurboWarp-style red header) ---- */\n\n.ext-builder {\n    display: flex;\n    flex-direction: column;\n    height: 100%;\n    width: 100%;\n}\n\n.ext-menu-bar {\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    height: 40px;\n    background: linear-gradient(180deg, #fc4e4e 0%, #ff5757 50%, #e94545 100%);\n    color: white;\n    padding: 0 10px;\n    flex-shrink: 0;\n    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n\n.ext-menu-bar-left,\n.ext-menu-bar-right {\n    display: flex;\n    align-items: center;\n    gap: 6px;\n    flex: 1;\n}\n\n.ext-menu-bar-right {\n    justify-content: flex-end;\n}\n\n.ext-menu-bar-center {\n    display: flex;\n    align-items: center;\n    gap: 8px;\n    padding: 0 16px;\n    font-size: 13px;\n}\n\n.ext-menu-brand {\n    display: flex;\n    align-items: center;\n    gap: 6px;\n    padding-right: 8px;\n    margin-right: 4px;\n    border-right: 1px solid rgba(255, 255, 255, 0.25);\n    height: 26px;\n}\n\n.ext-menu-logo {\n    font-size: 18px;\n    color: #fff;\n    line-height: 1;\n}\n\n.ext-menu-title {\n    font-weight: 700;\n    font-size: 14px;\n    color: white;\n}\n\n.ext-menu-btn {\n    display: flex;\n    align-items: center;\n    gap: 4px;\n    padding: 4px 10px;\n    background: rgba(255, 255, 255, 0.1);\n    border: 1px solid rgba(255, 255, 255, 0.25);\n    border-radius: 4px;\n    color: white;\n    cursor: pointer;\n    font-size: 12px;\n    transition: background 0.1s;\n}\n\n.ext-menu-btn:hover {\n    background: rgba(255, 255, 255, 0.25);\n}\n\n.ext-menu-btn:active {\n    background: rgba(255, 255, 255, 0.35);\n}\n\n.ext-menu-btn-icon {\n    font-size: 13px;\n    line-height: 1;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.ext-menu-home-link {\n    display: flex;\n    align-items: center;\n    gap: 4px;\n    padding: 4px 10px;\n    background: rgba(255, 255, 255, 0.1);\n    border: 1px solid rgba(255, 255, 255, 0.25);\n    border-radius: 4px;\n    color: white;\n    cursor: pointer;\n    font-size: 12px;\n    text-decoration: none;\n    transition: background 0.1s;\n}\n\n.ext-menu-home-link:hover {\n    background: rgba(255, 255, 255, 0.25);\n}\n\n.ext-menu-home-icon {\n    font-size: 13px;\n    line-height: 1;\n}\n\n.ext-menu-btn-warn {\n    background: rgba(0, 0, 0, 0.15);\n    border-color: rgba(255, 255, 255, 0.35);\n}\n\n.ext-menu-btn-warn:hover {\n    background: rgba(0, 0, 0, 0.3);\n}\n\n.ext-menu-btn-switch {\n    background: rgba(255, 255, 255, 0.12);\n    border-color: rgba(255, 255, 255, 0.25);\n}\n\n.ext-menu-btn-switch:hover {\n    background: rgba(255, 255, 255, 0.22);\n}\n\n.ext-menu-ext-name {\n    font-weight: 600;\n    color: white;\n}\n\n.ext-menu-ext-id {\n    color: rgba(255, 255, 255, 0.85);\n    font-family: monospace;\n    font-size: 12px;\n}\n\n/* ---- Per-block editor (AstraEditor-style) ---- */\n\n.ext-block-editor {\n    margin-top: 10px;\n    padding: 10px;\n    background: #ffffff;\n    border: 1px solid #d0d0d0;\n    border-radius: 5px;\n    display: flex;\n    flex-direction: column;\n    gap: 4px;\n    font-size: 12px;\n    flex: 1;\n    min-width: 0;\n    overflow-y: auto;\n}\n\n.ext-block-editor-header {\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    margin-bottom: 6px;\n    border-bottom: 1px solid #eee;\n    padding-bottom: 6px;\n}\n\n.ext-block-editor-title {\n    font-weight: 600;\n    color: #333;\n    font-size: 12px;\n}\n\n.ext-block-editor-name {\n    color: #999;\n    font-size: 11px;\n    max-width: 140px;\n    overflow: hidden;\n    text-overflow: ellipsis;\n    white-space: nowrap;\n}\n\n.ext-block-editor-preview {\n    width: 100%;\n    /* 原为 height:70px + flex 横排 + overflow:hidden：标签与积木并排，\n       且 56~73px 高的积木被 70px 固定高裁切，看起来\"跑到右上/空白\"。\n       改为纵向堆叠 + 自适应高度，保证积木完整可见。 */\n    flex: 0 0 auto;\n    min-height: 70px;\n    background: #e8e8e8;\n    border-radius: 4px;\n    display: flex;\n    flex-direction: column;\n    align-items: stretch;\n    justify-content: center;\n    gap: 6px;\n    padding: 8px 10px;\n    box-sizing: border-box;\n    margin-bottom: 8px;\n    color: #999;\n    position: relative;\n    overflow: visible;\n}\n\n.ext-block-editor-icon-img {\n    max-width: 48px;\n    max-height: 48px;\n    object-fit: contain;\n}\n\n.ext-block-editor-icon-placeholder {\n    font-size: 30px;\n    color: #b0b0b0;\n}\n\n.ext-block-editor-preview-label {\n    color: #555;\n    font-size: 12px;\n}\n\n.ext-block-editor-label {\n    display: block;\n    color: #555;\n    font-size: 11px;\n    margin: 6px 0 2px;\n}\n\n.ext-block-editor-input {\n    display: block;\n    width: 100%;\n    padding: 4px 6px;\n    border: 1px solid #ccc;\n    border-radius: 3px;\n    font-size: 12px;\n    box-sizing: border-box;\n    background: #fff;\n    color: #333;\n}\n\n.ext-block-editor-input:focus {\n    outline: none;\n    border-color: #4c97ff;\n    box-shadow: 0 0 0 2px rgba(76, 151, 255, 0.2);\n}\n\n.ext-block-colour-picker {\n    display: flex;\n    align-items: center;\n    gap: 4px;\n    flex-wrap: wrap;\n    padding: 4px 0;\n}\n\n.ext-block-colour-input {\n    width: 30px;\n    height: 24px;\n    padding: 0;\n    border: 1px solid #ccc;\n    border-radius: 3px;\n    cursor: pointer;\n    background: #fff;\n}\n\n.ext-block-colour-swatch {\n    width: 22px;\n    height: 22px;\n    border-radius: 4px;\n    border: 2px solid transparent;\n    cursor: pointer;\n    padding: 0;\n}\n\n.ext-block-colour-swatch:hover {\n    transform: scale(1.1);\n}\n\n.ext-block-colour-swatch-active {\n    border-color: #1a1a1a;\n    box-shadow: 0 0 0 2px #fff inset;\n}\n\n.ext-block-colour-clear {\n    font-size: 11px;\n    color: #888;\n    border: 1px solid #ddd;\n    background: #fff;\n    border-radius: 3px;\n    padding: 2px 6px;\n    cursor: pointer;\n}\n\n.ext-block-colour-clear:hover {\n    color: #333;\n    border-color: #bbb;\n}\n\n.ext-block-editor-section {\n    margin: 8px 0 2px;\n    color: #333;\n    font-size: 12px;\n    font-weight: 500;\n}\n\n.ext-block-editor-checkbox {\n    display: flex;\n    align-items: center;\n    gap: 6px;\n    font-size: 11px;\n    color: #555;\n    padding: 2px 0;\n    cursor: pointer;\n}\n\n.ext-block-editor-checkbox input {\n    cursor: pointer;\n}\n\n.ext-block-editor-icon-btn {\n    margin-top: 10px;\n    width: 100%;\n    padding: 6px 8px;\n    border: none;\n    border-radius: 4px;\n    background: #4c97ff;\n    color: white;\n    cursor: pointer;\n    font-size: 12px;\n}\n\n.ext-block-editor-icon-btn:hover {\n    background: #3373cc;\n}\n\n.ext-block-editor-hint {\n    margin-top: 8px;\n    padding: 6px;\n    background: #f0f8ff;\n    border: 1px dashed #b3d9ff;\n    border-radius: 3px;\n    color: #4a7aac;\n    font-size: 10px;\n    line-height: 1.4;\n}\n\n/* ---- CB-ExtGallary field editor ---- */\n\n.ext-block-editor-fields-header {\n    display: grid;\n    grid-template-columns: 80px 1fr 60px;\n    gap: 6px;\n    padding: 0 0 4px 0;\n    font-size: 11px;\n    color: #aaa;\n    border-bottom: 1px solid #333;\n    margin-bottom: 4px;\n}\n\n.ext-block-editor-fields-list {\n    margin: 4px 0;\n}\n\n.ext-block-editor-fields-row {\n    display: grid;\n    grid-template-columns: 80px 1fr 60px auto;\n    gap: 6px;\n    align-items: center;\n    margin-bottom: 4px;\n}\n\n.ext-block-editor-input-type {\n    height: 24px;\n    font-size: 11px;\n}\n\n.ext-block-editor-input-text {\n    height: 24px;\n    font-size: 11px;\n}\n\n.ext-block-editor-input-default {\n    height: 24px;\n    font-size: 11px;\n}\n\n.ext-block-editor-fields-delete {\n    height: 24px;\n    padding: 0 6px;\n    background: transparent;\n    border: 1px solid #555;\n    color: #ccc;\n    border-radius: 3px;\n    cursor: pointer;\n    font-size: 10px;\n}\n\n.ext-block-editor-fields-delete:hover {\n    background: rgba(220, 60, 60, 0.2);\n    border-color: #d04040;\n    color: #ff8888;\n}\n\n.ext-block-editor-fields-add {\n    display: flex;\n    gap: 6px;\n    align-items: center;\n    margin-top: 4px;\n}\n\n.ext-block-editor-fields-add-btn {\n    height: 24px;\n    padding: 0 10px;\n    background: rgba(78, 161, 255, 0.15);\n    border: 1px solid #4ea1ff;\n    color: #4ea1ff;\n    border-radius: 3px;\n    cursor: pointer;\n    font-size: 11px;\n}\n\n.ext-block-editor-fields-add-btn:hover {\n    background: rgba(78, 161, 255, 0.3);\n}\n\n.ext-block-editor-fields-add-type {\n    flex: 1;\n    height: 24px;\n    font-size: 11px;\n}\n\n/* Dropdown options editor */\n\n.ext-block-editor-dropdown-opts {\n    display: flex;\n    align-items: center;\n    gap: 4px;\n}\n\n.ext-block-editor-fields-opt-btn {\n    width: 22px;\n    height: 22px;\n    border: 1px solid #ccc;\n    border-radius: 4px;\n    background: #f0f0f0;\n    color: #333;\n    font-size: 14px;\n    font-weight: 700;\n    cursor: pointer;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    padding: 0;\n    line-height: 1;\n}\n\n.ext-block-editor-fields-opt-btn:hover {\n    background: #e0e0e0;\n}\n\n.ext-block-editor-dropdown-optlist {\n    display: flex;\n    flex-direction: column;\n    gap: 2px;\n    margin-top: 4px;\n    padding-left: 4px;\n}\n\n.ext-block-editor-dropdown-optitem {\n    display: flex;\n    align-items: center;\n    gap: 4px;\n}\n\n.ext-block-editor-dropdown-optinput {\n    width: 80px;\n    height: 20px;\n    font-size: 10px;\n    border: 1px solid #ddd;\n    border-radius: 3px;\n    padding: 0 4px;\n}\n\n.ext-block-editor-dropdown-optval {\n    width: 60px;\n    color: #888;\n}\n\n.ext-block-editor-fields-opt-del {\n    width: 18px;\n    height: 18px;\n    border: none;\n    border-radius: 3px;\n    background: transparent;\n    color: #c00;\n    font-size: 12px;\n    cursor: pointer;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    padding: 0;\n}\n\n.ext-block-editor-fields-opt-del:hover {\n    background: #fee;\n}\n\n.ext-block-editor-preview-fields {\n    display: flex;\n    gap: 6px;\n    flex-wrap: wrap;\n    align-items: center;\n    margin-left: 8px;\n}\n\n.ext-block-editor-preview-field {\n    display: inline-block;\n    padding: 1px 6px;\n    background: #1a73e8;\n    border-radius: 8px;\n    color: white;\n    font-size: 10px;\n    font-weight: 500;\n}\n\n/* Live block SVG preview inside the builder panel */\n\n.ext-block-editor-preview-header {\n    flex: 0 0 auto;\n    margin: 0;\n    padding: 0 0 4px;\n    border-bottom: 1px solid #d0d0d0;\n    text-align: left;\n}\n\n.ext-block-editor-preview-svg {\n    flex: 0 0 auto;\n    min-height: 64px;\n    background: #fff;\n    border-radius: 3px;\n    padding: 10px 12px;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    overflow: auto;\n    box-sizing: border-box;\n}\n\n.ext-block-editor-preview-svg svg {\n    display: block;\n    max-width: 100%;\n}\n\n.ext-block-editor-preview-empty {\n    color: #aaa;\n    font-size: 11px;\n    font-style: italic;\n}\n\n.ext-block-editor-preview-host {\n    position: absolute;\n    width: 1px;\n    height: 1px;\n    overflow: hidden;\n    left: -9999px;\n    top: -9999px;\n}\n\n.ext-block-editor-meta {\n    margin-top: 10px;\n    border-top: 1px solid #d0d0d0;\n    padding-top: 10px;\n}\n\n.ext-block-editor-meta > :first-child {\n    margin-top: 0;\n}\n\n.ext-block-editor-buttons {\n    display: flex;\n    gap: 6px;\n    margin-top: 8px;\n}\n\n.ext-block-editor-small-btn {\n    flex: 1;\n    padding: 5px 8px;\n    border: none;\n    border-radius: 3px;\n    background: #4c97ff;\n    color: white;\n    cursor: pointer;\n    font-size: 11px;\n}\n\n.ext-block-editor-small-btn:hover {\n    background: #3373cc;\n}\n\n.ext-block-editor-save-btn {\n    margin-top: 6px;\n    width: 100%;\n    padding: 6px 8px;\n    border: none;\n    border-radius: 3px;\n    background: #28a745;\n    color: white;\n    cursor: pointer;\n    font-size: 12px;\n    font-weight: 500;\n}\n\n.ext-block-editor-save-btn:hover {\n    background: #1f8a37;\n}\n\n/* ---- Block preview modal (AstraEditor-style 扩展预览) ---- */\n\n.ext-preview-host {\n    position: absolute;\n    width: 1px;\n    height: 1px;\n    overflow: hidden;\n    left: -9999px;\n    top: -9999px;\n}\n\n.ext-preview-modal {\n    width: 360px;\n    max-height: 80vh;\n    background: #1e1e1e;\n    color: #f1f1f1;\n    border-radius: 6px;\n    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);\n    display: flex;\n    flex-direction: column;\n}\n\n.ext-preview-modal-header {\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    padding: 10px 14px;\n    border-bottom: 1px solid #333;\n}\n\n.ext-preview-modal-header .ext-settings-title {\n    margin: 0;\n    color: #f1f1f1;\n    font-size: 16px;\n}\n\n.ext-preview-modal-close {\n    background: transparent;\n    border: none;\n    color: #aaa;\n    cursor: pointer;\n    font-size: 18px;\n    padding: 0 6px;\n}\n\n.ext-preview-modal-close:hover {\n    color: #fff;\n}\n\n.ext-preview-modal-sub {\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    padding: 8px 14px;\n    background: #262626;\n    border-bottom: 1px solid #333;\n    font-size: 11px;\n}\n\n.ext-preview-ext-name {\n    color: #4c97ff;\n    font-weight: 600;\n}\n\n.ext-preview-block-count {\n    color: #888;\n}\n\n.ext-preview-list {\n    overflow-y: auto;\n    padding: 8px;\n    max-height: 60vh;\n    background: #000;\n    color: #fff;\n    border-radius: 0 0 6px 6px;\n}\n\n.ext-preview-item {\n    margin-bottom: 6px;\n    padding: 2px 4px;\n    background: transparent;\n    border: none;\n    box-shadow: none;\n    position: relative;\n    min-height: 0;\n}\n\n.ext-preview-item-type {\n    display: none;  /* CB-ExtGallary style: no type label, just the SVG */\n}\n\n.ext-preview-item-svg {\n    line-height: 0;\n    display: flex;\n    align-items: center;\n    justify-content: flex-start;\n}\n\n.ext-preview-item-svg svg {\n    display: block;\n    max-width: 100%;\n}\n\n.ext-preview-empty {\n    text-align: center;\n    padding: 20px;\n    color: #999;\n    font-size: 12px;\n}\n\n/* ============================================================\n   登录 / 存档 / 跨站同步\n   (light theme: 浅色卡片 + 深色文字)\n   ============================================================ */\n\n.ext-menu-user {\n    display: flex;\n    align-items: center;\n    gap: 4px;\n    padding: 4px 10px;\n    background: rgba(255, 255, 255, 0.15);\n    border: 1px solid rgba(255, 255, 255, 0.3);\n    border-radius: 4px;\n    color: #fff;\n    font-size: 12px;\n    font-weight: 600;\n    white-space: nowrap;\n    max-width: 180px;\n    overflow: hidden;\n    text-overflow: ellipsis;\n    cursor: pointer;\n    transition: background .15s;\n}\n\n.ext-menu-user:hover {\n    background: rgba(255, 255, 255, 0.28);\n}\n\n/* ---- 用户下拉菜单 ---- */\n\n.ext-user-dropdown {\n    position: relative;\n    display: flex;\n    align-items: center;\n}\n\n.ext-user-menu {\n    position: absolute;\n    top: calc(100% + 4px);\n    right: 0;\n    min-width: 160px;\n    background: #fff;\n    border-radius: 8px;\n    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);\n    z-index: 1000;\n    padding: 6px 0;\n    display: flex;\n    flex-direction: column;\n    gap: 2px;\n}\n\n.ext-user-menu-item {\n    display: flex;\n    align-items: center;\n    gap: 8px;\n    width: 100%;\n    padding: 9px 16px;\n    border: none;\n    background: transparent;\n    color: #333;\n    font-size: 13px;\n    cursor: pointer;\n    text-align: left;\n    transition: background .12s;\n}\n\n.ext-user-menu-item:hover {\n    background: #f0f4ff;\n}\n\n.ext-user-menu-logout {\n    color: #d32f2f;\n}\n\n.ext-user-menu-logout:hover {\n    background: #ffebee;\n}\n\n.ext-user-menu-danger {\n    color: #d32f2f;\n}\n\n.ext-user-menu-danger:hover {\n    background: #ffebee;\n}\n\n.ext-user-menu-divider {\n    height: 1px;\n    background: #eee;\n    margin: 4px 10px;\n}\n\n/* ── 多账号切换子菜单 ── */\n\n.ext-account-switcher-list {\n    display: flex;\n    flex-direction: column;\n    gap: 2px;\n    padding: 4px 0;\n    max-height: 220px;\n    overflow-y: auto;\n}\n\n.ext-account-switcher-item {\n    display: flex;\n    align-items: center;\n    gap: 8px;\n    width: 100%;\n    padding: 8px 16px;\n    border: none;\n    background: transparent;\n    color: #333;\n    font-size: 13px;\n    cursor: pointer;\n    text-align: left;\n    transition: background .12s;\n}\n\n.ext-account-switcher-item:hover {\n    background: #f0f4ff;\n}\n\n.ext-account-switcher-current {\n    background: #e8f0fe;\n    color: #1a56db;\n    font-weight: 600;\n}\n\n.ext-account-switcher-current:hover {\n    background: #d2e3fc;\n}\n\n.ext-account-switcher-name {\n    flex: 1;\n    overflow: hidden;\n    text-overflow: ellipsis;\n    white-space: nowrap;\n}\n\n.ext-account-switcher-badge {\n    font-size: 10px;\n    color: #1a56db;\n    background: #c5d6fd;\n    padding: 1px 6px;\n    border-radius: 8px;\n    flex-shrink: 0;\n    font-weight: 600;\n}\n\n.ext-account-switcher-uid {\n    font-size: 11px;\n    color: #888;\n    background: #f0f0f0;\n    padding: 1px 7px;\n    border-radius: 8px;\n    flex-shrink: 0;\n    font-weight: 600;\n    font-variant-numeric: tabular-nums;\n}\n\n.ext-account-switcher-current .ext-account-switcher-uid {\n    color: #1a56db;\n    background: #d4e2fb;\n}\n\n.ext-account-switcher-empty {\n    padding: 8px 16px;\n    font-size: 12px;\n    color: #999;\n    text-align: center;\n}\n\n/* ── 工具下拉菜单 ── */\n\n.ext-tools-dropdown {\n    position: relative;\n    display: flex;\n    align-items: center;\n}\n\n.ext-menu-tools-btn {\n    position: relative;\n}\n\n.ext-menu-arrow {\n    font-size: 10px;\n    margin-left: 2px;\n    opacity: 0.8;\n}\n\n.ext-tools-menu {\n    position: absolute;\n    top: calc(100% + 4px);\n    left: 0;\n    min-width: 160px;\n    background: #fff;\n    border-radius: 8px;\n    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);\n    z-index: 1000;\n    padding: 6px 0;\n    display: flex;\n    flex-direction: column;\n    gap: 2px;\n}\n\n.ext-tools-menu-item {\n    display: flex;\n    align-items: center;\n    gap: 8px;\n    width: 100%;\n    padding: 9px 16px;\n    border: none;\n    background: transparent;\n    color: #333;\n    font-size: 13px;\n    cursor: pointer;\n    text-align: left;\n    transition: background .12s;\n}\n\n.ext-tools-menu-item:hover {\n    background: #f0f4ff;\n}\n\n/* ====== 文件下拉菜单（对齐 Bilup 的「文件」菜单） ====== */\n\n.ext-file-dropdown {\n    position: relative;\n    display: flex;\n    align-items: center;\n}\n\n.ext-file-menu {\n    position: absolute;\n    top: calc(100% + 4px);\n    left: 0;\n    min-width: 180px;\n    background: #fff;\n    border-radius: 8px;\n    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);\n    z-index: 1000;\n    padding: 6px 0;\n    display: flex;\n    flex-direction: column;\n    gap: 2px;\n}\n\n.ext-file-menu-item {\n    display: flex;\n    align-items: center;\n    gap: 8px;\n    width: 100%;\n    padding: 9px 16px;\n    border: none;\n    background: transparent;\n    color: #333;\n    font-size: 13px;\n    cursor: pointer;\n    text-align: left;\n    transition: background .12s;\n}\n\n.ext-file-menu-item:hover {\n    background: #f0f4ff;\n}\n\n.ext-file-menu-warn {\n    color: #d32f2f;\n}\n\n.ext-file-menu-warn:hover {\n    background: #fef2f2;\n}\n\n.ext-file-menu-divider {\n    height: 1px;\n    background: #e0e0e0;\n    margin: 3px 10px;\n}\n\n.ext-auth-backdrop {\n    position: fixed;\n    top: 0;\n    left: 0;\n    right: 0;\n    bottom: 0;\n    background: rgba(0, 0, 0, 0.45);\n    z-index: 900;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.ext-auth-card {\n    width: 400px;\n    max-height: 86vh;\n    background: #ffffff;\n    color: #1a1a1a;\n    border-radius: 8px;\n    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);\n    display: flex;\n    flex-direction: column;\n    overflow: hidden;\n}\n\n/* ---- 插件设置弹窗（ExtAddons） ---- */\n\n.ext-addons-card {\n    width: 520px;\n}\n\n.ext-addons-list {\n    flex: 1;\n    overflow-y: auto;\n    padding: 8px 16px;\n    display: flex;\n    flex-direction: column;\n    gap: 6px;\n}\n\n.ext-addon-item {\n    border: 1px solid #e3e6ea;\n    border-radius: 6px;\n    padding: 8px 12px;\n    background: #fafbfc;\n}\n\n.ext-addon-label {\n    display: flex;\n    align-items: center;\n    gap: 8px;\n    cursor: pointer;\n}\n\n.ext-addon-check {\n    width: 16px;\n    height: 16px;\n    accent-color: #4c97ff;\n    cursor: pointer;\n    flex-shrink: 0;\n}\n\n.ext-addon-check:disabled {\n    cursor: not-allowed;\n    opacity: 0.55;\n}\n\n.ext-addon-name {\n    font-size: 14px;\n    font-weight: 600;\n    color: #1a1a1a;\n}\n\n.ext-addon-cat {\n    font-size: 11px;\n    color: #4c97ff;\n    background: #e8f1ff;\n    border-radius: 10px;\n    padding: 1px 8px;\n    margin-left: auto;\n}\n\n.ext-addon-desc {\n    font-size: 12px;\n    color: #777;\n    line-height: 1.5;\n    margin-top: 4px;\n    padding-left: 24px;\n}\n\n/* 推荐标签 */\n\n.ext-addon-recommend {\n    font-size: 10px;\n    color: #fff;\n    background: #4c97ff;\n    border-radius: 8px;\n    padding: 1px 7px;\n    margin-left: 6px;\n    font-weight: 500;\n    letter-spacing: 0.3px;\n    vertical-align: middle;\n}\n\n/* 内置插件标记（随编辑器打包、默认启用、不可关闭） */\n\n.ext-addon-builtin {\n    font-size: 10px;\n    color: #fff;\n    background: #4db6ac;\n    border-radius: 8px;\n    padding: 1px 7px;\n    margin-left: 6px;\n    font-weight: 500;\n    letter-spacing: 0.3px;\n    vertical-align: middle;\n}\n\n/* 自定义插件删除按钮 */\n\n.ext-addon-del {\n    font-size: 10px;\n    color: #d14;\n    background: transparent;\n    border: 1px solid #f0c0cc;\n    border-radius: 8px;\n    padding: 1px 7px;\n    margin-left: 6px;\n    cursor: pointer;\n    vertical-align: middle;\n    line-height: 1.4;\n}\n\n.ext-addon-del:hover {\n    background: #ffe8ee;\n    border-color: #e58aa0;\n}\n\n/* 子选项区域 */\n\n.ext-addon-opts {\n    margin-top: 6px;\n    padding-left: 24px;\n    display: flex;\n    flex-wrap: wrap;\n    gap: 4px 16px;\n}\n\n.ext-addon-opt-item {\n    display: inline-flex;\n    align-items: center;\n    gap: 4px;\n    font-size: 12px;\n    color: #555;\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n    line-height: 1.6;\n}\n\n.ext-addon-opt-item:hover {\n    color: #222;\n}\n\n.ext-addon-opt-check {\n    cursor: pointer;\n    accent-color: #4c97ff;\n}\n\n.ext-opt-label {\n    cursor: pointer;\n}\n\n.ext-addons-foot {\n    padding: 10px 16px;\n    border-top: 1px solid #eef0f3;\n    text-align: right;\n}\n\n/* ---- 插件面板：搜索框 ---- */\n\n.ext-addons-search {\n    padding: 0 16px 8px;\n}\n\n.ext-addons-search-input {\n    width: 100%;\n    box-sizing: border-box;\n    padding: 7px 12px;\n    border: 1px solid #d0d4d9;\n    border-radius: 4px;\n    font-size: 13px;\n    background: #fafbfc;\n    transition: border-color .15s;\n}\n\n.ext-addons-search-input:focus {\n    outline: none;\n    border-color: #4c97ff;\n    background: #fff;\n}\n\n.ext-addon-empty {\n    text-align: center;\n    color: #999;\n    font-size: 13px;\n    padding: 24px 12px;\n}\n\n/* ---- 插件面板：危险操作（导出/导入/全部重置） ---- */\n\n.ext-addons-actions {\n    padding: 10px 16px;\n    border-top: 1px solid #eef0f3;\n    display: flex;\n    gap: 8px;\n    flex-wrap: wrap;\n}\n\n.ext-addons-action-btn {\n    flex: 1;\n    min-width: 90px;\n    padding: 6px 12px;\n    background: #f5f7fa;\n    border: 1px solid #d0d4d9;\n    border-radius: 4px;\n    color: #444;\n    font-size: 12px;\n    cursor: pointer;\n    transition: background .15s, border-color .15s;\n}\n\n.ext-addons-action-btn:hover {\n    background: #eef1f4;\n    border-color: #b9c0c9;\n}\n\n.ext-addons-action-btn-warn {\n    color: #a33;\n    border-color: #e0c8c8;\n}\n\n.ext-addons-action-btn-warn:hover {\n    background: #fdf0f0;\n    border-color: #d0a8a8;\n}\n\n/* ===== 插件市场 ===== */\n\n.ext-market {\n    display: flex;\n    flex-direction: column;\n    gap: 12px;\n}\n\n.ext-market-head {\n    display: flex;\n    align-items: center;\n    gap: 12px;\n    flex-wrap: wrap;\n}\n\n.ext-market-back {\n    background: transparent;\n    border: 1px solid #c9d3e0;\n    border-radius: 6px;\n    color: #4c97ff;\n    padding: 4px 10px;\n    cursor: pointer;\n    font-size: 13px;\n}\n\n.ext-market-back:hover {\n    background: #eef4ff;\n}\n\n.ext-market-title {\n    font-size: 16px;\n    font-weight: 600;\n    color: #2b3a4a;\n}\n\n.ext-market-repo {\n    font-size: 12px;\n    color: #8896a6;\n    font-family: monospace;\n    background: #f1f4f8;\n    padding: 2px 8px;\n    border-radius: 4px;\n}\n\n.ext-market-refresh-btn {\n    background: transparent;\n    border: 1px solid #c9d3e0;\n    border-radius: 6px;\n    color: #4c97ff;\n    padding: 4px 10px;\n    cursor: pointer;\n    font-size: 13px;\n    margin-left: auto;\n}\n\n.ext-market-refresh-btn:hover:not(:disabled) {\n    background: #eef4ff;\n}\n\n.ext-market-refresh-btn:disabled {\n    opacity: 0.5;\n    cursor: not-allowed;\n}\n\n.ext-market-count {\n    font-size: 12px;\n    color: #0a956e;\n    background: #e6f7ef;\n    padding: 2px 8px;\n    border-radius: 10px;\n    font-weight: 600;\n}\n\n.ext-market-loading,\n.ext-market-error,\n.ext-market-empty {\n    font-size: 13px;\n    padding: 10px 12px;\n    border-radius: 6px;\n}\n\n.ext-market-loading {\n    color: #4c97ff;\n    background: #eef4ff;\n}\n\n.ext-market-error {\n    color: #a33;\n    background: #fdf0f0;\n}\n\n.ext-market-empty {\n    color: #8896a6;\n    background: #f5f7fa;\n}\n\n.ext-market-grid {\n    display: grid;\n    grid-template-columns: repeat(2, 1fr);\n    gap: 10px;\n}\n\n.ext-market-card {\n    background: #fff;\n    border: 1px solid #e2e8f0;\n    border-radius: 8px;\n    padding: 10px 12px;\n    display: flex;\n    flex-direction: column;\n    gap: 4px;\n    box-shadow: 0 1px 3px rgba(0,0,0,0.04);\n}\n\n.ext-market-card-name {\n    font-size: 13px;\n    font-weight: 600;\n    color: #2b3a4a;\n}\n\n.ext-market-card-cat {\n    font-size: 11px;\n    color: #4c97ff;\n    background: #eef4ff;\n    align-self: flex-start;\n    padding: 1px 6px;\n    border-radius: 8px;\n}\n\n.ext-market-card-desc {\n    font-size: 11px;\n    color: #6b7888;\n    line-height: 1.4;\n    min-height: 30px;\n}\n\n.ext-market-install-btn {\n    margin-top: 4px;\n    background: #4c97ff;\n    color: #fff;\n    border: none;\n    border-radius: 6px;\n    padding: 7px 0;\n    cursor: pointer;\n    font-size: 13px;\n    font-weight: 500;\n}\n\n.ext-market-install-btn:hover:not(:disabled) {\n    background: #3b86f0;\n}\n\n.ext-market-install-btn:disabled {\n    cursor: default;\n    opacity: 0.7;\n}\n\n.ext-market-install-btn.installed {\n    background: #2e9e5b;\n}\n\n/* 导入插件主按钮 */\n\n.ext-addons-action-btn-primary {\n    color: #fff;\n    background: #4c97ff;\n    border-color: #3b86f0;\n    font-weight: 500;\n}\n\n.ext-addons-action-btn-primary:hover {\n    background: #3b86f0;\n    border-color: #2f78e0;\n}\n\n/* 开发教程按钮 */\n\n.ext-addons-action-btn-info {\n    color: #1f7a4d;\n    background: #e8f6ee;\n    border-color: #b6e0c8;\n}\n\n.ext-addons-action-btn-info:hover {\n    background: #d8f0e2;\n    border-color: #9ed3b6;\n}\n\n/* 插件开发教程 弹窗 */\n\n.ext-addon-doc-card {\n    max-width: 780px;\n    width: 94%;\n    max-height: 88vh;\n    display: flex;\n    flex-direction: column;\n}\n\n.ext-doc-tabs {\n    display: flex;\n    gap: 4px;\n    padding: 8px 16px 0;\n    border-bottom: 1px solid #eee;\n}\n\n.ext-doc-tab {\n    padding: 8px 16px;\n    border: 1px solid transparent;\n    border-bottom: none;\n    background: transparent;\n    color: #555;\n    font-size: 13px;\n    cursor: pointer;\n    border-radius: 6px 6px 0 0;\n}\n\n.ext-doc-tab:hover {\n    color: #4c97ff;\n}\n\n.ext-doc-tab.active {\n    color: #4c97ff;\n    background: #f3f8ff;\n    border-color: #d6e6ff;\n    font-weight: 600;\n}\n\n.ext-doc-body {\n    padding: 16px 20px;\n    overflow-y: auto;\n    flex: 1;\n    line-height: 1.7;\n}\n\n.ext-doc-h3 {\n    margin: 18px 0 8px;\n    font-size: 15px;\n    color: #222;\n    border-left: 3px solid #4c97ff;\n    padding-left: 8px;\n}\n\n.ext-doc-h3:first-child {\n    margin-top: 0;\n}\n\n.ext-doc-p {\n    margin: 6px 0;\n    color: #444;\n    font-size: 13px;\n}\n\n.ext-doc-ul, .ext-doc-ol {\n    margin: 6px 0;\n    padding-left: 22px;\n    color: #444;\n    font-size: 13px;\n}\n\n.ext-doc-ul li, .ext-doc-ol li {\n    margin: 4px 0;\n}\n\n.ext-doc-table {\n    width: 100%;\n    border-collapse: collapse;\n    margin: 8px 0;\n    font-size: 12.5px;\n}\n\n.ext-doc-table th, .ext-doc-table td {\n    border: 1px solid #e2e6ea;\n    padding: 6px 10px;\n    text-align: left;\n    vertical-align: top;\n}\n\n.ext-doc-table th {\n    background: #f5f7fa;\n    color: #333;\n    font-weight: 600;\n}\n\n.ext-doc-table code, .ext-doc-p code, .ext-doc-ul code, .ext-doc-ol code {\n    background: #f0f2f5;\n    border-radius: 3px;\n    padding: 1px 5px;\n    font-family: 'Consolas', 'Menlo', monospace;\n    font-size: 12px;\n    color: #c0392b;\n}\n\n.ext-doc-code {\n    position: relative;\n    margin: 8px 0 14px;\n}\n\n.ext-doc-copy {\n    position: absolute;\n    top: 6px;\n    right: 6px;\n    z-index: 2;\n    padding: 3px 10px;\n    font-size: 11px;\n    color: #4c97ff;\n    background: rgba(255, 255, 255, 0.92);\n    border: 1px solid #cfe0ff;\n    border-radius: 4px;\n    cursor: pointer;\n}\n\n.ext-doc-copy:hover {\n    background: #fff;\n    border-color: #4c97ff;\n}\n\n.ext-doc-pre {\n    margin: 0;\n    padding: 12px 14px;\n    background: #1e1e2e;\n    color: #e6e6e6;\n    border-radius: 6px;\n    overflow-x: auto;\n    font-family: 'Consolas', 'Menlo', monospace;\n    font-size: 12px;\n    line-height: 1.55;\n    white-space: pre;\n    -moz-tab-size: 2;\n         tab-size: 2;\n}\n\n.ext-doc-pre code {\n    color: inherit;\n    background: transparent;\n    font-size: inherit;\n    padding: 0;\n}\n\n.ext-auth-header {\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    padding: 12px 16px;\n    background: #f2f2f2;\n    border-bottom: 1px solid #ddd;\n    flex-shrink: 0;\n}\n\n.ext-auth-title {\n    font-size: 15px;\n    font-weight: 700;\n    color: #1a1a1a;\n}\n\n.ext-auth-form {\n    display: flex;\n    flex-direction: column;\n    padding: 16px;\n    gap: 8px;\n}\n\n.ext-auth-label {\n    font-size: 12px;\n    color: #666;\n    margin-top: 4px;\n}\n\n.ext-auth-input {\n    padding: 8px 10px;\n    border: 1px solid #ccc;\n    border-radius: 4px;\n    font-size: 13px;\n    color: #1a1a1a;\n    background: #fff;\n    outline: none;\n    box-sizing: border-box;\n    width: 100%;\n}\n\n.ext-auth-input:focus {\n    border-color: #4c97ff;\n    box-shadow: 0 0 0 2px rgba(76, 151, 255, 0.25);\n}\n\n.ext-auth-btn {\n    margin-top: 10px;\n    padding: 8px 12px;\n    background: #4c97ff;\n    color: #fff;\n    border: none;\n    border-radius: 4px;\n    font-size: 13px;\n    font-weight: 600;\n    cursor: pointer;\n}\n\n.ext-auth-btn:hover {\n    background: #3d83e0;\n}\n\n.ext-auth-btn:disabled {\n    opacity: 0.6;\n    cursor: default;\n}\n\n.ext-auth-error {\n    color: #d83a3a;\n    font-size: 12px;\n    background: #fdecec;\n    border: 1px solid #f5c6c6;\n    border-radius: 4px;\n    padding: 6px 8px;\n}\n\n/* 邮箱验证码行（输入 + 发送按钮） */\n\n.ext-auth-code-row {\n    display: flex;\n    align-items: stretch;\n    gap: 8px;\n    margin-top: 2px;\n}\n\n.ext-auth-code-input {\n    flex: 1;\n    min-width: 0;\n}\n\n.ext-auth-code-btn {\n    flex-shrink: 0;\n    white-space: nowrap;\n    padding: 0 14px;\n    height: 36px;\n    border: 1px solid #4c97ff;\n    background: #4c97ff;\n    color: #fff;\n    border-radius: 4px;\n    cursor: pointer;\n    font-size: 13px;\n    font-weight: 600;\n}\n\n.ext-auth-code-btn:hover:not(:disabled) {\n    background: #3d83e0;\n    border-color: #3d83e0;\n}\n\n.ext-auth-code-btn:disabled {\n    background: #b8c6e0;\n    border-color: #b8c6e0;\n    cursor: not-allowed;\n}\n\n.ext-auth-switch {\n    background: transparent;\n    border: none;\n    color: #4c97ff;\n    font-size: 12px;\n    cursor: pointer;\n    padding: 6px;\n}\n\n.ext-auth-switch:hover {\n    text-decoration: underline;\n}\n\n/* GitHub 登录分隔线 + 按钮 */\n\n.ext-auth-divider {\n    display: flex;\n    align-items: center;\n    text-align: center;\n    color: #9aa0a6;\n    font-size: 12px;\n    margin: 12px 0 4px;\n}\n\n.ext-auth-divider::before,\n.ext-auth-divider::after {\n    content: '';\n    flex: 1;\n    height: 1px;\n    background: #e3e3e3;\n}\n\n.ext-auth-divider span {\n    padding: 0 10px;\n}\n\n.ext-auth-github-btn {\n    width: 100%;\n    margin-top: 6px;\n    padding: 9px 12px;\n    display: inline-flex;\n    align-items: center;\n    justify-content: center;\n    background: #24292f;\n    color: #fff;\n    border: 1px solid #24292f;\n    border-radius: 4px;\n    font-size: 13px;\n    font-weight: 600;\n    cursor: pointer;\n}\n\n.ext-auth-github-btn:hover {\n    background: #32383f;\n    border-color: #32383f;\n}\n\n/* Cloudflare Turnstile 人机验证容器（注册表单内） */\n\n.ext-turnstile-container {\n    margin-top: 4px;\n    min-height: 65px;\n    display: flex;\n    align-items: flex-start;\n}\n\n.ext-turnstile-container > div {\n    transform: scale(0.95);\n    transform-origin: left top;\n}\n\n/* ---- 存档面板（内容直接渲染在悬浮框 body 中，无需卡片包裹） ---- */\n\n/* ---- 个人主页 ---- */\n\n.ext-profile-body {\n    flex: 1;\n    min-height: 0;\n    padding: 16px 20px 18px;\n    overflow-y: auto;\n    display: flex;\n    flex-direction: column;\n    gap: 12px;\n}\n\n.ext-profile-head {\n    display: flex;\n    align-items: center;\n    gap: 14px;\n}\n\n.ext-profile-avatar {\n    width: 56px;\n    height: 56px;\n    border-radius: 50%;\n    background: linear-gradient(135deg, #4c97ff, #0f6fde);\n    color: #fff;\n    font-size: 26px;\n    font-weight: 700;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    flex-shrink: 0;\n    box-shadow: 0 2px 8px rgba(76, 151, 255, .35);\n}\n\n.ext-profile-info {\n    display: flex;\n    flex-direction: column;\n    gap: 2px;\n    min-width: 0;\n}\n\n.ext-profile-name {\n    font-size: 18px;\n    font-weight: 700;\n    color: #1a1a1a;\n    word-break: break-all;\n}\n\n.ext-profile-type {\n    font-size: 12px;\n    color: #4c97ff;\n    background: #e8f1ff;\n    border-radius: 10px;\n    padding: 1px 8px;\n    align-self: flex-start;\n}\n\n.ext-profile-email {\n    font-size: 12px;\n    color: #888;\n    word-break: break-all;\n}\n\n.ext-profile-stats {\n    display: flex;\n    flex-wrap: wrap;\n    gap: 8px;\n}\n\n.ext-profile-stat {\n    flex: 1;\n    min-width: 76px;\n    text-align: center;\n    background: #f5f7fa;\n    border: 1px solid #e6e9ed;\n    border-radius: 6px;\n    padding: 10px 4px;\n}\n\n.ext-profile-stat-num {\n    display: block;\n    font-size: 20px;\n    font-weight: 700;\n    color: #1a1a1a;\n}\n\n.ext-profile-stat-label {\n    display: block;\n    font-size: 11px;\n    color: #999;\n    margin-top: 2px;\n}\n\n.ext-profile-joined {\n    font-size: 12px;\n    color: #888;\n}\n\n.ext-profile-saves-title {\n    font-size: 13px;\n    font-weight: 600;\n    color: #333;\n    border-bottom: 1px solid #eef0f3;\n    padding-bottom: 6px;\n}\n\n.ext-profile-saves {\n    display: flex;\n    flex-direction: column;\n    gap: 6px;\n    max-height: 200px;\n    overflow-y: auto;\n}\n\n.ext-profile-save-item {\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    gap: 10px;\n    background: #fafbfc;\n    border: 1px solid #e6e9ed;\n    border-radius: 6px;\n    padding: 8px 12px;\n}\n\n.ext-profile-save-info {\n    min-width: 0;\n}\n\n.ext-profile-save-name {\n    font-size: 13px;\n    font-weight: 600;\n    color: #333;\n    white-space: nowrap;\n    overflow: hidden;\n    text-overflow: ellipsis;\n    max-width: 220px;\n}\n\n.ext-profile-save-time {\n    font-size: 11px;\n    color: #999;\n    margin-top: 2px;\n}\n\n.ext-profile-save-actions {\n    display: flex;\n    gap: 6px;\n    flex-shrink: 0;\n}\n\n.ext-profile-save-btn {\n    padding: 4px 12px;\n    font-size: 12px;\n    border-radius: 4px;\n    border: 1px solid #4c97ff;\n    background: #fff;\n    color: #2b6cb0;\n    cursor: pointer;\n}\n\n.ext-profile-save-btn:hover {\n    background: #eef4ff;\n}\n\n.ext-profile-save-btn-del {\n    border-color: #e0b8b8;\n    color: #a33;\n}\n\n.ext-profile-save-btn-del:hover {\n    background: #fdf0f0;\n}\n\n.ext-profile-saves-empty {\n    font-size: 12px;\n    color: #999;\n    text-align: center;\n    padding: 14px 8px;\n}\n\n.ext-saves-body {\n    padding: 14px 16px 18px;\n    overflow-y: auto;\n    display: flex;\n    flex-direction: column;\n    gap: 10px;\n    flex: 1;\n    min-height: 0;\n}\n\n.ext-saves-new {\n    display: flex;\n    gap: 8px;\n    align-items: center;\n}\n\n.ext-saves-name-input {\n    flex: 1;\n}\n\n.ext-saves-save-btn {\n    margin-top: 0;\n    white-space: nowrap;\n}\n\n.ext-saves-msg {\n    font-size: 12px;\n    color: #0b8e69;\n    background: #e8f7f1;\n    border: 1px solid #b9e5d5;\n    border-radius: 4px;\n    padding: 6px 8px;\n}\n\n.ext-saves-list-title {\n    font-size: 12px;\n    font-weight: 700;\n    color: #555;\n}\n\n.ext-saves-empty {\n    font-size: 12px;\n    color: #999;\n    padding: 6px 0;\n}\n\n.ext-saves-list {\n    display: flex;\n    flex-direction: column;\n    gap: 6px;\n    max-height: 240px;\n    overflow-y: auto;\n}\n\n.ext-saves-item {\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    gap: 8px;\n    padding: 8px 10px;\n    background: #f7f7f7;\n    border: 1px solid #e3e3e3;\n    border-radius: 5px;\n}\n\n.ext-saves-item-info {\n    min-width: 0;\n    flex: 1;\n}\n\n.ext-saves-item-name {\n    font-size: 13px;\n    font-weight: 600;\n    color: #1a1a1a;\n    overflow: hidden;\n    text-overflow: ellipsis;\n    white-space: nowrap;\n}\n\n.ext-saves-item-time {\n    font-size: 11px;\n    color: #999;\n    margin-top: 2px;\n}\n\n.ext-saves-item-actions {\n    display: flex;\n    gap: 4px;\n    flex-shrink: 0;\n}\n\n.ext-saves-act {\n    padding: 3px 8px;\n    font-size: 11px;\n    color: #333;\n    background: #fff;\n    border: 1px solid #ccc;\n    border-radius: 3px;\n    cursor: pointer;\n}\n\n.ext-saves-act:hover {\n    background: #eef4ff;\n    border-color: #4c97ff;\n    color: #2b6cb0;\n}\n\n.ext-saves-act-del:hover {\n    background: #fdecec;\n    border-color: #d83a3a;\n    color: #d83a3a;\n}\n\n/* ---- 跨站同步 ---- */\n\n.ext-sync-section {\n    border-top: 1px solid #e3e3e3;\n    padding-top: 12px;\n    display: flex;\n    flex-direction: column;\n    gap: 8px;\n}\n\n.ext-sync-title {\n    font-size: 13px;\n    font-weight: 700;\n    color: #1a1a1a;\n}\n\n.ext-sync-hint {\n    font-size: 12px;\n    color: #666;\n    margin: 0;\n    line-height: 1.5;\n}\n\n.ext-sync-link-box {\n    display: flex;\n    gap: 6px;\n    align-items: flex-start;\n}\n\n.ext-sync-link {\n    flex: 1;\n    font-size: 11px;\n    font-family: monospace;\n    color: #333;\n    border: 1px solid #ccc;\n    border-radius: 4px;\n    padding: 6px;\n    resize: none;\n    background: #fafafa;\n    box-sizing: border-box;\n}\n\n.ext-sync-import,\n.ext-sync-file {\n    display: flex;\n    gap: 8px;\n    align-items: center;\n}\n\n.ext-sync-import .ext-auth-input {\n    flex: 1;\n}\n\n.ext-auth-remember {\n    display: flex;\n    align-items: center;\n    gap: 6px;\n    font-size: 12px;\n    color: #555;\n    cursor: pointer;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n    padding: 2px 0;\n}\n\n.ext-auth-remember input {\n    accent-color: #4c97ff;\n    cursor: pointer;\n}\n\n.ext-auth-dhd-switch {\n    margin-top: 4px;\n    border-top: 1px solid #e3e3e3;\n    padding-top: 10px;\n    font-weight: 600;\n    color: #2b6cb0;\n}\n\n/* 工具箱拖动或初始化时残留的孤立 input 形状（比如 target_clone 块被\n   复制后只剩 input_value 字段）—— 强制隐藏无主机块的拖动预览残留 */\n\n.blocklyGhost {\n    opacity: 0 !important;\n    pointer-events: none !important;\n}\n\n/* 拖动时 BlockDragSurface 内部的 input_value socket 形状不显示 ——\n   否则按住积木时输入框会作为 ghost 出现在屏幕右上角（松开消失）。\n   dragSurface 内的 input socket 是 blocklyPath（无 data-argument-type\n   属性、无 .blocklyInputRow class），用 :not(.blocklyBlockBackground)\n   识别（背景 path 才是块主体） */\n\n.blocklyBlockDragSurface .blocklyPath:not(.blocklyBlockBackground),\n.blocklyBlockDragSurface .blocklyInputRow,\n.blocklyBlockDragSurface path[data-argument-type],\n.blocklyBlockDragSurface ellipse,\n.blocklyBlockDragSurface rect.blocklyInputRow,\n.blocklyBlockDragSurface .blocklyShape,\n.blocklyBlockDragSurface g.blocklyInsertionMarker,\n.blocklyBlockDragSurface .blocklyInsertionMarker {\n    display: none !important;\n}\n\n/* v11 — 隐藏 scratch-blocks 的 insertion marker（拖动 reporter 时\n   显示在主工作区的\"可放置位置\"提示）。这是 scratch-blocks 内部\n   行为：(块,_editingWorkspace) getInsertionMarkers 后台每帧调\n   onPendingConn()，但 ghost 元素偶尔残留。\n   用户描述\"拖动积木时出现、松开消失、位置随幕布改变\" 精准匹配此行为。 */\n\n.blocklyInsertionMarker,\ng.blocklyInsertionMarker {\n    display: none !important;\n    visibility: hidden !important;\n}\n\n/* v11 暴力兜底 — 任何 fill 与绿色椭圆颜色匹配的 path（默认\n   reporter shadow socket #529552、青色 #0FBD8C），在工具箱/flyout\n   内部显示但不连接子积木的，全部隐藏（保留主工作区已连接节点） */\n\n.blocklyFlyout path[fill=\"#529552\"]:not(.blocklyBlockBackground),\n.blocklyFlyout ellipse[fill=\"#529552\"],\n.blocklyFlyout path[fill=\"#0FBD8C\"]:not(.blocklyBlockBackground),\n.blocklyFlyout ellipse[fill=\"#0FBD8C\"] {\n    display: none !important;\n}\n\n/* ============ 好友 / 关注 面板 ============ */\n\n.ext-friends-intro {\n    font-size: 12px;\n    color: #666;\n    background: #f5f7fa;\n    border-radius: 4px;\n    padding: 8px 12px;\n    margin: 10px 16px 6px;\n    line-height: 1.5;\n}\n\n.ext-friends-search {\n    display: flex;\n    gap: 8px;\n    padding: 0 16px 8px;\n}\n\n.ext-friends-search-input {\n    flex: 1;\n    box-sizing: border-box;\n    padding: 7px 12px;\n    border: 1px solid #d0d4d9;\n    border-radius: 4px;\n    font-size: 13px;\n    background: #fafbfc;\n    transition: border-color .15s;\n}\n\n.ext-friends-search-input:focus {\n    border-color: #4c97ff;\n    outline: none;\n    background: #fff;\n}\n\n.ext-friends-search-btn {\n    flex-shrink: 0;\n    padding: 7px 16px;\n    border: none;\n    border-radius: 4px;\n    background: #4c97ff;\n    color: #fff;\n    font-size: 13px;\n    cursor: pointer;\n}\n\n.ext-friends-search-btn:disabled {\n    opacity: .6;\n    cursor: default;\n}\n\n.ext-friends-results {\n    margin: 0 16px 4px;\n    border: 1px solid #e3e6ea;\n    border-radius: 6px;\n    overflow: hidden;\n}\n\n.ext-friends-list {\n    flex: 1;\n    overflow-y: auto;\n    padding: 8px 16px;\n    display: flex;\n    flex-direction: column;\n    gap: 6px;\n}\n\n.ext-friends-item {\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    gap: 10px;\n    border: 1px solid #e3e6ea;\n    border-radius: 6px;\n    padding: 8px 12px;\n    background: #fafbfc;\n}\n\n.ext-friends-name {\n    font-size: 14px;\n    font-weight: 600;\n    color: #1a1a1a;\n    word-break: break-all;\n}\n\n.ext-friends-actions {\n    display: flex;\n    gap: 6px;\n    flex-shrink: 0;\n}\n\n.ext-friends-btn {\n    padding: 5px 12px;\n    border: 1px solid #4c97ff;\n    border-radius: 4px;\n    background: #fff;\n    color: #4c97ff;\n    font-size: 12px;\n    cursor: pointer;\n    white-space: nowrap;\n}\n\n.ext-friends-btn:hover {\n    background: #eaf2ff;\n}\n\n.ext-friends-btn:disabled {\n    opacity: .6;\n    cursor: default;\n}\n\n.ext-friends-btn-done {\n    border-color: #c4c9d1;\n    color: #888;\n    background: #f0f2f5;\n}\n\n.ext-friends-btn-warn {\n    border-color: #e0573e;\n    color: #e0573e;\n}\n\n.ext-friends-btn-warn:hover {\n    background: #fdeeea;\n}\n\n.ext-friends-tabs {\n    display: flex;\n    gap: 4px;\n    padding: 4px 16px 0;\n    border-bottom: 1px solid #eef0f3;\n}\n\n.ext-friends-tab {\n    flex: 1;\n    padding: 8px 4px;\n    border: none;\n    border-bottom: 2px solid transparent;\n    background: none;\n    color: #777;\n    font-size: 13px;\n    cursor: pointer;\n}\n\n.ext-friends-tab-active {\n    color: #4c97ff;\n    border-bottom-color: #4c97ff;\n    font-weight: 600;\n}\n\n.ext-friends-empty {\n    padding: 24px 12px;\n    text-align: center;\n    color: #999;\n    font-size: 13px;\n    line-height: 1.6;\n}\n\n.ext-friends-msg {\n    margin: 8px 16px 12px;\n    padding: 8px 12px;\n    border-radius: 4px;\n    background: #fff5f3;\n    color: #c0392b;\n    font-size: 12px;\n    line-height: 1.5;\n}\n\n/* ============ 插件 UI 注入（对齐 DeepSeek Harness 的网页改造能力） ============ */\n\n/* 插件注入的工具栏按钮（挂在 .ext-menu-bar-right 内） */\n\n.ext-plugin-btn {\n    display: inline-flex;\n    align-items: center;\n    gap: 4px;\n    height: 30px;\n    padding: 0 12px;\n    margin-left: 6px;\n    border: none;\n    border-radius: 4px;\n    background: #2b7de9;\n    color: #fff;\n    font-size: 13px;\n    cursor: pointer;\n    transition: background 0.15s;\n}\n\n.ext-plugin-btn:hover {\n    background: #1f6fd0;\n}\n\n/* 插件注入的浮动面板（默认挂到 .ext-builder-main 内） */\n\n.ext-plugin-panel {\n    position: absolute;\n    top: 60px;\n    right: 12px;\n    width: 320px;\n    max-height: 70vh;\n    overflow: auto;\n    background: #fff;\n    border: 1px solid #d9d9e3;\n    border-radius: 8px;\n    box-shadow: 0 8px 28px rgba(0,0,0,0.22);\n    z-index: 50;\n    display: flex;\n    flex-direction: column;\n}\n\n.ext-plugin-panel-title {\n    padding: 10px 14px;\n    font-weight: 700;\n    font-size: 14px;\n    color: #222;\n    border-bottom: 1px solid #eee;\n    background: #f6f7fb;\n    border-radius: 8px 8px 0 0;\n}\n\n.ext-plugin-panel-body {\n    padding: 12px 14px;\n    font-size: 13px;\n    color: #333;\n}\n\n/* ============ 安装插件对话框 ============ */\n\n.ext-install-card {\n    width: 560px;\n    max-width: 92vw;\n}\n\n.ext-install-body {\n    padding: 16px 20px 20px;\n}\n\n.ext-install-hint {\n    margin: 0 0 8px;\n    font-size: 13px;\n    color: #555;\n}\n\n.ext-install-sources {\n    margin: 0 0 14px;\n    padding-left: 18px;\n    font-size: 12px;\n    color: #666;\n    line-height: 1.7;\n}\n\n.ext-install-sources code {\n    background: #f0f1f6;\n    padding: 1px 5px;\n    border-radius: 3px;\n    font-size: 11px;\n    color: #d6336c;\n}\n\n.ext-install-input {\n    width: 100%;\n    box-sizing: border-box;\n    padding: 10px 12px;\n    border: 1px solid #ccc;\n    border-radius: 6px;\n    font-size: 13px;\n    outline: none;\n}\n\n.ext-install-input:focus {\n    border-color: #2b7de9;\n}\n\n.ext-install-actions {\n    display: flex;\n    gap: 10px;\n    margin-top: 12px;\n}\n\n.ext-install-status {\n    margin-top: 12px;\n    padding: 8px 12px;\n    border-radius: 5px;\n    background: #eafaf0;\n    color: #1e7e44;\n    font-size: 12px;\n    line-height: 1.5;\n}\n\n.ext-install-error {\n    margin-top: 12px;\n    padding: 8px 12px;\n    border-radius: 5px;\n    background: #fff5f3;\n    color: #c0392b;\n    font-size: 12px;\n    line-height: 1.5;\n    word-break: break-all;\n}\n\n.ext-install-note {\n    margin: 14px 0 0;\n    font-size: 11px;\n    color: #999;\n    line-height: 1.6;\n}\n\n/* 自定义插件项：来源标签 + 更新按钮 */\n\n.ext-addon-source {\n    margin-left: 8px;\n    font-size: 11px;\n    color: #8a8a99;\n    background: #f0f1f6;\n    padding: 1px 7px;\n    border-radius: 10px;\n    white-space: nowrap;\n}\n\n.ext-addon-update {\n    margin-left: 8px;\n    border: none;\n    background: #e8f0fe;\n    color: #2b7de9;\n    border-radius: 4px;\n    padding: 2px 10px;\n    font-size: 12px;\n    cursor: pointer;\n}\n\n.ext-addon-update:hover {\n    background: #d4e4fd;\n}\n\n/* ===== 统一设置面板（编辑器设置 + 插件管理标签页） ===== */\n\n/* 设置悬浮框（与实时协作一致的浮动面板） */\n\n.ext-float-panel {\n    position: fixed;\n    top: 70px;\n    right: 20px;\n    width: 680px;\n    height: 80vh;\n    max-height: calc(100vh - 90px);\n    background: #fff;\n    border-radius: 10px;\n    box-shadow: 0 8px 40px rgba(0,0,0,.18), 0 2px 8px rgba(0,0,0,.08);\n    z-index: 99990;\n    display: flex;\n    flex-direction: column;\n    overflow: hidden;\n    min-width: 420px;\n    min-height: 360px;\n}\n\n.ext-float-panel.ext-float-minimized {\n    display: none;\n}\n\n.ext-settings-unified {\n    width: auto;\n    max-height: none;\n    overflow: hidden;\n    padding: 0;\n}\n\n.ext-settings-unified-header {\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    padding: 12px 16px;\n    border-bottom: 1px solid #e0e0e0;\n    background: #f8f9fa;\n    border-radius: 10px 10px 0 0;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n    flex-shrink: 0;\n    cursor: default;\n}\n\n.ext-float-header {\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    padding: 12px 16px;\n    background: #f8f9fa;\n    border-bottom: 1px solid #e8eaed;\n    border-radius: 10px 10px 0 0;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n    flex-shrink: 0;\n    cursor: move;\n}\n\n.ext-float-title {\n    font-size: 14px;\n    font-weight: 600;\n    color: #202124;\n    display: flex;\n    align-items: center;\n}\n\n.ext-settings-unified-header .ext-settings-title {\n    margin: 0;\n    font-size: 16px;\n    font-weight: 600;\n    color: #333;\n}\n\n/* 悬浮框右上角按钮（最小化/最大化/关闭） */\n\n.ext-float-btns {\n    display: flex;\n    gap: 4px;\n}\n\n.ext-float-btn {\n    width: 26px;\n    height: 26px;\n    border: none;\n    border-radius: 6px;\n    background: transparent;\n    font-size: 14px;\n    cursor: pointer;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    color: #5f6368;\n    transition: background .1s;\n}\n\n.ext-float-btn:hover { background: #e8eaed; }\n\n.ext-float-btn-close:hover { background: #fce8e6; color: #d93025; }\n\n/* 自由拉伸层（由 JS 同步面板 rect 定位） */\n\n.ext-float-resize-layer {\n    position: fixed;\n    inset: auto;\n    pointer-events: none;\n    z-index: 99989;\n    overflow: visible;\n}\n\n.ext-float-resize-handle {\n    position: absolute;\n    pointer-events: auto;\n    z-index: 99990;\n    border-radius: 3px;\n}\n\n.ext-float-resize-handle:hover { background: rgba(26,115,232,.35); }\n\n.ext-fz-n  { top: -4px; left: 8px; right: 8px; height: 8px; cursor: ns-resize; }\n\n.ext-fz-s  { bottom: -4px; left: 8px; right: 8px; height: 8px; cursor: ns-resize; }\n\n.ext-fz-e  { right: -4px; top: 8px; bottom: 8px; width: 8px; cursor: ew-resize; }\n\n.ext-fz-w  { left: -4px; top: 8px; bottom: 8px; width: 8px; cursor: ew-resize; }\n\n.ext-fz-ne { top: -4px; right: -4px; width: 14px; height: 14px; cursor: nesw-resize; }\n\n.ext-fz-nw { top: -4px; left: -4px; width: 14px; height: 14px; cursor: nwse-resize; }\n\n.ext-fz-se { bottom: -4px; right: -4px; width: 14px; height: 14px; cursor: nwse-resize; }\n\n.ext-fz-sw { bottom: -4px; left: -4px; width: 14px; height: 14px; cursor: nesw-resize; }\n\n/* 悬浮框内容区 */\n\n.ext-float-body {\n    flex: 1;\n    display: flex;\n    flex-direction: column;\n    overflow: hidden;\n    min-height: 0;\n}\n\n.ext-float-content {\n    display: flex;\n    flex-direction: column;\n    flex: 1;\n    min-height: 0;\n    overflow-y: auto;\n}\n\n/* 标签页栏 */\n\n.ext-settings-tabs {\n    display: flex;\n    gap: 0;\n    border-bottom: 2px solid #e8e8e8;\n    background: #f4f5f7;\n    padding: 0 16px;\n}\n\n.ext-settings-tab {\n    padding: 10px 20px;\n    border: none;\n    background: transparent;\n    font-size: 14px;\n    font-weight: 500;\n    color: #666;\n    cursor: pointer;\n    position: relative;\n    transition: color .15s, background .15s;\n    border-bottom: 2px solid transparent;\n    margin-bottom: -2px;\n}\n\n.ext-settings-tab:hover {\n    color: #333;\n    background: rgba(0,0,0,.04);\n}\n\n.ext-settings-tab.active {\n    color: #1a73e8;\n    border-bottom-color: #1a73e8;\n    font-weight: 600;\n}\n\n/* 标签页内容区 */\n\n.ext-settings-tab-content {\n    padding: 16px 20px 20px;\n    overflow-y: auto;\n    flex: 1;\n}\n\n.ext-addons-tab-content {\n    max-height: none;\n    overflow-y: auto;\n    flex: 1;\n}\n\n/* 插件市场卡片：来源仓库名 */\n\n.ext-market-card-repo {\n    font-size: 11px;\n    color: #1a73e8;\n    opacity: .8;\n    margin: 2px 0 6px;\n    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;\n    word-break: break-all;\n}\n\n/* ── 积木数量徽章（菜单栏右侧）── */\n\n.ext-block-count-badge {\n    display: flex;\n    align-items: center;\n    gap: 4px;\n    padding: 3px 10px;\n    background: rgba(255, 255, 255, 0.18);\n    border: 1px solid rgba(255, 255, 255, 0.3);\n    border-radius: 12px;\n    color: #fff;\n    font-size: 12px;\n    cursor: pointer;\n    transition: background .15s;\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n    white-space: nowrap;\n}\n\n.ext-block-count-badge:hover {\n    background: rgba(255, 255, 255, 0.3);\n}\n\n.ext-block-count-num {\n    font-weight: 700;\n    font-size: 14px;\n}\n\n.ext-block-count-label {\n    opacity: 0.9;\n}\n\n/* ── 代码区底部状态栏增强 ── */\n\n.ext-stage-footer {\n    display: flex !important;\n    align-items: center;\n    justify-content: space-between;\n    padding: 4px 10px !important;\n    background: rgba(0,0,0,.04);\n    border-top: 1px solid rgba(0,0,0,.08);\n    font-size: 11px;\n    color: #666;\n    gap: 8px;\n}\n\n.ext-stage-footer-left,\n.ext-stage-footer-right {\n    display: flex;\n    align-items: center;\n    gap: 8px;\n}\n\n.ext-stage-footer button {\n    display: flex;\n    align-items: center;\n    gap: 3px;\n    padding: 2px 6px;\n    border: 1px solid rgba(0,0,0,.1);\n    border-radius: 4px;\n    background: transparent;\n    color: #555;\n    font-size: 11px;\n    cursor: pointer;\n    transition: background .12s;\n}\n\n.ext-stage-footer button:hover {\n    background: rgba(0,0,0,.06);\n}\n\n.ext-stat-item {\n    display: flex;\n    align-items: center;\n    gap: 3px;\n    color: #777;\n    font-size: 11px;\n    white-space: nowrap;\n}\n\n.ext-stat-item svg {\n    opacity: .6;\n}\n\n/* ── 项目数据分析面板（悬浮框）── */\n\n.ext-stats-panel {\n    width: 560px !important;\n    height: 480px !important;\n    min-width: 400px !important;\n    min-height: 300px !important;\n    max-height: 80vh;\n}\n\n.ext-stats-panel .ext-float-header {\n    background: #f8f9fa;\n}\n\n.ext-stats-body {\n    padding: 12px 16px !important;\n    overflow-y: auto !important;\n    flex: 1 !important;\n}\n\n.ext-stats-content {\n    padding: 16px !important;\n}\n\n.ext-stats-score-card {\n    display: flex;\n    align-items: center;\n    gap: 16px;\n    padding: 14px 16px;\n    background: linear-gradient(135deg, #e8f0fe 0%, #f0f4ff 100%);\n    border: 1px solid #c5d8f7;\n    border-radius: 10px;\n    margin-bottom: 16px;\n}\n\n.ext-stats-score-num {\n    font-size: 32px;\n    font-weight: 800;\n    color: #1a73e8;\n    line-height: 1;\n}\n\n.ext-stats-score-max {\n    font-size: 14px;\n    font-weight: 400;\n    color: #888;\n}\n\n.ext-score-info {\n    flex: 1;\n}\n\n.ext-score-level {\n    font-size: 15px;\n    font-weight: 600;\n    color: #333;\n    margin-bottom: 2px;\n}\n\n.ext-score-desc {\n    font-size: 12px;\n    color: #666;\n}\n\n.ext-stats-section-title {\n    font-size: 13px;\n    font-weight: 600;\n    color: #444;\n    margin: 14px 0 8px;\n    padding-bottom: 4px;\n    border-bottom: 1px solid #eee;\n}\n\n.ext-stats-grid {\n    display: grid;\n    grid-template-columns: repeat(4, 1fr);\n    gap: 8px;\n}\n\n.ext-stat-card {\n    background: #f8f9fa;\n    border: 1px solid #e9ecef;\n    border-radius: 8px;\n    padding: 10px 12px;\n    text-align: left;\n}\n\n.ext-stat-card-val {\n    font-size: 22px;\n    font-weight: 700;\n    color: #333;\n    line-height: 1.2;\n}\n\n.ext-stat-card-label {\n    font-size: 11px;\n    color: #777;\n    margin-top: 2px;\n    line-height: 1.3;\n}\n\n.ext-stat-card-label small {\n    color: #aaa;\n    font-size: 10px;\n}\n\n.ext-stats-row {\n    display: flex;\n    gap: 16px;\n    margin-top: 8px;\n}\n\n.ext-stats-col {\n    flex: 1;\n    min-width: 0;\n}\n\n.ext-stats-mini-grid {\n    display: grid;\n    grid-template-columns: 1fr 1fr;\n    gap: 6px;\n}\n\n.ext-stat-mini {\n    background: #f8f9fa;\n    border: 1px solid #e9ecef;\n    border-radius: 6px;\n    padding: 8px 10px;\n    font-size: 12px;\n    color: #555;\n}\n\n.ext-stat-mini b {\n    font-size: 16px;\n    color: #333;\n    margin-right: 4px;\n}\n\n.ext-stats-dist {\n    background: #f8f9fa;\n    border: 1px solid #e9ecef;\n    border-radius: 8px;\n    padding: 10px 12px;\n    min-height: 100px;\n}\n\n.ext-stats-empty {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    height: 100%;\n    min-height: 80px;\n    color: #aaa;\n    font-size: 13px;\n}\n\n.ext-stats-bars {\n    display: flex;\n    flex-direction: column;\n    gap: 6px;\n}\n\n.ext-stats-bar-row {\n    display: flex;\n    align-items: center;\n    gap: 8px;\n    font-size: 12px;\n    color: #555;\n}\n\n.ext-stats-bar-label {\n    width: 28px;\n    flex-shrink: 0;\n    font-weight: 500;\n}\n\n.ext-stats-bar-track {\n    flex: 1;\n    height: 16px;\n    background: #eee;\n    border-radius: 4px;\n    overflow: hidden;\n}\n\n.ext-stats-bar-fill {\n    height: 100%;\n    border-radius: 4px;\n    transition: width .3s ease;\n    min-width: 2px;\n}\n\n.ext-stats-tips {\n    background: #fffbe6;\n    border: 1px solid #f5e6a3;\n    border-radius: 6px;\n    padding: 10px 14px;\n    font-size: 12px;\n    color: #856404;\n}\n\n.ext-stat-tip {\n    line-height: 1.5;\n}\n\n/* ── 变量弹窗（TurboWarp 风格：新建 / 重命名 / 删除变量）────── */\n\n.ext-var-modal {\n    /* 关键：.ext-builder-modal-backdrop 是 pointer-events:none（为了让背后\n       Blockly 工作区始终可交互），子元素必须显式恢复 auto，否则悬浮窗内所有\n       按钮/下拉都点不动（只有 autoFocus 的输入框能用键盘输入）。 */\n    pointer-events: auto;\n    /* 悬浮框：fixed 定位，默认在视口上部水平居中；拖动时由内联 left/top 覆盖 */\n    position: fixed;\n    top: 110px;\n    left: calc(50% - 190px);\n    width: 380px;\n    max-width: calc(100vw - 40px);\n    background: #fff;\n    border-radius: 10px;\n    overflow: hidden;\n    box-shadow: 0 12px 40px rgba(0, 0, 0, .32);\n}\n\n.ext-var-modal-header {\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    padding: 12px 16px;\n    background: #FF8C1A;\n    color: #fff;\n    cursor: move;              /* 悬浮框：头部可拖动 */\n    -webkit-user-select: none;\n       -moz-user-select: none;\n        -ms-user-select: none;\n            user-select: none;\n}\n\n.ext-var-modal-title {\n    font-size: 15px;\n    font-weight: 700;\n}\n\n.ext-var-modal-close {\n    border: none;\n    background: transparent;\n    color: #fff;\n    font-size: 20px;\n    line-height: 1;\n    cursor: pointer;\n    padding: 0 2px;\n    opacity: .9;\n}\n\n.ext-var-modal-close:hover { opacity: 1; }\n\n.ext-var-modal-body {\n    padding: 18px 18px 8px;\n}\n\n.ext-var-modal-label {\n    display: block;\n    font-size: 13px;\n    color: #333;\n    margin-bottom: 6px;\n}\n\n.ext-var-modal-input {\n    width: 100%;\n    box-sizing: border-box;\n    padding: 9px 10px;\n    font-size: 14px;\n    border: 1px solid #b9c2cc;\n    border-radius: 6px;\n    outline: none;\n    color: #222;\n}\n\n.ext-var-modal-input:focus {\n    border-color: #FF8C1A;\n    box-shadow: 0 0 0 2px rgba(255, 140, 26, .2);\n}\n\n.ext-var-modal-select {\n    width: 100%;\n    box-sizing: border-box;\n    padding: 8px 10px;\n    font-size: 14px;\n    border: 1px solid #b9c2cc;\n    border-radius: 6px;\n    background: #fff;\n    color: #222;\n    outline: none;\n    cursor: pointer;\n}\n\n.ext-var-modal-select:focus {\n    border-color: #FF8C1A;\n    box-shadow: 0 0 0 2px rgba(255, 140, 26, .2);\n}\n\n.ext-var-modal-empty {\n    font-size: 13px;\n    color: #888;\n    padding: 6px 0 12px;\n}\n\n.ext-var-delete-list {\n    list-style: none;\n    margin: 0;\n    padding: 0;\n    max-height: 240px;\n    overflow-y: auto;\n}\n\n.ext-var-delete-item {\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    padding: 8px 4px;\n    border-bottom: 1px solid #eee;\n    font-size: 14px;\n    color: #222;\n}\n\n.ext-var-delete-btn {\n    border: 1px solid #e5533d;\n    color: #e5533d;\n    background: #fff;\n    border-radius: 6px;\n    padding: 4px 12px;\n    font-size: 12px;\n    cursor: pointer;\n}\n\n.ext-var-delete-btn:hover {\n    background: #e5533d;\n    color: #fff;\n}\n\n.ext-var-delete-actions {\n    display: inline-flex;\n    align-items: center;\n    gap: 6px;\n    flex: 0 0 auto;\n}\n\n.ext-var-edit-btn {\n    border: 1px solid #FF8C1A;\n    color: #FF8C1A;\n    background: #fff;\n    border-radius: 6px;\n    padding: 4px 12px;\n    font-size: 12px;\n    cursor: pointer;\n}\n\n.ext-var-edit-btn:hover {\n    background: #FF8C1A;\n    color: #fff;\n}\n\n.ext-var-modal-footer {\n    display: flex;\n    justify-content: flex-end;\n    gap: 10px;\n    padding: 12px 18px 16px;\n}\n\n.ext-var-modal-btn {\n    min-width: 76px;\n    padding: 8px 16px;\n    font-size: 13px;\n    border-radius: 6px;\n    border: 1px solid #c3ccd6;\n    background: #fff;\n    color: #333;\n    cursor: pointer;\n}\n\n.ext-var-modal-btn:hover { background: #f3f5f7; }\n\n.ext-var-modal-btn.primary {\n    background: #FF8C1A;\n    border-color: #FF8C1A;\n    color: #fff;\n    font-weight: 600;\n}\n\n.ext-var-modal-btn.primary:hover { background: #f07d0a; }\n\n", ""]);
 
 // exports
 
@@ -34392,6 +34392,104 @@ const BLOCK_COLOURS = ['#FF6680',
 '#A66F48' // 棕
 ];
 
+// 本地自动持久化：把「制作积木」里编辑的积木元数据 + 工作区实现 XML
+// 存到 localStorage，避免刷新 / 关闭页面后数据变回默认。
+const PROJECT_STORAGE_KEY = 'extbuilder_project_v1';
+function loadProjectFromStorage() {
+  try {
+    const raw = localStorage.getItem(PROJECT_STORAGE_KEY);
+    if (!raw) return null;
+    const p = JSON.parse(raw);
+    if (p && Array.isArray(p.blocks) && p.blocks.length) {
+      return {
+        blocks: p.blocks,
+        xml: p.xml && typeof p.xml === 'object' ? p.xml : {},
+        current: typeof p.current === 'string' ? p.current : null,
+        defineOrder: Array.isArray(p.defineOrder) ? p.defineOrder : null,
+        variables: Array.isArray(p.variables) ? p.variables : []
+      };
+    }
+  } catch (e) {/* 解析失败则用默认积木 */}
+  return null;
+}
+
+// ── 变量（TurboWarp 风格）────────────────────────────────────
+// 变量列表是「工程级」数据（[{id, name, scope}]），独立于工作区里是否
+// 存在 var 积木。变量声明（`let x = 0;`）在 wrapAsExtension 里被注入到
+// 扩展 IIFE 的作用域中（class 之前）——不能放进 class body，因为
+// class body 不允许 `let` 语句（那是语法错误）。
+let CURRENT_VARIABLES = [];
+
+// 工具箱按钮回调的「全局回退表」：scratch-blocks 的 FlyoutButton 在构造时
+// 就绑定回调，而构造发生在 inject（早于 registerButtonCallback），故此表
+// 配合 WorkspaceSvg.getButtonCallback 的原型补丁，让 inject 期间也能取到回调。
+const EXT_BUTTON_CALLBACKS = {};
+
+// 变量「元素类型」→ 初始值（参考 CB-ExtGallery 的变量创建）
+function varDefaultValue(type) {
+  switch (String(type || '').toUpperCase()) {
+    case 'STRING':
+      return '""';
+    case 'NUMBER':
+      return '0';
+    case 'BOOLEAN':
+      return 'false';
+    case 'LIST':
+      return '[]';
+    case 'VECTOR':
+      return '{ x: 0, y: 0 }';
+    case 'EMPTY':
+    default:
+      return 'null';
+  }
+}
+
+// 生成变量声明代码块（供 wrapAsExtension 注入到 IIFE 作用域，缩进 4 空格）
+function buildVariableDeclarations(variables) {
+  const vars = Array.isArray(variables) ? variables : [];
+  if (!vars.length) return '';
+  const decls = vars.map(v => '    let ' + v.id + ' = ' + varDefaultValue(v.type) + ';').join('\n');
+  return '    // === 变量声明 (自动生成) ===\n' + decls + '\n    // === 变量声明结束 ===\n\n';
+}
+
+// 生成代码 = 工作区代码（变量声明由 wrapAsExtension 单独注入，避免出现在 class body）
+function computeGeneratedCode(ws) {
+  if (!ws) return '';
+  try {
+    return _lib_block_definitions_js__WEBPACK_IMPORTED_MODULE_2__["javascriptGenerator"].workspaceToCode(ws);
+  } catch (e) {
+    return '';
+  }
+}
+
+// 把变量名转成合法且唯一的 JS 标识符（用于生成代码 / 下拉选项的值）。
+// 变量显示名仍是用户输入的名字，下拉里显示 name、值是 id。
+function sanitizeVarId(name, existing) {
+  let base = String(name == null ? '' : name).trim().replace(/[^0-9A-Za-z_$]+/g, '_').replace(/^_+|_+$/g, '');
+  if (!base || !/^[A-Za-z_$]/.test(base)) base = 'v_' + base;
+  if (!base || base === 'v_') base = 'v';
+  const list = Array.isArray(existing) ? existing : [];
+  let id = base;
+  let i = 2;
+  while (list.some(v => v && v.id === id)) {
+    id = base + '_' + i;
+    i++;
+  }
+  return id;
+}
+
+// 把变量列表同步给 block-definitions 的下拉选项提供器
+function setCurrentVariables(vars) {
+  CURRENT_VARIABLES = Array.isArray(vars) ? vars : [];
+  try {
+    Object(_lib_block_definitions_js__WEBPACK_IMPORTED_MODULE_2__["setVariableOptionsProvider"])(function () {
+      return CURRENT_VARIABLES.length ? CURRENT_VARIABLES.map(function (v) {
+        return [v.name, v.id];
+      }) : [['我的变量', 'var_1']];
+    });
+  } catch (e) {/* ignore */}
+}
+
 /**
  * For each (block, input_name) we map to the standard block type whose
  * shadow child will be attached as the placeholder. Numbers use
@@ -34608,16 +34706,16 @@ const PLACEHOLDER_SHADOWS = {
   },
   var_set: {
     VALUE: {
-      type: 'text',
-      field: 'TEXT',
-      value: ''
+      type: 'math_number',
+      field: 'NUM',
+      value: 0
     }
   },
   var_change: {
     DELTA: {
       type: 'math_number',
       field: 'NUM',
-      value: 0
+      value: 1
     }
   },
   list_getItem: {
@@ -34662,13 +34760,6 @@ const PLACEHOLDER_SHADOWS = {
       value: 0
     },
     ITEM: {
-      type: 'text',
-      field: 'TEXT',
-      value: ''
-    }
-  },
-  func_return: {
-    VALUE: {
       type: 'text',
       field: 'TEXT',
       value: ''
@@ -34936,6 +35027,8 @@ const ExtensionBuilderInner = () => {
   const [loaded, setLoaded] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(false);
   const [loadError, setLoadError] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(null);
   const [activeTab, setActiveTab] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])('editor');
+  // 调试器标签页：与 CB-ExtGallery 调试页同款功能（预览环境地址 + 复制扩展地址 + 实时 Data URL）
+  const [debuggerUrl, setDebuggerUrl] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])('https://remixwarp.pages.dev/');
   const [showBlockBuilder, setShowBlockBuilder] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(false);
   const [builderModalPos, setBuilderModalPos] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(null); // {x, y}
   const builderModalRef = Object(react__WEBPACK_IMPORTED_MODULE_0__["useRef"])(null);
@@ -34943,6 +35036,7 @@ const ExtensionBuilderInner = () => {
   const [builderMinimized, setBuilderMinimized] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(false);
   const [builderMaximized, setBuilderMaximized] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(false);
   const [builderSize, setBuilderSize] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(null); // {width, height}
+  const builderSavedBounds = Object(react__WEBPACK_IMPORTED_MODULE_0__["useRef"])(null); // 保存最大化前的位置/尺寸，用于还原
   const BUILDER_RESIZE_DIRS = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
   const builderDragRef = Object(react__WEBPACK_IMPORTED_MODULE_0__["useRef"])(null); // {startX, startY, origX, origY}
   // Blockly workspace XML is stored in a ref instead of React state so
@@ -34990,13 +35084,87 @@ const ExtensionBuilderInner = () => {
     document.removeEventListener('mouseup', handleBuilderDragEnd);
   }, [handleBuilderDragMove]);
 
-  // Minimize / maximize the builder window (matches realtime-collab behaviour).
+  // 变量弹窗改成「悬浮框」：可拖动（与制作积木窗口一致的交互）
+  const [varModalPos, setVarModalPos] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(null); // {x, y}
+  const varModalRef = Object(react__WEBPACK_IMPORTED_MODULE_0__["useRef"])(null);
+  const varDragRef = Object(react__WEBPACK_IMPORTED_MODULE_0__["useRef"])(null); // {startX, startY, origX, origY}
+  const handleVarDragStart = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])(e => {
+    if (e.button !== 0 || !varModalRef.current) return;
+    const rect = varModalRef.current.getBoundingClientRect();
+    varDragRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      origX: rect.left,
+      origY: rect.top
+    };
+    document.addEventListener('mousemove', handleVarDragMove);
+    document.addEventListener('mouseup', handleVarDragEnd);
+    e.preventDefault();
+  }, []);
+  const handleVarDragMove = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])(e => {
+    if (!varDragRef.current) return;
+    const dx = e.clientX - varDragRef.current.startX;
+    const dy = e.clientY - varDragRef.current.startY;
+    setVarModalPos({
+      x: varDragRef.current.origX + dx,
+      y: varDragRef.current.origY + dy
+    });
+  }, []);
+  const handleVarDragEnd = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])(() => {
+    varDragRef.current = null;
+    document.removeEventListener('mousemove', handleVarDragMove);
+    document.removeEventListener('mouseup', handleVarDragEnd);
+  }, [handleVarDragMove]);
+
+  // Minimize / maximize the builder window (fill-viewport, matches settings/rtc/bilup behaviour).
   const handleBuilderMinimize = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])(() => {
     setBuilderMinimized(prev => !prev);
   }, []);
   const handleBuilderMaximize = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])(() => {
-    setBuilderMaximized(prev => !prev);
-  }, []);
+    const panel = builderModalRef.current;
+    if (!panel) return;
+    if (!builderMaximized) {
+      // 保存当前位置/尺寸
+      const rect = panel.getBoundingClientRect();
+      builderSavedBounds.current = {
+        left: rect.left,
+        top: rect.top,
+        width: rect.width,
+        height: rect.height
+      };
+      // 撑满视口（和 Bilup 一致：0 边距）
+      panel.style.top = '0';
+      panel.style.left = '0';
+      panel.style.right = '0';
+      panel.style.bottom = '0';
+      panel.style.width = '100vw';
+      panel.style.height = '100vh';
+      panel.style.maxWidth = 'none';
+      panel.style.maxHeight = 'none';
+      panel.style.minWidth = '0';
+      panel.style.minHeight = '0';
+      panel.style.transform = 'none';
+      panel.style.borderRadius = '0';
+      setBuilderMaximized(true);
+    } else {
+      // 还原
+      if (builderSavedBounds.current) {
+        panel.style.top = builderSavedBounds.current.top + 'px';
+        panel.style.left = builderSavedBounds.current.left + 'px';
+        panel.style.right = 'auto';
+        panel.style.bottom = 'auto';
+        panel.style.width = builderSavedBounds.current.width + 'px';
+        panel.style.height = builderSavedBounds.current.height + 'px';
+        panel.style.transform = 'none';
+        panel.style.borderRadius = '';
+        panel.style.maxWidth = '';
+        panel.style.maxHeight = '';
+        panel.style.minWidth = '';
+        panel.style.minHeight = '';
+      }
+      setBuilderMaximized(false);
+    }
+  }, [builderMaximized]);
 
   // 8-direction resize, driven by the edge/corner handles.
   const handleBuilderResizeMove = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])(e => {
@@ -35146,6 +35314,7 @@ const ExtensionBuilderInner = () => {
   // 用户下拉菜单
   const [showUserMenu, setShowUserMenu] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(false);
   const [showToolsMenu, setShowToolsMenu] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(false);
+  const [showFileMenu, setShowFileMenu] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(false);
   const [showStatsPanel, setShowStatsPanel] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(false);
   const statsPanelRef = Object(react__WEBPACK_IMPORTED_MODULE_0__["useRef"])(null);
   const statsResizeLayerRef = Object(react__WEBPACK_IMPORTED_MODULE_0__["useRef"])(null);
@@ -35178,53 +35347,199 @@ const ExtensionBuilderInner = () => {
   const [friendsMsg, setFriendsMsg] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])('');
 
   // Block management state (like Scratch's sprite list)
-  const [customBlocks, setCustomBlocks] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])([{
-    id: 'block_1',
-    name: '我的第一个积木',
-    xml: null,
-    blockType: 'command',
-    isTerminal: false,
-    isAsync: false,
-    attachAllThreads: false,
-    filterSprite: true,
-    filterStage: true,
-    icon: '',
-    colour: ''
-  }, {
-    id: 'block_2',
-    name: '我的第二个积木',
-    xml: null,
-    blockType: 'command',
-    isTerminal: false,
-    isAsync: false,
-    attachAllThreads: false,
-    filterSprite: true,
-    filterStage: true,
-    icon: '',
-    colour: ''
-  }, {
-    id: 'block_3',
-    name: '我的第三个积木',
-    xml: null,
-    blockType: 'command',
-    isTerminal: false,
-    isAsync: false,
-    attachAllThreads: false,
-    filterSprite: true,
-    filterStage: true,
-    icon: '',
-    colour: ''
-  }]);
+  // 启动时从 localStorage 恢复上次自动保存的项目（仅读取一次）
+  const initialProjectRef = Object(react__WEBPACK_IMPORTED_MODULE_0__["useRef"])(undefined);
+  if (initialProjectRef.current === undefined) initialProjectRef.current = loadProjectFromStorage();
+  const restoredProject = initialProjectRef.current;
+  const [customBlocks, setCustomBlocks] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(restoredProject ? restoredProject.blocks : []);
+  // 最新 customBlocks 引用：供 change listener 等闭包读取，避免拿到过期值
+  const customBlocksRef = Object(react__WEBPACK_IMPORTED_MODULE_0__["useRef"])(customBlocks);
+  Object(react__WEBPACK_IMPORTED_MODULE_0__["useEffect"])(() => {
+    customBlocksRef.current = customBlocks;
+  }, [customBlocks]);
+
+  // ── 变量（TurboWarp 风格）：工程级变量列表 [{id, name, scope}] ──
+  // 变量独立于工作区积木存在；通过「建立一个变量」弹窗创建，var_get /
+  // var_set / var_change 的下拉从该列表动态生成，声明注入到生成代码。
+  const [variables, setVariables] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(restoredProject && Array.isArray(restoredProject.variables) ? restoredProject.variables : []);
+  const variablesRef = Object(react__WEBPACK_IMPORTED_MODULE_0__["useRef"])(variables);
+  Object(react__WEBPACK_IMPORTED_MODULE_0__["useEffect"])(() => {
+    variablesRef.current = variables;
+  }, [variables]);
+  // 变量弹窗状态：null（关闭）| { mode: 'create'|'edit'|'delete', variable }
+  const [varModal, setVarModal] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(null);
+  const [varNameInput, setVarNameInput] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])('');
+  // 变量「元素类型」：参考 CB-ExtGallery 的变量创建
+  // EMPTY=空变量 / STRING / NUMBER / BOOLEAN / LIST / VECTOR
+  const [varType, setVarType] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])('EMPTY');
+  // 变量弹窗：Escape 关闭（必须放在 varModal 声明之后，否则会 TDZ 报错）
+  Object(react__WEBPACK_IMPORTED_MODULE_0__["useEffect"])(() => {
+    if (!varModal) return;
+    const onKey = e => {
+      if (e.key === 'Escape') setVarModal(null);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [varModal]);
+  // 最新变量列表同步给下拉提供器 + 修正画布上失效的变量引用 + 重算代码
+  Object(react__WEBPACK_IMPORTED_MODULE_0__["useEffect"])(() => {
+    setCurrentVariables(variables);
+    try {
+      const ws = workspaceRef.current;
+      if (ws && ws.getAllBlocks) {
+        const ids = variables.map(v => v.id);
+        ws.getAllBlocks().forEach(function (b) {
+          if (!b || b.type !== 'var_get' && b.type !== 'var_set' && b.type !== 'var_change') return;
+          const f = b.getField && b.getField('NAME');
+          if (!f || typeof f.setValue !== 'function') return;
+          let cur = null;
+          try {
+            cur = f.getValue();
+          } catch (e) {/* ignore */}
+          // 只在「还有变量」时才把失效引用改指向第一个变量；
+          // 一个变量都没有时不要塞入幽灵 `var_1`（会导致未声明变量）
+          if (ids.length && ids.indexOf(cur) === -1) {
+            try {
+              f.setValue(ids[0]);
+            } catch (e) {/* ignore */}
+          }
+        });
+      }
+      if (ws && workspaceLoaded) setGeneratedCode(computeGeneratedCode(ws));
+    } catch (e) {/* ignore */}
+  }, [variables, workspaceLoaded]);
+
+  // 打开变量弹窗（供 setVarModal 调用方复用：重置输入 + 回到默认悬浮位置）
+  const openCreateVariableModal = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])(() => {
+    setVarNameInput('');
+    setVarType('EMPTY');
+    setVarModalPos(null);
+    setVarModal({
+      mode: 'create',
+      variable: null
+    });
+  }, []);
+
+  // 「新建变量」确认：校验重名 → 派生合法 JS 标识符 id → 加入列表
+  const confirmCreateVariable = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])(() => {
+    const name = String(varNameInput || '').trim();
+    if (!name) {
+      alert('请输入变量名');
+      return;
+    }
+    if (variables.some(v => v.name === name)) {
+      alert('已存在同名变量：' + name);
+      return;
+    }
+    const id = sanitizeVarId(name, variables);
+    setVariables(variables.concat([{
+      id,
+      name,
+      scope: 'global',
+      type: varType
+    }]));
+    setVarModal(null);
+  }, [varNameInput, variables, varType]);
+
+  // 「重命名变量」确认：只改显示名，id 保持不变（避免断掉已有引用）
+  const confirmEditVariable = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])(() => {
+    const target = varModal && varModal.variable;
+    if (!target) return;
+    const name = String(varNameInput || '').trim();
+    if (!name) {
+      alert('请输入变量名');
+      return;
+    }
+    if (variables.some(v => v.id !== target.id && v.name === name)) {
+      alert('已存在同名变量：' + name);
+      return;
+    }
+    setVariables(variables.map(v => v.id === target.id ? Object.assign({}, v, {
+      name,
+      type: varType
+    }) : v));
+    setVarModal(null);
+  }, [varModal, varNameInput, variables, varType]);
+
+  // 打开「重命名变量」：预填当前名字与元素类型（id 不变，引用不断）
+  const openEditVariableModal = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])(v => {
+    if (!v) return;
+    setVarNameInput(v.name || '');
+    setVarType(v.type || 'EMPTY');
+    setVarModal({
+      mode: 'edit',
+      variable: v
+    });
+  }, []);
+
+  // 删除变量：移除后把画布上仍引用它的变量积木改指向第一个剩余变量
+  const deleteVariable = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])(vid => {
+    const next = variables.filter(v => v.id !== vid);
+    setVariables(next);
+    try {
+      const ws = workspaceRef.current;
+      const fallback = next.length ? next[0].id : 'var_1';
+      if (ws && ws.getAllBlocks) {
+        ws.getAllBlocks().forEach(function (b) {
+          if (!b || b.type !== 'var_get' && b.type !== 'var_set' && b.type !== 'var_change') return;
+          const f = b.getField && b.getField('NAME');
+          if (f && typeof f.getValue === 'function' && f.getValue() === vid) {
+            try {
+              f.setValue(fallback);
+            } catch (e) {/* ignore */}
+          }
+        });
+      }
+    } catch (e) {/* ignore */}
+  }, [variables]);
+
+  // 把积木元数据 + 工作区实现 XML + 当前选中积木 写入 localStorage（防刷新/关闭页面后丢失）
+  const saveProjectToStorage = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])(() => {
+    try {
+      const xmlObj = {};
+      (customBlockXmlRef.current || new Map()).forEach((v, k) => {
+        xmlObj[k] = v;
+      });
+      // 记录定义块（block_define）的排列顺序：它们的 data-block-id 是 SVG 属性、
+      // 名字是 field_label，都不会被 XML 序列化；恢复时只能靠"顺序"对应回积木列表。
+      // 位置(x/y)会被 XML 保存，恢复后 getTopBlocks(true) 的顺序与保存时一致，故可靠。
+      const defineOrder = [];
+      try {
+        const ws = workspaceRef.current;
+        if (ws && ws.getTopBlocks) {
+          ws.getTopBlocks(true).forEach(function (t) {
+            if (t.type !== 'block_define') return;
+            const svg = t.getSvgRoot && t.getSvgRoot();
+            const id = svg && svg.getAttribute && svg.getAttribute('data-block-id');
+            if (id) defineOrder.push(id);
+          });
+        }
+      } catch (e) {/* ignore */}
+      const data = {
+        blocks: customBlocksRef.current,
+        xml: xmlObj,
+        current: currentBlockRef.current,
+        addFieldKind: addFieldKindRef.current,
+        defineOrder: defineOrder,
+        variables: variablesRef.current || []
+      };
+      localStorage.setItem(PROJECT_STORAGE_KEY, JSON.stringify(data));
+    } catch (e) {/* 隐私模式 / 配额超限时静默忽略 */}
+  }, []);
+  // 变量增删改后立即持久化（增删变量不触发工作区变更，需单独保存）
+  Object(react__WEBPACK_IMPORTED_MODULE_0__["useEffect"])(() => {
+    saveProjectToStorage();
+  }, [variables, saveProjectToStorage]);
   // 派生：代码面板显示的内容 = 与导出 .js 文件完全一致（wrapAsExtension 输出）。
   // 放这里是为了确保 generatedCode / extInfo / customBlocks 都已声明（避免 TDZ）。
   const exportableCode = react__WEBPACK_IMPORTED_MODULE_0___default.a.useMemo(() => {
     if (!generatedCode && !(customBlocks && customBlocks.length)) return '';
     try {
-      return wrapAsExtension(extInfo, generatedCode, customBlocks);
+      return wrapAsExtension(extInfo, generatedCode, customBlocks, variables);
     } catch (e) {
       return '// 包装失败：' + (e && e.message ? e.message : String(e)) + '\n\n/* 原始生成代码 */\n' + generatedCode;
     }
-  }, [extInfo, generatedCode, customBlocks]);
+  }, [extInfo, generatedCode, customBlocks, variables]);
 
   // ── 项目统计数据（积木数、代码大小、复杂度等）──
   const projectStats = Object(react__WEBPACK_IMPORTED_MODULE_0__["useMemo"])(() => {
@@ -35270,7 +35585,7 @@ const ExtensionBuilderInner = () => {
     const hatCount = workspaceBlockCount > 0 ? wsHat : (customBlocks || []).filter(b => b.blockType === 'hat').length;
     const cmdCount = workspaceBlockCount > 0 ? wsCmd : (customBlocks || []).filter(b => b.blockType === 'command' || !b.blockType).length;
     const reporterCount = workspaceBlockCount > 0 ? wsReporter : (customBlocks || []).filter(b => b.blockType === 'reporter').length;
-    const boolCount = workspaceBlockCount > 0 ? wsBool : (customBlocks || []).filter(b => b.blockType === 'boolean').length;
+    const boolCount = workspaceBlockCount > 0 ? wsBool : (customBlocks || []).filter(b => b.blockType === 'Boolean').length;
 
     // 复杂度评分（极高考门槛：至少约3000块积木才能取得高分）
     // 积木分（上限70分）：每块0.024分，需约2900块才满
@@ -35295,9 +35610,33 @@ const ExtensionBuilderInner = () => {
     };
   }, [customBlocks, generatedCode, exportableCode, workspaceLoaded, statsTick]);
   const [copyMsg, setCopyMsg] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])('');
+  // 「添加字段」类型选择器的值（受控 + 持久化，避免关闭制作积木后重置回「字符串」）
+  const [addFieldKind, setAddFieldKind] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(() => {
+    try {
+      var raw = localStorage.getItem(PROJECT_STORAGE_KEY);
+      if (raw) {
+        var p = JSON.parse(raw);
+        if (p && typeof p.addFieldKind === 'string' && ['label', 'text', 'number', 'dropdown', 'boolean'].indexOf(p.addFieldKind) >= 0) {
+          return p.addFieldKind;
+        }
+      }
+    } catch (e) {/* 回退 text */}
+    return 'text';
+  });
+  const addFieldKindRef = Object(react__WEBPACK_IMPORTED_MODULE_0__["useRef"])(addFieldKind);
+  Object(react__WEBPACK_IMPORTED_MODULE_0__["useEffect"])(() => {
+    addFieldKindRef.current = addFieldKind;
+    // 类型选择变化后立即持久化（关闭窗口/刷新都不丢）
+    try {
+      var raw = localStorage.getItem(PROJECT_STORAGE_KEY);
+      var p = raw ? JSON.parse(raw) : {};
+      p.addFieldKind = addFieldKind;
+      localStorage.setItem(PROJECT_STORAGE_KEY, JSON.stringify(p));
+    } catch (e) {/* 静默 */}
+  }, [addFieldKind]);
   const copyMsgTimerRef = Object(react__WEBPACK_IMPORTED_MODULE_0__["useRef"])(null);
-  const [currentBlockId, setCurrentBlockId] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])('block_1');
-  const currentBlockRef = Object(react__WEBPACK_IMPORTED_MODULE_0__["useRef"])('block_1');
+  const [currentBlockId, setCurrentBlockId] = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])('');
+  const currentBlockRef = Object(react__WEBPACK_IMPORTED_MODULE_0__["useRef"])('');
   // Keep a ref to quickly save current workspace without re-render
   const saveWorkspaceRef = Object(react__WEBPACK_IMPORTED_MODULE_0__["useRef"])(() => {});
 
@@ -35436,7 +35775,7 @@ const ExtensionBuilderInner = () => {
             // (boolean/return blocks), wrap the VALUE field text
             // with a white background rect that mirrors the
             // runtime preview in TurboWarp.
-            const previewTypes = ['logic_boolean', 'control_return', 'control_inlineReturn', 'func_return'];
+            const previewTypes = ['logic_boolean', 'control_return', 'control_inlineReturn'];
             if (previewTypes.indexOf(type) >= 0) {
               const valueField = this.getField('VALUE');
               if (valueField) {
@@ -35505,22 +35844,12 @@ const ExtensionBuilderInner = () => {
       // The "id" attribute is critical: scratch-blocks uses it for the
       // category menu dots (scratchCategoryId-{id}), so clicking a dot
       // scrolls the flyout to the correct category section.
-      const categoryIds = ['events', 'control', 'math', 'strings', 'vectors', 'input', 'variables', 'lists', 'functions', 'blocks', 'runtime', 'targets', 'browser', 'music', 'script', 'extra'];
-      const toolboxXml = '<xml xmlns="https://developers.google.com/blockly/xml">' + _lib_block_definitions_js__WEBPACK_IMPORTED_MODULE_2__["TOOLBOX_CONFIG"].contents.map((cat, idx) => {
-        const childXml = cat.contents.map(b => {
-          const shadows = PLACEHOLDER_SHADOWS[b.type];
-          if (!shadows) return "<block type=\"".concat(b.type, "\"/>");
-          const valueXml = Object.keys(shadows).map(name => {
-            const s = shadows[name];
-            return "<value name=\"".concat(name, "\"><shadow type=\"").concat(s.type, "\"><field name=\"").concat(s.field, "\">").concat(s.value, "</field></shadow></value>");
-          }).join('');
-          return "<block type=\"".concat(b.type, "\">").concat(valueXml, "</block>");
-        }).join('');
-        const safeName = String(cat.name).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        const safeColour = String(cat.colour || '#FF6680').replace(/[^#0-9a-fA-F]/g, '');
-        const catId = categoryIds[idx] || 'cat' + idx;
-        return "<category name=\"".concat(safeName, "\" id=\"").concat(catId, "\" colour=\"").concat(safeColour, "\" secondaryColour=\"").concat(safeColour, "\">").concat(childXml, "</category>");
-      }).join('') + '</xml>';
+      // 注册"调用自定义积木"（函数分类）——必须在 inject 之前，
+      // 否则工具箱里的 customcall_* 类型找不到定义。
+      registerCustomCallBlocks(Blockly, customBlocks, extInfo.color1);
+      // 变量分类内容由 variables 动态生成（TurboWarp 风格）
+      setCurrentVariables(variablesRef.current || []);
+      const toolboxXml = buildToolboxXml(customBlocks, extInfo.color1, variablesRef.current || []);
       console.log('[ExtBuilder] Toolbox XML length:', toolboxXml.length);
 
       // Apply Chinese translations BEFORE inject so Blockly renders blocks
@@ -35531,6 +35860,37 @@ const ExtensionBuilderInner = () => {
       // Inject workspace with our custom toolbox. scratch-blocks' default
       // toolbox has 10 categories — we replace it with a SINGLE 自制积木
       // category matching CB-ExtGallary layout.
+      // 变量分类按钮的回调必须在 inject 之前就能取到：scratch-blocks 的
+      // FlyoutButton 在构造时【急切】绑定 callback_ = getButtonCallback(key)，
+      // 而按钮是 inject 解析工具箱时构造的（早于 workspace.registerButtonCallback）。
+      // 这里在 inject 前给 WorkspaceSvg.getButtonCallback 打一个「全局回退」
+      // 补丁，让 inject 期间也能取到回调，避免按钮变成死按钮。
+      try {
+        const proto = Blockly.WorkspaceSvg && Blockly.WorkspaceSvg.prototype;
+        if (proto && proto.getButtonCallback && !proto.__extButtonFallbackPatched) {
+          const origGet = proto.getButtonCallback;
+          proto.getButtonCallback = function (key) {
+            let r = null;
+            try {
+              r = origGet.call(this, key);
+            } catch (e) {
+              r = null;
+            }
+            if (r) return r;
+            return EXT_BUTTON_CALLBACKS[key] || null;
+          };
+          proto.__extButtonFallbackPatched = true;
+        }
+        EXT_BUTTON_CALLBACKS.MAKE_VARIABLE = function () {
+          openCreateVariableModal();
+        };
+        EXT_BUTTON_CALLBACKS.DELETE_VARIABLE = function () {
+          setVarModal({
+            mode: 'delete',
+            variable: null
+          });
+        };
+      } catch (e) {/* ignore */}
       const workspace = Blockly.inject(blocklyDivRef.current, {
         toolbox: toolboxXml,
         media: '/static/blocks-media/default/',
@@ -35564,6 +35924,23 @@ const ExtensionBuilderInner = () => {
       try {
         if (workspace.setScale) workspace.setScale(0.55);
       } catch (e) {}
+
+      // 变量分类的工具箱按钮：点击「建立一个变量 / 删除一个变量」时
+      // 打开对应的 React 弹窗（setVarModal 是稳定的 setState，可在
+      // 只执行一次的 inject 闭包里安全引用）。
+      try {
+        if (workspace.registerButtonCallback) {
+          workspace.registerButtonCallback('MAKE_VARIABLE', function () {
+            openCreateVariableModal();
+          });
+          workspace.registerButtonCallback('DELETE_VARIABLE', function () {
+            setVarModal({
+              mode: 'delete',
+              variable: null
+            });
+          });
+        }
+      } catch (e) {/* ignore */}
 
       // Hide inline input fields when a reporter block is plugged into the
       // same socket. Blockly's input_value renderer doesn't know that
@@ -35603,61 +35980,62 @@ const ExtensionBuilderInner = () => {
 
       // Resize on next animation frame (DOM has been laid out by then)
       requestAnimationFrame(() => {
-        requestAnimationFrame(forceResize);
-        // Re-apply scale after resize (resizeSvg may reset it)
-        try {
-          if (workspace.setScale) workspace.setScale(0.55);
-        } catch (e) {}
+        requestAnimationFrame(() => {
+          forceResize();
+          // Re-apply scale after resize (resizeSvg may reset it)
+          try {
+            if (workspace.setScale) workspace.setScale(0.55);
+          } catch (e) {}
 
-        // 修复 flyout clip-path 尺寸不匹配问题：
-        // Blockly 默认创建的 clipPath rect (248×438) 比 flyout 实际尺寸 (250×442) 小，
-        // 导致边缘积木被多余裁切。此处同步 clip-path 到 flyout 实际尺寸。
-        try {
+          // 修复 flyout 积木/文字左侧被裁切 + 持续保持左间距：
+          // Blockly 在每次切换分类时会把 .blocklyBlockCanvas 的 transform
+          // 重置为 translate(0, ...) scale(0.55)，导致之前「一次性」施加的
+          // +15px 左移失效，积木与文字再次贴着 flyout 左边界被裁切。
+          // 这里用 MutationObserver 监听 transform 变化，持续把 x 抬回 >=15。
+          const fixFlyoutClip = () => {
+            try {
+              const flyout = document.querySelector('.blocklyFlyout');
+              if (!flyout) return;
+              // 同步 clip-path 到 flyout 实际尺寸（避免边缘积木被多余裁切）
+              const clipRect = document.getElementById('blocklyBlockMenuClipRect');
+              if (clipRect) {
+                const fr = flyout.getBoundingClientRect();
+                clipRect.setAttribute('width', Math.max(1, Math.round(fr.width)));
+                clipRect.setAttribute('height', Math.max(1, Math.round(fr.height)));
+              }
+              const canvas = flyout.querySelector('.blocklyBlockCanvas');
+              if (!canvas) return;
+              const t = canvas.getAttribute('transform') || '';
+              const m = t.match(/translate\(\s*([-\d.]+)\s*,\s*([-\d.]+)\s*\)\s*scale\(\s*([-\d.]+)\s*\)/);
+              if (!m) return;
+              const x = parseFloat(m[1]);
+              // 仅当 Blockly 把 x 重置到 0 附近时才补回左间距；
+              // 已偏移的（x>=14）保持不变，避免观察者回调死循环。
+              if (x < 14) {
+                canvas.setAttribute('transform', 'translate(' + (x + 15) + ',' + m[2] + ') scale(' + m[3] + ')');
+              }
+            } catch (e) {
+              console.warn('[ExtBuilder] flyout clip fix failed:', e);
+            }
+          };
+          fixFlyoutClip();
           const flyout = document.querySelector('.blocklyFlyout');
-          const clipRect = document.getElementById('blocklyBlockMenuClipRect');
-          if (flyout && clipRect) {
-            const fr = flyout.getBoundingClientRect();
-            clipRect.setAttribute('width', Math.max(1, Math.round(fr.width)));
-            clipRect.setAttribute('height', Math.max(1, Math.round(fr.height)));
-          }
-
-          // 修复 flyout 积木左侧被裁切：
-          // Blockly 默认 translateX=0 导致积木左边缘紧贴 flyout 左边界，
-          // 帽子形状弧形和文字开头被截断。右移 15px 给积木留出左侧边距。
-          const canvas = flyout.querySelector('.blocklyBlockCanvas');
-          if (canvas) {
-            const t = canvas.getAttribute('transform') || '';
-            const m = t.match(/translate\(([^,]+),\s*([^)]+)\)/);
-            if (m) {
-              const x = parseFloat(m[1]) + 15;
-              const y = m[2];
-              canvas.setAttribute('transform', 'translate(' + x + ',' + y + ') scale(0.55)');
+          if (flyout) {
+            if (window.__extFlyoutClipMO) {
+              try {
+                window.__extFlyoutClipMO.disconnect();
+              } catch (e) {}
             }
+            const mo = new MutationObserver(fixFlyoutClip);
+            mo.observe(flyout, {
+              subtree: true,
+              attributes: true,
+              attributeFilter: ['transform']
+            });
+            window.__extFlyoutClipMO = mo;
           }
-        } catch (e) {
-          console.warn('[ExtBuilder] flyout fix failed:', e);
-        }
+        });
       });
-      // Also resize on a delayed schedule as a safety net
-      const resizeTimer = setTimeout(() => {
-        forceResize();
-        try {
-          if (workspace.setScale) workspace.setScale(0.55);
-        } catch (e) {}
-        // 延迟修复：flyout 可能在 250ms 后才完全渲染，再次右移积木
-        try {
-          const flyout2 = document.querySelector('.blocklyFlyout');
-          const canvas2 = flyout2 ? flyout2.querySelector('.blocklyBlockCanvas') : null;
-          if (canvas2) {
-            const t2 = canvas2.getAttribute('transform') || '';
-            const m2 = t2.match(/translate\(([^,]+),\s*([^)]+)\)/);
-            if (m2) {
-              const x2 = parseFloat(m2[1]) + 15;
-              canvas2.setAttribute('transform', 'translate(' + x2 + ',' + m2[2] + ') scale(0.55)');
-            }
-          }
-        } catch (e2) {}
-      }, 250);
 
       // Translate default Scratch toolbox categories from English to Chinese.
       // scratch-blocks injects its own category menu (scratchCategoryMenu)
@@ -36147,7 +36525,7 @@ const ExtensionBuilderInner = () => {
             if (wsSaveTimer) clearTimeout(wsSaveTimer);
             wsSaveTimer = setTimeout(() => {
               try {
-                const code = _lib_block_definitions_js__WEBPACK_IMPORTED_MODULE_2__["javascriptGenerator"].workspaceToCode(workspace);
+                const code = computeGeneratedCode(workspace);
                 setGeneratedCode(code);
                 setStatsTick(t => t + 1); // 触发 projectStats 重算
               } catch (genErr) {/* silent */}
@@ -36157,16 +36535,38 @@ const ExtensionBuilderInner = () => {
                   // Save XML to a ref (not React state) so drags
                   // don't re-render the builder window.
                   customBlockXmlRef.current.set(currentBlockRef.current, B.Xml.domToText(B.Xml.workspaceToDom(workspace)));
+                  // 同时持久化到 localStorage（防刷新丢失实现积木）
+                  saveProjectToStorage();
                 }
               } catch (saveErr) {/* silent */}
             }, 400);
+          }
+          // 新拖出的自定义调用积木：按当前定义打上签名，
+          // 避免紧随其后的编辑被"首次见到"逻辑误判为已最新而不重建
+          if (event.type === Blockly.Events.BLOCK_CREATE && event.blockId) {
+            try {
+              const nb = workspace.getBlockById(event.blockId);
+              if (nb && nb.type && nb.type.indexOf(CUSTOM_CALL_PREFIX) === 0) {
+                const cb = (customBlocksRef.current || []).find(function (c) {
+                  return customCallType(c.id) === nb.type;
+                });
+                if (cb) {
+                  const built = buildCustomCallDef(cb, extInfo.color1);
+                  nb._extCallSig = JSON.stringify({
+                    m: built.def.message0,
+                    a: built.def.args0,
+                    o: built.def.output || ''
+                  });
+                }
+              }
+            } catch (e) {/* ignore */}
           }
           // Keep the value preview label below return
           // blocks in sync with the actual value.
           if (event.type === Blockly.Events.BLOCK_CHANGE && event.blockId) {
             const changed = workspace.getBlockById(event.blockId);
             if (!changed) return;
-            if (changed.type === 'control_return' || changed.type === 'control_inlineReturn' || changed.type === 'func_return') {
+            if (changed.type === 'control_return' || changed.type === 'control_inlineReturn') {
               const label = changed.getField('VALUE');
               if (label) {
                 const v = _lib_block_definitions_js__WEBPACK_IMPORTED_MODULE_2__["javascriptGenerator"].valueToCode(changed, 'VALUE', 0) || '';
@@ -36195,26 +36595,60 @@ const ExtensionBuilderInner = () => {
       window._extBuilderBlockly = Blockly;
       window._extBuilderGenerator = _lib_block_definitions_js__WEBPACK_IMPORTED_MODULE_2__["javascriptGenerator"];
       window._extBuilderCustomBlocks = customBlocks;
-
-      // Seed the workspace with starter blocks for every existing
-      // customBlock so the canvas is populated immediately. Subsequent
-      // starter blocks are added by handleCreateBlock.
-      customBlocks.forEach(b => {
-        addStarterBlocks(workspace, Blockly, b.name, b.id, b.blockType);
-      });
-      if (customBlocks.length) {
-        const first = findBlockByCustomId(workspace, customBlocks[0].id);
-        if (first && workspace.select) {
-          workspace.select(first);
-        }
-      }
       workspaceRef.current = workspace;
       setWorkspaceLoaded(true);
+      // 恢复上次自动保存的项目（积木元数据 + 工作区实现 XML）。
+      // 放在 workspaceRef 赋值之后，rebuildWorkspaceFromState 才能拿到 workspace。
+      try {
+        if (restoredProject && restoredProject.blocks && restoredProject.blocks.length) {
+          customBlockXmlRef.current = new Map(Object.entries(restoredProject.xml || {}));
+          // 先把当前块设为存档里的 current —— rebuildWorkspaceFromState 会优先
+          // 用它的快照（所有定义块共用工作区，最后一次保存的快照最完整）
+          const savedCurrent = restoredProject.current;
+          if (savedCurrent && restoredProject.blocks.some(b => b.id === savedCurrent)) {
+            currentBlockRef.current = savedCurrent;
+            setCurrentBlockId(savedCurrent);
+          }
+          rebuildWorkspaceFromState(restoredProject.blocks, customBlockXmlRef.current, restoredProject.defineOrder);
+          // 让「制作积木」重新打开时停在原来的积木上
+          if (savedCurrent && restoredProject.blocks.some(b => b.id === savedCurrent)) {
+            const t = findBlockByCustomId(workspace, savedCurrent);
+            if (t && workspace.select) {
+              workspace.select(t);
+              if (workspace.centerOnBlock) workspace.centerOnBlock(t.id);
+            }
+          }
+        } else {
+          // Seed the workspace with starter blocks for every existing
+          // customBlock so the canvas is populated immediately. Subsequent
+          // starter blocks are added by handleCreateBlock.
+          customBlocks.forEach(b => {
+            addStarterBlocks(workspace, Blockly, b.name, b.id, b.blockType);
+          });
+          if (customBlocks.length) {
+            const first = findBlockByCustomId(workspace, customBlocks[0].id);
+            if (first && workspace.select) {
+              workspace.select(first);
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('[ExtBuilder] 恢复项目失败，回退到默认积木:', e);
+        try {
+          workspace.clear();
+        } catch (e2) {/* ignore */}
+        customBlocks.forEach(b => {
+          addStarterBlocks(workspace, Blockly, b.name, b.id, b.blockType);
+        });
+      }
       // 清理主工作区重复块（防御注入瞬间出现的副本，如 target_clone
       // 有时会被复制成 2 个，残留一个孤立椭圆显示在屏幕左上角）
+      // ⚠️ 必须跳过 block_define：它的名字是 field_label（不随 XML 序列化），
+      // 恢复后多块同名，若参与去重会被误删到只剩 1 块。
       try {
         const seen = new Set();
         workspace.getTopBlocks(true).forEach(b => {
+          if (b.type === 'block_define') return; // 定义块按积木列表一一对应，绝不去重
           const key = (b.type || '?') + ':' + (b.getFieldValue && (b.getFieldValue('NAME') || b.getFieldValue('TYPE') || ''));
           if (seen.has(key)) b.dispose(false);else seen.add(key);
         });
@@ -36400,7 +36834,12 @@ const ExtensionBuilderInner = () => {
         }
       } catch (e) {/* drag 监听失败无关紧要 */}
       return () => {
-        clearTimeout(resizeTimer);
+        if (window.__extFlyoutClipMO) {
+          try {
+            window.__extFlyoutClipMO.disconnect();
+          } catch (e) {}
+          window.__extFlyoutClipMO = null;
+        }
       };
     } catch (e) {
       console.error('Failed to initialize Blockly:', e);
@@ -36470,10 +36909,11 @@ const ExtensionBuilderInner = () => {
         def._opcode = (blockId || 'block').replace(/[^a-zA-Z0-9]/g, '_');
         def._type = (blockType || 'command').toUpperCase() === 'BOOLEAN' ? 'BOOLEAN' : (blockType || 'command').toUpperCase() === 'REPORTER' ? 'REPORTER' : (blockType || 'command').toUpperCase() === 'HAT' ? 'HAT' : (blockType || 'command').toUpperCase() === 'CONDITIONAL' ? 'CONDITIONAL' : 'COMMAND';
         def._text = '[' + (blockName || 'block') + ']';
-        // 积木自定义颜色（hex，如 #FF6680）；留空使用默认色
-        if (colour) {
+        // 积木自定义颜色（hex，如 #FF6680）；留空使用扩展主题色（与预览/导出真实积木一致）
+        const effectiveColour = colour || extInfo.color1;
+        if (effectiveColour) {
           try {
-            def.setColour(colour);
+            def.setColour(effectiveColour);
           } catch (e) {/* 忽略非法色 */}
         }
         // 定义扩展的积木块禁止一切删除（拖动/右键/Delete 键），
@@ -36481,6 +36921,11 @@ const ExtensionBuilderInner = () => {
         def.setDeletable(false);
         def.initSvg();
         def.moveBy(startX, startY);
+        // 同步参数到定义块上（像 Scratch 自制积木一样显示参数输入槽）
+        try {
+          const cb = (customBlocksRef.current || []).find(b => b.id === blockId);
+          if (cb) syncDefineBlockParams(def, cb);
+        } catch (e) {/* 忽略 */}
         def.render();
       }
       console.log('[ExtBuilder] Starter block added for "' + blockName + '" (id=' + blockId + '). Block count:', workspace.getAllBlocks(false).length);
@@ -36501,6 +36946,122 @@ const ExtensionBuilderInner = () => {
     }
     return null;
   };
+
+  // 同步自定义积木的参数到「定义」hat 块上，使其像 Scratch 自制积木一样：
+  // 所有参数内联显示在积木名称右侧（同一行），不再单独分列。
+  // 实现方式：用 jsonInit 重建 block_define 的 message0，将参数作为 field_label / input_value 内联。
+  const syncDefineBlockParams = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])((defBlock, cb) => {
+    if (!defBlock || !cb) return;
+    const B = window._extBuilderBlockly || window.Blockly;
+    if (!B) return;
+    const parts = Array.isArray(cb.parts) ? cb.parts : [];
+    // 保存 IMPL 块内容（jsonInit 会重建 inputList）
+    let implBlock = null;
+    try {
+      const implInput = defBlock.getInput('IMPL');
+      if (implInput && implInput.connection) {
+        implBlock = implInput.connection.targetBlock();
+        if (implBlock) implInput.connection.disconnect();
+      }
+    } catch (e) {/* ignore */}
+    // 保存自定义属性（jsonInit 不会清除它们，但以防万一）
+    const savedOpcode = defBlock._opcode;
+    const savedType = defBlock._type;
+    const savedText = defBlock._text;
+    const savedColour = defBlock.getColour();
+    // ── 构建 jsonInit：message0 = "定义 %1 %2 %3 ..." ──
+    const msgParts = ['定义 %1'];
+    const argsParts = [{
+      type: 'field_label',
+      text: cb.name || '我的积木',
+      name: 'NAME'
+    }];
+    let argIdx = 2;
+    parts.forEach((p, i) => {
+      if (!p) return;
+      if (p.kind === 'text') {
+        msgParts.push('%' + argIdx);
+        argsParts.push({
+          type: 'field_label',
+          text: p.value || '',
+          name: 'LABEL_' + i
+        });
+        argIdx++;
+      } else if (p.kind === 'input') {
+        const paramName = 'PARAM_' + i;
+        const isNum = p.inputType === 'Number';
+        const check = isNum ? ['Number'] : ['String'];
+        msgParts.push('%' + argIdx);
+        argsParts.push({
+          type: 'input_value',
+          name: paramName,
+          check: check,
+          align: 'LEFT'
+        });
+        argIdx++;
+      } else if (p.kind === 'dropdown') {
+        const paramName = 'PARAM_' + i;
+        const opts = Array.isArray(p.options) && p.options.length ? p.options.map(o => [o.text || o.value || '', o.value || o.text || '']) : [['选项1', 'option1'], ['选项2', 'option2']];
+        msgParts.push('%' + argIdx);
+        argsParts.push({
+          type: 'field_dropdown',
+          name: paramName,
+          options: opts
+        });
+        argIdx++;
+      }
+    });
+    try {
+      defBlock.jsonInit({
+        type: 'block_define',
+        message0: msgParts.join(' '),
+        args0: argsParts,
+        message1: '%1',
+        args1: [{
+          type: 'input_statement',
+          name: 'IMPL'
+        }],
+        colour: savedColour || '#FF6680',
+        extensions: ['shape_hat'],
+        inputsInline: true
+      });
+    } catch (e) {/* ignore jsonInit errors */}
+    // 恢复自定义属性
+    defBlock._opcode = savedOpcode;
+    defBlock._type = savedType;
+    defBlock._text = savedText;
+    // 给 input_value 参数挂 shadow
+    parts.forEach((p, i) => {
+      if (!p || p.kind !== 'input') return;
+      const paramName = 'PARAM_' + i;
+      try {
+        const input = defBlock.getInput(paramName);
+        if (input && input.connection && !input.connection.targetBlock()) {
+          const isNum = p.inputType === 'Number';
+          const shadow = workspace.newBlock(isNum ? 'math_number' : 'text');
+          shadow.setShadow(true);
+          shadow.setFieldValue(isNum ? '0' : '', isNum ? 'NUM' : 'TEXT');
+          shadow.initSvg();
+          shadow.render();
+          input.connection.connect(shadow.outputConnection);
+        }
+      } catch (e) {/* ignore */}
+    });
+    // 恢复 IMPL 内容
+    try {
+      if (implBlock) {
+        const newImplInput = defBlock.getInput('IMPL');
+        if (newImplInput && newImplInput.connection) {
+          implBlock.initSvg();
+          implBlock.render();
+          newImplInput.connection.connect(implBlock.previousConnection);
+        }
+      }
+    } catch (e) {/* ignore */}
+    try {
+      defBlock.render();
+    } catch (e) {/* ignore */}
+  }, [workspaceRef]);
 
   // Save current workspace to the active block's xml ref
   const saveCurrentWorkspace = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])(() => {
@@ -36561,6 +37122,7 @@ const ExtensionBuilderInner = () => {
     saveCurrentWorkspace();
     currentBlockRef.current = blockId;
     setCurrentBlockId(blockId);
+    saveProjectToStorage(); // 记录当前选中积木，刷新后停在同一积木
     if (workspaceRef.current) {
       const target = findBlockByCustomId(workspaceRef.current, blockId);
       if (target && workspaceRef.current.select) {
@@ -36605,7 +37167,6 @@ const ExtensionBuilderInner = () => {
 
   // Delete a block — remove from customBlocks AND from the shared workspace
   const handleDeleteBlock = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])(blockId => {
-    if (customBlocks.length <= 1) return; // at least one block remains
     // Remove the corresponding top-level block from the workspace
     if (workspaceRef.current) {
       const target = findBlockByCustomId(workspaceRef.current, blockId);
@@ -36680,12 +37241,12 @@ const ExtensionBuilderInner = () => {
         }
         if (Object.prototype.hasOwnProperty.call(updates, 'colour')) {
           try {
-            if (updates.colour) defBlock.setColour(updates.colour);else defBlock.setColour(290); // 恢复默认紫色
+            if (updates.colour) defBlock.setColour(updates.colour);else defBlock.setColour(extInfo.color1); // 恢复扩展主题色（与预览一致）
           } catch (e) {/* 忽略非法色 */}
         }
       }
     }
-  }, []);
+  }, [extInfo.color1]);
 
   // Upload a block icon
   const handlePickBlockIcon = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])(blockId => {
@@ -36748,32 +37309,87 @@ const ExtensionBuilderInner = () => {
   }, []);
 
   // Field-editor handlers (CB-ExtGallary style)
+  // ⚠️ 字段 (fields) 和积木模板 (parts) 是同一数据的两种写法：
+  //   fields → 编辑器 UI 显示用
+  //   parts  → 导出到 TurboWarp 用
+  //   添加 / 修改 / 删除字段时必须同步更新两者，保证预览与导出一致。
   const handleAddField = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])((blockId, kind) => {
     setCustomBlocks(prev => prev.map(b => {
       if (b.id !== blockId) return b;
       const fields = Array.isArray(b.fields) ? b.fields : [];
+      const parts = Array.isArray(b.parts) ? b.parts : [];
       const idx = fields.length;
+      const newName = 'F' + idx;
+      // 兼容旧的 'boolean' kind，统一当 'dropdown' 处理
+      const isDropdown = kind === 'dropdown' || kind === 'boolean';
+      const defaultOptions = [{
+        text: '选项1',
+        value: 'option1'
+      }, {
+        text: '选项2',
+        value: 'option2'
+      }];
       const newField = kind === 'label' ? {
         kind: 'label',
         text: '标签' + idx,
-        name: 'F' + idx
+        name: newName
       } : kind === 'number' ? {
         kind: 'number',
         text: '数字' + idx,
         default: '0',
-        name: 'F' + idx
-      } : kind === 'boolean' ? {
-        kind: 'boolean',
-        text: '布尔' + idx,
-        default: 'true',
-        name: 'F' + idx
+        name: newName
+      } : isDropdown ? {
+        kind: 'dropdown',
+        text: '下拉框' + idx,
+        default: 'option1',
+        name: newName,
+        options: defaultOptions
       } : {
         kind: 'text',
         text: '文本' + idx,
-        name: 'F' + idx
+        name: newName
       };
+      const newParts = [...parts];
+      if (kind === 'label') {
+        newParts.push({
+          kind: 'text',
+          value: newField.text
+        });
+      } else if (kind === 'number') {
+        newParts.push({
+          kind: 'text',
+          value: newField.text + ' '
+        });
+        newParts.push({
+          kind: 'input',
+          name: newName,
+          inputType: 'Number'
+        });
+      } else if (isDropdown) {
+        newParts.push({
+          kind: 'text',
+          value: newField.text + ' '
+        });
+        newParts.push({
+          kind: 'input',
+          name: newName,
+          inputType: 'Dropdown',
+          options: newField.options
+        });
+      } else {
+        newParts.push({
+          kind: 'text',
+          value: newField.text + ' '
+        });
+        newParts.push({
+          kind: 'input',
+          name: newName,
+          inputType: 'String'
+        });
+      }
       return _objectSpread(_objectSpread({}, b), {}, {
-        fields: [...fields, newField]
+        fields: [...fields, newField],
+        parts: newParts
       });
     }));
   }, []);
@@ -36781,8 +37397,30 @@ const ExtensionBuilderInner = () => {
     setCustomBlocks(prev => prev.map(b => {
       if (b.id !== blockId) return b;
       const fields = Array.isArray(b.fields) ? b.fields : [];
+      const parts = Array.isArray(b.parts) ? b.parts : [];
+      const newFields = fields.map((f, i) => i === idx ? _objectSpread(_objectSpread({}, f), updates) : f);
+      const newParts = [...parts];
+      const f = fields[idx];
+      if (f) {
+        const pTextIdx = newParts.findIndex(p => p.kind === 'text' && p.value && p.value.startsWith(f.text));
+        if (pTextIdx >= 0 && updates.text) {
+          newParts[pTextIdx] = _objectSpread(_objectSpread({}, newParts[pTextIdx]), {}, {
+            value: updates.text + (f.kind !== 'label' ? ' ' : '')
+          });
+        }
+        // 同步下拉框选项到 parts
+        if (updates.options && pTextIdx >= 0) {
+          const pInputIdx = pTextIdx + 1;
+          if (pInputIdx < newParts.length && newParts[pInputIdx].kind === 'input' && newParts[pInputIdx].name === f.name) {
+            newParts[pInputIdx] = _objectSpread(_objectSpread({}, newParts[pInputIdx]), {}, {
+              options: updates.options
+            });
+          }
+        }
+      }
       return _objectSpread(_objectSpread({}, b), {}, {
-        fields: fields.map((f, i) => i === idx ? _objectSpread(_objectSpread({}, f), updates) : f)
+        fields: newFields,
+        parts: newParts
       });
     }));
   }, []);
@@ -36790,11 +37428,843 @@ const ExtensionBuilderInner = () => {
     setCustomBlocks(prev => prev.map(b => {
       if (b.id !== blockId) return b;
       const fields = Array.isArray(b.fields) ? b.fields : [];
+      const parts = Array.isArray(b.parts) ? b.parts : [];
+      const f = fields[idx];
+      let newParts = parts;
+      if (f) {
+        const pTextIdx = parts.findIndex(p => p.kind === 'text' && p.value && p.value.startsWith(f.text));
+        if (pTextIdx >= 0) {
+          newParts = parts.filter((p, i) => {
+            if (i === pTextIdx) return false;
+            if (f.kind !== 'label' && i === pTextIdx + 1 && p.kind === 'input' && p.name === f.name) return false;
+            return true;
+          });
+        }
+      }
       return _objectSpread(_objectSpread({}, b), {}, {
-        fields: fields.filter((_, i) => i !== idx)
+        fields: fields.filter((_, i) => i !== idx),
+        parts: newParts
       });
     }));
   }, []);
+
+  // ── AI 助手宿主 API（供内置 AI 面板 / Bilup Nova 调用）──────────────
+  // 把编辑器的读写能力暴露给 AI，让 AI 能在「TurboWarp 扩展编辑器」里直接
+  // 制作/修改扩展：定义积木、改参数、搭实现、设扩展信息、读生成代码。
+  // ⚠️ 本环境是「扩展开发工具」而非 Scratch 运行时，没有 VM，
+  //    所以 AI 工具不要走 vm.extensionManager 之类的运行时 API。
+  Object(react__WEBPACK_IMPORTED_MODULE_0__["useEffect"])(() => {
+    const getB = () => window._extBuilderBlockly || window.Blockly || {};
+    const VAR_TYPES = ['EMPTY', 'STRING', 'NUMBER', 'BOOLEAN', 'LIST', 'VECTOR'];
+    const BLOCK_TYPES = ['command', 'hat', 'reporter', 'Boolean', 'C'];
+    const normColour = c => /^#[0-9a-fA-F]{6}$/.test(String(c || '')) ? String(c) : '';
+
+    // parts 规整：text 片段 / input 参数（参数名必须是合法标识符）
+    const normParts = parts => (Array.isArray(parts) ? parts : []).filter(p => p && (p.kind === 'text' || p.kind === 'input')).map(p => {
+      if (p.kind === 'text') return {
+        kind: 'text',
+        value: String(p.value == null ? '' : p.value)
+      };
+      const nm = String(p.name || '').replace(/[^a-zA-Z0-9_]/g, '');
+      return {
+        kind: 'input',
+        name: /^[a-zA-Z]/.test(nm) ? nm : 'arg' + (nm || '1'),
+        inputType: p.inputType === 'Number' ? 'Number' : 'String'
+      };
+    });
+    const partsToText = parts => (Array.isArray(parts) ? parts : []).map(p => p.kind === 'text' ? p.value : '[' + p.name + ']').join('');
+    const findBlock = id => (customBlocksRef.current || []).find(x => x.id === id) || null;
+
+    // 「这块积木有没有实现」必须问工作区（IMPL 上接没接积木）。
+    // ⚠️ 不能用 customBlockXmlRef.get(id)：那张表是「按当前积木 id 存的整块工作区快照」，
+    //    有快照 ≠ 该积木有实现（快照里可能只有别的积木），会给出错误结论。
+    const hasImplementation = blockId => {
+      try {
+        const def = findBlockByCustomId(workspaceRef.current, blockId);
+        if (!def) return false;
+        const inp = def.getInput && def.getInput('IMPL');
+        return !!(inp && inp.connection && inp.connection.targetBlock());
+      } catch (e) {
+        return false;
+      }
+    };
+    const blockSummary = b => {
+      const parts = Array.isArray(b.parts) ? b.parts : [];
+      const args = {};
+      parts.forEach(p => {
+        if (p.kind === 'input' && p.name) args[p.name] = p.inputType === 'Number' ? 'number' : 'string';
+      });
+      return {
+        id: b.id,
+        name: b.name,
+        text: partsToText(parts) || b.name,
+        blockType: b.blockType || 'command',
+        arguments: args,
+        colour: b.colour || '',
+        isAsync: !!b.isAsync,
+        isTerminal: !!b.isTerminal,
+        runForSprite: b.filterSprite !== false,
+        runForStage: b.filterStage !== false,
+        hasImplementation: hasImplementation(b.id)
+      };
+    };
+
+    // ── 现场同步定义块的生成元数据（_opcode / _type / _text）──
+    // 这些元数据决定生成的方法签名与返回值：`_type` 为 REPORTER/BOOLEAN 且实现为空时
+    // 生成器会补 `return 0/false`；若 `_type` 是**旧值**（如刚把命令块改成返回值块），
+    // 就会生成「没有 return 的返回值方法」——语法合法、validateExtension 也过得去，
+    // 但 TurboWarp 拿到 undefined，静默失效。
+    // 项目里本来有 useEffect(rehydrateBlockMeta) 负责同步，但那是**渲染后**才跑，
+    // AI「改完立刻读代码」会拿到旧 `_type`。故读代码前先强制同步一次。
+    const syncBlockMeta = () => {
+      try {
+        const ws = workspaceRef.current;
+        if (!ws || !ws.getTopBlocks) return;
+        const list = customBlocksRef.current || [];
+        ws.getTopBlocks(true).forEach(t => {
+          if (t.type !== 'block_define') return;
+          const svg = t.getSvgRoot && t.getSvgRoot();
+          const bid = svg && svg.getAttribute && svg.getAttribute('data-block-id');
+          if (!bid) return;
+          const cb = list.find(x => x.id === bid);
+          if (!cb) return;
+          t._opcode = String(cb.id || 'block').replace(/[^a-zA-Z0-9]/g, '_');
+          const bt = String(cb.blockType || 'command').toUpperCase();
+          t._type = bt === 'BOOLEAN' ? 'BOOLEAN' : bt === 'REPORTER' ? 'REPORTER' : bt === 'HAT' ? 'HAT' : bt === 'CONDITIONAL' ? 'CONDITIONAL' : 'COMMAND';
+          t._text = '[' + (cb.name || 'block') + ']';
+        });
+      } catch (e) {/* 同步失败不阻塞读代码 */}
+    };
+
+    // ── 现场重算代码 ──
+    // 关键：React 的 generatedCode/exportableCode 是 state，会**滞后**于画布变更
+    // （addImplementationBlocks 改变画布后，state 要到下一次渲染才更新）。
+    // AI 往往"建完立刻自检"，若读 state 会拿到旧代码 → 误判成功/漏报。
+    // 故读代码类接口一律现场用 workspaceToCode 重算（并先同步元数据）。
+    const freshGeneratedCode = () => {
+      try {
+        const ws = workspaceRef.current;
+        if (ws && _lib_block_definitions_js__WEBPACK_IMPORTED_MODULE_2__["javascriptGenerator"] && typeof _lib_block_definitions_js__WEBPACK_IMPORTED_MODULE_2__["javascriptGenerator"].workspaceToCode === 'function') {
+          syncBlockMeta();
+          return _lib_block_definitions_js__WEBPACK_IMPORTED_MODULE_2__["javascriptGenerator"].workspaceToCode(ws) || '';
+        }
+      } catch (e) {/* 回退到 state */}
+      return generatedCode || '';
+    };
+    const freshExportCode = () => {
+      try {
+        return wrapAsExtension(extInfo, freshGeneratedCode(), customBlocksRef.current || [], variablesRef.current || []);
+      } catch (e) {
+        return exportableCode || generatedCode || '';
+      }
+    };
+
+    // ── 积木类型自省：读取某个 block type 的合法输入/字段名 ──
+    // 用途：AI 用 XML 搭实现时，若输入名写错（如把 STEPS 写成 WRONG），
+    // Blockly 会静默忽略，导致"看起来成功但积木是空的"。这里用临时无头工作区
+    // 实例化一次并缓存，把「合法名字清单」返回给 AI 校验/纠错。
+    const typeMetaCache = new Map();
+    const describeBlockType = type => {
+      const key = String(type || '');
+      if (typeMetaCache.has(key)) return typeMetaCache.get(key);
+      const meta = {
+        type: key,
+        exists: false,
+        inputs: [],
+        statements: [],
+        fields: []
+      };
+      try {
+        const Bl = getB();
+        const Blocks = Bl && Bl.Blocks;
+        if (Blocks && Blocks[key]) {
+          meta.exists = true;
+          let probe = null;
+          let tmp = null;
+          try {
+            tmp = new Bl.Workspace();
+            probe = tmp.newBlock(key);
+          } catch (e) {
+            probe = null;
+          }
+          if (probe && probe.inputList) {
+            probe.inputList.forEach(inp => {
+              if (!inp) return;
+              const isStatement = /statement/i.test(String(inp.type));
+              if (inp.name) {
+                if (isStatement) meta.statements.push(inp.name);else meta.inputs.push(inp.name);
+              }
+              (inp.fieldRow || []).forEach(f => {
+                if (f && f.name && meta.fields.indexOf(f.name) < 0) meta.fields.push(f.name);
+              });
+            });
+          }
+          try {
+            if (probe && probe.dispose) probe.dispose(false);
+          } catch (e) {/* ignore */}
+          try {
+            if (tmp && tmp.dispose) tmp.dispose();
+          } catch (e) {/* ignore */}
+        }
+      } catch (e) {/* 自省失败时返回 exists:false，调用方降级不校验 */}
+      typeMetaCache.set(key, meta);
+      return meta;
+    };
+
+    // 校验一段实现 XML 里的 type / value name / field name 是否合法。
+    // 设计原则：**宁可漏报不可误报** —— 只要自省能力不可用（拿不到 Blockly.Blocks）、
+    // 或某类型是动态形状（mutator，自省不到静态输入），就跳过校验，避免误拦合法 XML。
+    const validateImplementationXml = dom => {
+      const problems = [];
+      let checked = 0;
+      let blocksAvailable = false;
+      try {
+        const Bl = getB();
+        blocksAvailable = !!(Bl && Bl.Blocks && Object.keys(Bl.Blocks).length > 0);
+      } catch (e) {
+        blocksAvailable = false;
+      }
+      if (!blocksAvailable) return {
+        problems,
+        checked
+      };
+      const walk = node => {
+        if (!node || node.nodeType !== 1) return;
+        // 注意：影子积木（<shadow type="math_number">）不是 <block> 节点，
+        // 但同样带 type 且含 <field>，必须一并校验（否则写错字段名会被漏掉）。
+        const tagName = String(node.nodeName || '').toLowerCase();
+        const isBlockNode = tagName === 'block' || tagName === 'shadow' || tagName === 'shadowblock';
+        if (isBlockNode) {
+          const type = node.getAttribute && node.getAttribute('type');
+          if (type) {
+            checked++;
+            const meta = describeBlockType(type);
+            if (!meta.exists) {
+              if (problems.length < 8) {
+                problems.push('积木类型 "' + type + '" 在 Blockly 中未注册（可能拼写有误或本编辑器不支持）');
+              }
+            } else {
+              const knownShape = meta.inputs.length + meta.statements.length + meta.fields.length;
+              // knownShape 为 0 → 动态形状（如 procedures_call），不做子项校验
+              if (knownShape > 0) {
+                const valid = meta.inputs.concat(meta.statements);
+                Array.from(node.childNodes || []).filter(n => n.nodeType === 1).forEach(ch => {
+                  const tag = String(ch.nodeName || '').toLowerCase();
+                  const nm = ch.getAttribute && ch.getAttribute('name');
+                  if (!nm) return;
+                  if (tag === 'value' || tag === 'statement') {
+                    if (valid.indexOf(nm) < 0 && problems.length < 8) {
+                      problems.push('积木 ' + type + ' 的 <' + tag + ' name="' + nm + '"> 不是有效输入；有效输入为：' + (valid.length ? valid.join(', ') : '(无)'));
+                    }
+                  } else if (tag === 'field') {
+                    if (meta.fields.indexOf(nm) < 0 && problems.length < 8) {
+                      problems.push('积木 ' + type + ' 的 <field name="' + nm + '"> 不是有效字段；有效字段为：' + (meta.fields.length ? meta.fields.join(', ') : '(无)'));
+                    }
+                  }
+                });
+              }
+            }
+          }
+        }
+        Array.from(node.childNodes || []).forEach(walk);
+      };
+      walk(dom);
+      return {
+        problems,
+        checked
+      };
+    };
+    const api = {
+      version: 1,
+      editor: 'scratch扩展编辑器（TurboWarp / Scratch 扩展开发工具）',
+      // ---- 读 ----
+      getProjectOverview: () => ({
+        ok: true,
+        extension: {
+          name: extInfo.name,
+          id: extInfo.id,
+          description: extInfo.description,
+          author: extInfo.author,
+          color1: extInfo.color1,
+          license: extInfo.license
+        },
+        blocks: (customBlocksRef.current || []).map(blockSummary),
+        variables: (variablesRef.current || []).map(v => ({
+          name: v.name,
+          type: v.type,
+          scope: v.scope
+        })),
+        blockCount: (customBlocksRef.current || []).length,
+        generatedCodeLength: (generatedCode || '').length
+      }),
+      listBlocks: () => ({
+        ok: true,
+        blocks: (customBlocksRef.current || []).map(blockSummary)
+      }),
+      // 与 AI 面板「文件列表」工具的返回形状对齐：每块积木 = 一个可读写的实现文件
+      listFiles: () => (customBlocksRef.current || []).map(b => ({
+        path: '/blocks/' + b.id + '.js',
+        kind: 'block',
+        name: b.name,
+        blockType: b.blockType || 'command',
+        hasImplementation: hasImplementation(b.id)
+      })),
+      getBlock: id => {
+        const b = findBlock(id);
+        return b ? {
+          ok: true,
+          block: blockSummary(b)
+        } : {
+          ok: false,
+          error: '未找到积木 ' + id
+        };
+      },
+      getVariables: () => ({
+        ok: true,
+        variables: variablesRef.current || []
+      }),
+      getGeneratedCode: () => ({
+        ok: true,
+        code: freshGeneratedCode()
+      }),
+      getExportCode: () => ({
+        ok: true,
+        code: freshExportCode()
+      }),
+      getWorkspaceXml: () => {
+        try {
+          const ws = workspaceRef.current;
+          if (!ws) return {
+            ok: false,
+            error: '工作区未就绪'
+          };
+          const Bl = getB();
+          return {
+            ok: true,
+            xml: Bl.Xml.domToText(Bl.Xml.workspaceToDom(ws))
+          };
+        } catch (e) {
+          return {
+            ok: false,
+            error: String(e && e.message || e)
+          };
+        }
+      },
+      // ---- 写 ----
+      // 新增积木定义（并同时在画布上生成对应的「定义…」帽积木）
+      addBlock: spec => {
+        spec = spec || {};
+        const name = String(spec.name || '新积木').trim() || '新积木';
+        const blockType = BLOCK_TYPES.indexOf(spec.blockType) >= 0 ? spec.blockType : 'command';
+        const colour = normColour(spec.colour);
+        const id = 'block_' + Date.now() + '_' + Math.floor(Math.random() * 1e4);
+        const blk = {
+          id,
+          name,
+          xml: null,
+          blockType,
+          isTerminal: !!spec.isTerminal,
+          isAsync: !!spec.isAsync,
+          attachAllThreads: !!spec.attachAllThreads,
+          filterSprite: spec.filterSprite !== false,
+          filterStage: spec.filterStage !== false,
+          icon: '',
+          colour,
+          parts: normParts(spec.parts)
+        };
+        setCustomBlocks(prev => prev.concat([blk]));
+        currentBlockRef.current = id;
+        setCurrentBlockId(id);
+        try {
+          const ws = workspaceRef.current;
+          if (ws) addStarterBlocks(ws, getB(), name, id, blockType, colour);
+        } catch (e) {/* 画布未就绪时仅登记定义 */}
+        return {
+          ok: true,
+          id,
+          name,
+          text: partsToText(blk.parts) || name
+        };
+      },
+      // 修改积木（name / blockType / parts / colour / isAsync / isTerminal / 过滤）
+      updateBlock: (id, patch) => {
+        if (!findBlock(id)) return {
+          ok: false,
+          error: '未找到积木 ' + id
+        };
+        patch = patch || {};
+        const next = {};
+        if (patch.name != null) next.name = String(patch.name).trim() || findBlock(id).name;
+        if (patch.blockType != null && BLOCK_TYPES.indexOf(patch.blockType) >= 0) next.blockType = patch.blockType;
+        if (patch.parts != null) next.parts = normParts(patch.parts);
+        if (patch.colour != null) next.colour = normColour(patch.colour);
+        if (patch.isAsync != null) next.isAsync = !!patch.isAsync;
+        if (patch.isTerminal != null) next.isTerminal = !!patch.isTerminal;
+        if (patch.filterSprite != null) next.filterSprite = !!patch.filterSprite;
+        if (patch.filterStage != null) next.filterStage = !!patch.filterStage;
+        setCustomBlocks(prev => prev.map(b => b.id === id ? _objectSpread(_objectSpread({}, b), next) : b));
+        handleUpdateBlock(id, next); // 同步画布上的 NAME/TYPE/颜色字段
+        return {
+          ok: true,
+          id,
+          applied: Object.keys(next)
+        };
+      },
+      deleteBlock: id => {
+        if (!findBlock(id)) return {
+          ok: false,
+          error: '未找到积木 ' + id
+        };
+        if ((customBlocksRef.current || []).length <= 1) return {
+          ok: false,
+          error: '至少要保留一个积木'
+        };
+        handleDeleteBlock(id);
+        return {
+          ok: true,
+          id
+        };
+      },
+      setExtensionInfo: patch => {
+        patch = patch || {};
+        const next = {};
+        ['name', 'description', 'author', 'license', 'docsUrl'].forEach(k => {
+          if (patch[k] != null) next[k] = String(patch[k]);
+        });
+        if (patch.id != null) next.id = String(patch.id).replace(/[^a-z0-9]/gi, '').toLowerCase();
+        if (patch.color1 != null && /^#[0-9a-fA-F]{6}$/.test(String(patch.color1))) next.color1 = String(patch.color1);
+        if (!Object.keys(next).length) return {
+          ok: false,
+          error: '没有可更新的字段'
+        };
+        setExtInfo(prev => _objectSpread(_objectSpread({}, prev), next));
+        return {
+          ok: true,
+          applied: Object.keys(next)
+        };
+      },
+      addVariable: spec => {
+        spec = spec || {};
+        const name = String(spec.name || '').trim();
+        if (!name) return {
+          ok: false,
+          error: '缺少变量名'
+        };
+        const list = variablesRef.current || [];
+        if (list.some(v => v.name === name)) return {
+          ok: false,
+          error: '已存在同名变量：' + name
+        };
+        const id = sanitizeVarId(name, list);
+        const type = VAR_TYPES.indexOf(spec.type) >= 0 ? spec.type : 'EMPTY';
+        setVariables(list.concat([{
+          id,
+          name,
+          scope: 'global',
+          type
+        }]));
+        return {
+          ok: true,
+          id,
+          name,
+          type
+        };
+      },
+      // 把积木 XML 插入画布（用于给积木搭实现）；接受 <block>、<xml> 或裸积木片段
+      insertXml: xmlText => {
+        try {
+          const ws = workspaceRef.current;
+          if (!ws) return {
+            ok: false,
+            error: '工作区未就绪'
+          };
+          const Bl = getB();
+          const src = String(xmlText || '').trim();
+          if (!src) return {
+            ok: false,
+            error: 'XML 为空'
+          };
+          const dom = Bl.Xml.textToDom(/^<xml[\s>]/i.test(src) ? src : '<xml>' + src + '</xml>');
+          Bl.Xml.domToWorkspace(dom, ws);
+          return {
+            ok: true
+          };
+        } catch (e) {
+          return {
+            ok: false,
+            error: String(e && e.message || e)
+          };
+        }
+      },
+      // ---- 工具形状包装（AI 面板以「单个参数对象」调用工具，故在此适配签名）----
+      defineBlock: args => api.addBlock(args),
+      updateBlockDef: args => {
+        const a = args || {};
+        if (!a.id) return {
+          ok: false,
+          error: '缺少积木 id'
+        };
+        const patch = {};
+        ['name', 'blockType', 'parts', 'colour', 'isAsync', 'isTerminal', 'filterSprite', 'filterStage'].forEach(k => {
+          if (a[k] !== undefined) patch[k] = a[k];
+        });
+        return api.updateBlock(a.id, patch);
+      },
+      deleteBlockDef: args => api.deleteBlock((args || {}).id),
+      // 查询某个积木类型的合法输入/字段名（写实现 XML 前先问，避免写错被静默忽略）
+      describeBlock: args => {
+        const a = args || {};
+        const type = String(a.type || '').trim();
+        if (!type) return {
+          ok: false,
+          error: '缺少 type'
+        };
+        const meta = describeBlockType(type);
+        if (!meta.exists) {
+          return {
+            ok: false,
+            error: '积木类型 "' + type + '" 未在 Blockly 中注册',
+            type: type
+          };
+        }
+        return {
+          ok: true,
+          type: meta.type,
+          inputs: meta.inputs,
+          statements: meta.statements,
+          fields: meta.fields,
+          hint: '写 XML 时：普通输入用 <value name="输入名">，语句输入用 <statement name="输入名">，下拉/文本字段用 <field name="字段名">'
+        };
+      },
+      // 清空某块积木的「实现」（搭错了要能重来）——与 addImplementationBlocks 互为修复手段
+      clearBlockImplementation: args => {
+        const a = args || {};
+        const ws = workspaceRef.current;
+        if (!ws) return {
+          ok: false,
+          error: '工作区未就绪'
+        };
+        const def = findBlockByCustomId(ws, a.id);
+        if (!def) return {
+          ok: false,
+          error: '未找到积木定义块：' + (a.id || '(缺少 id)')
+        };
+        const input = def.getInput && def.getInput('IMPL');
+        if (!input || !input.connection) return {
+          ok: false,
+          error: '该积木定义没有「实现」入口'
+        };
+        let removed = 0;
+        try {
+          // 反复取链头 dispose：dispose 会连带移除其后连接的所有积木
+          let guard = 0;
+          while (guard++ < 300) {
+            const head = input.connection.targetBlock();
+            if (!head) break;
+            try {
+              head.dispose(false);
+            } catch (e) {/* 继续尝试断开 */}
+            if (input.connection.targetBlock() === head) {
+              // dispose 没能摘掉它 → 直接断连接，避免死循环
+              try {
+                input.connection.disconnect();
+              } catch (e) {/* ignore */}
+              break;
+            }
+            removed++;
+          }
+        } catch (e) {
+          return {
+            ok: false,
+            error: '清空实现失败：' + (e && e.message || e)
+          };
+        }
+        try {
+          saveCurrentWorkspace();
+        } catch (e) {/* ignore */}
+        return {
+          ok: true,
+          id: a.id,
+          removed: removed,
+          hasImplementation: hasImplementation(a.id)
+        };
+      },
+      // 自检：校验「当前扩展导出的 JS」能否通过语法解析，并找出没有实现/没进代码的积木。
+      // AI 建完积木与实现后应当调用它自我核对（导出后才发现错误对用户太晚）。
+      validateExtension: () => {
+        const code = freshExportCode();
+        if (!code) return {
+          ok: false,
+          error: '当前没有可校验的代码（先定义积木）'
+        };
+        try {
+          // 只解析不执行：能通过即语法合法
+          // eslint-disable-next-line no-new-func
+          new Function(code);
+        } catch (e) {
+          return {
+            ok: false,
+            syntaxError: String(e && e.message || e),
+            codeLength: code.length,
+            hint: '导出代码存在语法错误，通常是某块积木的「实现」（画布上搭的积木组合）不合法。' + '请用 getBlockImplementationXml 检查相关积木的实现，或先删掉可疑实现再试。'
+          };
+        }
+        // 「是否缺实现」必须看工作区（IMPL 上有没有接积木），不能看代码里有没有方法名：
+        // 空的实现同样会生成一个空方法体，用字符串匹配永远查不出来。
+        const missing = [];
+        (customBlocksRef.current || []).forEach(b => {
+          const def = findBlockByCustomId(workspaceRef.current, b.id);
+          let hasImpl = false;
+          if (def) {
+            const inp = def.getInput && def.getInput('IMPL');
+            hasImpl = !!(inp && inp.connection && inp.connection.targetBlock());
+          }
+          if (!hasImpl) missing.push({
+            id: b.id,
+            name: b.name,
+            blockType: b.blockType || 'command'
+          });
+        });
+        return {
+          ok: true,
+          codeLength: code.length,
+          blockCount: (customBlocksRef.current || []).length,
+          missingImplementations: missing,
+          note: missing.length ? '语法通过，但有积木还没有实现（IMPL 上没接积木）——可用 addImplementationBlocks 补上；' + 'reporter / Boolean 若不补实现，运行时会默认返回 0 / false。' : '语法通过，且每个积木都已接上实现。'
+        };
+      },
+      // 列出「本编辑器工具箱里真实可用」的积木（AI 想找积木时先查这里，别凭通用文档猜）
+      // 返回每块的 type / 面板文字 / 所属分类 / 合法输入字段 / 推荐默认影子。
+      listAvailableBlocks: args => {
+        const a = args || {};
+        const q = String(a.query || '').trim().toLowerCase();
+        const catFilter = String(a.category || '').trim();
+        const withSpec = a.withSpec !== false;
+        const cats = _lib_block_definitions_js__WEBPACK_IMPORTED_MODULE_2__["TOOLBOX_CONFIG"] && _lib_block_definitions_js__WEBPACK_IMPORTED_MODULE_2__["TOOLBOX_CONFIG"].contents || [];
+        const out = [];
+        cats.forEach(cat => {
+          if (!cat || cat.kind !== 'category') return;
+          if (catFilter && String(cat.name).indexOf(catFilter) < 0) return;
+          let types = [];
+          if (cat.dynamic === 'variables') {
+            types = (variablesRef.current || []).length ? ['var_get', 'var_set', 'var_change'] : ['var_get'];
+          } else if (cat.dynamic === 'customCalls') {
+            // 调用自定义积木：type 由积木 id 派生（每个自定义积木一块）
+            types = (customBlocksRef.current || []).map(cb => customCallType(cb.id));
+          } else {
+            types = (cat.contents || []).filter(b => b && b.kind === 'block').map(b => b.type);
+          }
+          types.forEach(t => {
+            if (!t) return;
+            const def = _lib_block_definitions_js__WEBPACK_IMPORTED_MODULE_2__["BLOCK_DEFINITIONS"][t] || {};
+            const text = String(def.message0 || '').replace(/%\d+/g, '…');
+            if (q && String(t).toLowerCase().indexOf(q) < 0 && text.toLowerCase().indexOf(q) < 0) return;
+            const item = {
+              type: t,
+              text: text || t,
+              category: cat.name
+            };
+            if (withSpec) {
+              const meta = describeBlockType(t);
+              item.inputs = meta.inputs;
+              item.statements = meta.statements;
+              item.fields = meta.fields;
+              const sh = PLACEHOLDER_SHADOWS[t];
+              if (sh) {
+                item.defaults = Object.keys(sh).map(k => ({
+                  name: k,
+                  shadow: sh[k].type,
+                  field: sh[k].field,
+                  value: sh[k].value
+                }));
+              }
+            }
+            out.push(item);
+          });
+        });
+        return {
+          ok: true,
+          total: out.length,
+          categories: cats.filter(c => c && c.kind === 'category').map(c => ({
+            name: c.name,
+            dynamic: c.dynamic || null
+          })),
+          blocks: out.slice(0, 200),
+          hint: '写实现 XML 用 type 与 inputs/statements/fields 中的名字；defaults 是该输入的推荐影子（shadow）与默认值。'
+        };
+      },
+      getBlockImplementationXml: args => {
+        const id = (args || {}).id;
+        if (!id) return {
+          ok: false,
+          error: '缺少积木 id'
+        };
+        const xml = customBlockXmlRef.current && customBlockXmlRef.current.get(id) || '';
+        return {
+          ok: true,
+          id,
+          xml,
+          note: '这是整块工作区的 XML 快照；其中 type="block_define" 的积木即为该积木的定义与实现。'
+        };
+      },
+      // 给指定积木的「实现」区插入积木（连接到 block_define 的 IMPL 语句入口）。
+      // xml 为 Blockly/scratch-blocks 的积木片段，形如：
+      //   <block type="motion_movesteps"><value name="STEPS"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>
+      addImplementationBlocks: args => {
+        const a = args || {};
+        const ws = workspaceRef.current;
+        if (!ws) return {
+          ok: false,
+          error: '工作区未就绪'
+        };
+        const def = findBlockByCustomId(ws, a.id);
+        if (!def) return {
+          ok: false,
+          error: '未找到积木定义块：' + (a.id || '(缺少 id)')
+        };
+        const input = def.getInput && def.getInput('IMPL');
+        if (!input || !input.connection) return {
+          ok: false,
+          error: '该积木定义没有「实现」入口'
+        };
+        const xmlText = String(a.xml || '').trim();
+        if (!xmlText) return {
+          ok: false,
+          error: '缺少 xml（要插入的实现积木片段）'
+        };
+        const Bl = getB();
+        let dom;
+        try {
+          dom = Bl.Xml.textToDom(/^<xml[\s>]/i.test(xmlText) ? xmlText : '<xml>' + xmlText + '</xml>');
+        } catch (e) {
+          return {
+            ok: false,
+            error: '积木 XML 解析失败：' + (e && e.message || e)
+          };
+        }
+        // 预校验：输入名/字段名写错会被 Blockly 静默忽略（积木变空壳），
+        // 这里提前拦下并告诉 AI 合法名字，避免"看起来成功其实没接上"。
+        const vres = validateImplementationXml(dom);
+        if (vres.problems.length) {
+          return {
+            ok: false,
+            error: '实现 XML 里的输入/字段名不合法，已取消插入（未改动工作区）：\n- ' + vres.problems.join('\n- '),
+            problems: vres.problems
+          };
+        }
+        const existsBefore = new Set((ws.getAllBlocks(false) || []).map(b => b.id));
+        try {
+          Bl.Xml.domToWorkspace(dom, ws);
+        } catch (e) {
+          return {
+            ok: false,
+            error: '积木创建失败（XML 结构不合法）：' + (e && e.message || e)
+          };
+        }
+        const created = (ws.getAllBlocks(false) || []).filter(b => !existsBefore.has(b.id));
+        if (!created.length) return {
+          ok: false,
+          error: 'XML 中没有可创建的积木'
+        };
+        const disposeCreated = () => created.forEach(b => {
+          try {
+            b.dispose(false);
+          } catch (e) {/* ignore */}
+        });
+
+        // 若创建时已自动接入实现链（XML 内含父级），直接算成功
+        const inImplChain = () => {
+          let cur = input.connection.targetBlock();
+          let guard = 0;
+          while (cur && guard++ < 2000) {
+            if (!existsBefore.has(cur.id)) return true;
+            cur = cur.nextConnection && cur.nextConnection.targetBlock();
+          }
+          return false;
+        };
+        if (inImplChain()) {
+          try {
+            saveCurrentWorkspace();
+          } catch (e) {/* ignore */}
+          return {
+            ok: true,
+            added: created.length,
+            target: a.id
+          };
+        }
+
+        // 取新链的链头：有 previousConnection 且未连上游
+        let head = null;
+        created.forEach(b => {
+          if (head || b.isShadow && b.isShadow()) return;
+          const pc = b.previousConnection;
+          if (pc && !pc.targetBlock()) head = b;
+        });
+        if (!head) {
+          disposeCreated();
+          return {
+            ok: false,
+            error: '实现必须以「语句积木」开头（reporter/Boolean 这类返回值积木不能直接串在实现里）'
+          };
+        }
+        // 连接点：IMPL 已有实现则接到链尾
+        let conn = input.connection;
+        if (conn.targetBlock()) {
+          let tail = conn.targetBlock();
+          let guard = 0;
+          while (tail && tail.nextConnection && tail.nextConnection.targetBlock() && guard++ < 2000) {
+            tail = tail.nextConnection.targetBlock();
+          }
+          if (!tail || !tail.nextConnection) {
+            disposeCreated();
+            return {
+              ok: false,
+              error: '现有实现链末端无法再接积木'
+            };
+          }
+          conn = tail.nextConnection;
+        }
+        try {
+          conn.connect(head.previousConnection);
+        } catch (e) {
+          disposeCreated();
+          return {
+            ok: false,
+            error: '连接实现积木失败：' + (e && e.message || e)
+          };
+        }
+        // 同级多块时尽量依次串联
+        let tailAdded = head;
+        created.forEach(b => {
+          if (b === head) return;
+          if (tailAdded && tailAdded.nextConnection && b.previousConnection && !b.previousConnection.targetBlock()) {
+            try {
+              tailAdded.nextConnection.connect(b.previousConnection);
+              tailAdded = b;
+            } catch (e) {/* ignore */}
+          }
+        });
+        try {
+          saveCurrentWorkspace();
+        } catch (e) {/* ignore */}
+        return {
+          ok: true,
+          added: created.length,
+          target: a.id
+        };
+      }
+    };
+    window._extBuilderAI = api;
+    return () => {
+      if (window._extBuilderAI === api) {
+        try {
+          delete window._extBuilderAI;
+        } catch (e) {
+          window._extBuilderAI = null;
+        }
+      }
+    };
+  }, [customBlocks, variables, extInfo, generatedCode, exportableCode, handleUpdateBlock, handleDeleteBlock]);
 
   // Save block metadata (already applied via setters, this just confirms + shows summary)
   const handleSaveBlockMeta = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])(blockId => {
@@ -36942,6 +38412,7 @@ const ExtensionBuilderInner = () => {
     const panel = settingsPanelRef.current;
     if (!panel) return;
     if (!settingsMaximized) {
+      // 保存当前位置尺寸（用于还原）
       const rect = panel.getBoundingClientRect();
       settingsBoundsRef.current = {
         left: rect.left,
@@ -36949,21 +38420,36 @@ const ExtensionBuilderInner = () => {
         width: rect.width,
         height: rect.height
       };
-      panel.style.top = '8px';
-      panel.style.left = '8px';
-      panel.style.right = '8px';
-      panel.style.width = '';
-      panel.style.height = 'calc(100vh - 16px)';
+      // 撑满整个视口（和 Bilup 一样：面板铺满页面，浏览器标签栏/地址栏仍在）
+      // 用具体值覆盖 .ext-float-panel 的 width:680px / height:80vh / max-height 等硬约束
+      panel.style.top = '0';
+      panel.style.left = '0';
+      panel.style.right = '0';
+      panel.style.bottom = '0';
+      panel.style.width = '100vw';
+      panel.style.height = '100vh';
+      panel.style.maxWidth = 'none';
+      panel.style.maxHeight = 'none';
+      panel.style.minWidth = '0';
+      panel.style.minHeight = '0';
       panel.style.transform = 'none';
+      panel.style.borderRadius = '0';
       setSettingsMaximized(true);
     } else {
+      // 还原到之前的位置和尺寸
       if (settingsBoundsRef.current) {
         panel.style.top = settingsBoundsRef.current.top + 'px';
         panel.style.left = settingsBoundsRef.current.left + 'px';
         panel.style.right = 'auto';
+        panel.style.bottom = 'auto';
         panel.style.width = settingsBoundsRef.current.width + 'px';
         panel.style.height = settingsBoundsRef.current.height + 'px';
         panel.style.transform = 'none';
+        panel.style.borderRadius = '';
+        panel.style.maxWidth = '';
+        panel.style.maxHeight = '';
+        panel.style.minWidth = '';
+        panel.style.minHeight = '';
       }
       setSettingsMaximized(false);
     }
@@ -37209,21 +38695,34 @@ const ExtensionBuilderInner = () => {
         width: rect.width,
         height: rect.height
       };
-      panel.style.top = '8px';
-      panel.style.left = '8px';
-      panel.style.right = '8px';
-      panel.style.width = '';
-      panel.style.height = 'calc(100vh - 16px)';
+      // 撑满整个视口（和 Bilup 一样）
+      panel.style.top = '0';
+      panel.style.left = '0';
+      panel.style.right = '0';
+      panel.style.bottom = '0';
+      panel.style.width = '100vw';
+      panel.style.height = '100vh';
+      panel.style.maxWidth = 'none';
+      panel.style.maxHeight = 'none';
+      panel.style.minWidth = '0';
+      panel.style.minHeight = '0';
       panel.style.transform = 'none';
+      panel.style.borderRadius = '0';
       setUserMaximized(true);
     } else {
       if (userFloatSavedBounds.current) {
         panel.style.top = userFloatSavedBounds.current.top + 'px';
         panel.style.left = userFloatSavedBounds.current.left + 'px';
         panel.style.right = 'auto';
+        panel.style.bottom = 'auto';
         panel.style.width = userFloatSavedBounds.current.width + 'px';
         panel.style.height = userFloatSavedBounds.current.height + 'px';
         panel.style.transform = 'none';
+        panel.style.borderRadius = '';
+        panel.style.maxWidth = '';
+        panel.style.maxHeight = '';
+        panel.style.minWidth = '';
+        panel.style.minHeight = '';
       }
       setUserMaximized(false);
     }
@@ -37266,15 +38765,24 @@ const ExtensionBuilderInner = () => {
     setPreviewBlocks([]);
   }, []);
 
-  // Render customBlock previews — each customBlock becomes a *finished*
-  // scratch block (matching AstraEditor preview behaviour). The block
-  // shows the user-supplied NAME followed by all the fields as inputs,
-  // just like a normal Scratch command block would render.
-  Object(react__WEBPACK_IMPORTED_MODULE_0__["useEffect"])(() => {
-    if (!showBlockPreview || !previewHostRef.current) return;
-    const host = previewHostRef.current;
-    if (!previewWorkspaceRef.current) {
-      previewWorkspaceRef.current = Blockly.inject(host, {
+  // 把 Blockly 注入 host；若旧 workspace 的注入 DOM 已脱离文档（弹窗关闭时
+  // host 随之卸载）则销毁重建——否则重开弹窗后渲染的 SVG 挂在死画布上，预览空白
+  const ensureBlocklyInjected = (wsRef, host) => {
+    const B = window._extBuilderBlockly || window.Blockly;
+    if (!B) return null;
+    const old = wsRef.current;
+    let stale = true;
+    try {
+      const div = old && old.getInjectionDiv ? old.getInjectionDiv() : null;
+      stale = !old || !div || !document.contains(div);
+    } catch (e) {
+      stale = !old;
+    }
+    if (stale) {
+      try {
+        if (old && old.dispose) old.dispose();
+      } catch (e) {/* silent */}
+      wsRef.current = B.inject(host, {
         renderer: 'scratch',
         toolbox: '<xml></xml>',
         sounds: false,
@@ -37294,12 +38802,23 @@ const ExtensionBuilderInner = () => {
         collapse: false
       });
     }
-    const ws = previewWorkspaceRef.current;
+    return wsRef.current;
+  };
+
+  // Render customBlock previews — each customBlock becomes a *finished*
+  // scratch block (matching AstraEditor preview behaviour). The block
+  // shows the user-supplied NAME followed by all the fields as inputs,
+  // just like a normal Scratch command block would render.
+  Object(react__WEBPACK_IMPORTED_MODULE_0__["useEffect"])(() => {
+    if (!showBlockPreview || !previewHostRef.current) return;
+    const host = previewHostRef.current;
+    const ws = ensureBlocklyInjected(previewWorkspaceRef, host);
+    if (!ws) return;
     ws.getTopBlocks().forEach(b => b.dispose(false));
     const items = [];
     let yOffset = 8;
     customBlocks.forEach(function (cb, idx) {
-      const svgXml = renderCustomBlockToSvg(ws, cb, idx);
+      const svgXml = renderCustomBlockToSvg(ws, cb, idx, extInfo.color1);
       if (!svgXml) return;
       // Estimate height from svg width attr for stacking
       const m = svgXml.match(/height="(\d+)"/);
@@ -37312,44 +38831,33 @@ const ExtensionBuilderInner = () => {
       yOffset += Math.max(20, h) + 4;
     });
     setPreviewBlocks(items);
-  }, [showBlockPreview, customBlocks]);
+  }, [showBlockPreview, customBlocks, extInfo.color1, loaded]);
 
   // Live preview of the currently-edited customBlock inside the builder
   // panel's "积木预览" zone. Re-renders whenever the active block or its
   // fields / blockType change — renders a REAL Scratch block SVG.
+  // 注意：面板刚打开时布局可能未完成（容器高 0），立即渲染会被 Blockly
+  // 画布 0 高缓存导致空白 —— 等 requestAnimationFrame 后 svgResize 再渲染。
   Object(react__WEBPACK_IMPORTED_MODULE_0__["useEffect"])(() => {
     const cb = customBlocks.find(b => b.id === currentBlockId);
-    if (!cb || !panelPreviewRef.current) {
+    if (!showBlockBuilder || !cb || !panelPreviewRef.current) {
       setPanelPreviewSvg('');
       return;
     }
     const host = panelPreviewRef.current;
-    if (!panelWorkspaceRef.current) {
-      panelWorkspaceRef.current = Blockly.inject(host, {
-        renderer: 'scratch',
-        toolbox: '<xml></xml>',
-        sounds: false,
-        trashcan: false,
-        scrollbars: false,
-        zoom: {
-          controls: false,
-          wheel: false,
-          startScale: 1
-        },
-        grid: {
-          spacing: 8,
-          length: 1,
-          colour: '#fff',
-          snap: false
-        },
-        collapse: false
-      });
-    }
-    const ws = panelWorkspaceRef.current;
+    const ws = ensureBlocklyInjected(panelWorkspaceRef, host);
+    // Blockly 懒加载未就绪：不清空预览，等 loaded 依赖触发本 effect 重跑后再渲染
+    if (!ws) return;
     ws.getTopBlocks().forEach(b => b.dispose(false));
     const idx = customBlocks.findIndex(b => b.id === currentBlockId);
-    setPanelPreviewSvg(renderCustomBlockToSvg(ws, cb, Math.max(0, idx)));
-  }, [currentBlockId, customBlocks, activeTab]);
+    const raf = requestAnimationFrame(() => {
+      try {
+        if (Blockly.svgResize) Blockly.svgResize(ws);
+      } catch (e) {/* silent */}
+      setPanelPreviewSvg(renderCustomBlockToSvg(ws, cb, Math.max(0, idx), extInfo.color1));
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [showBlockBuilder, currentBlockId, customBlocks, activeTab, extInfo.color1, loaded]);
   const handleApplySettings = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])(() => {
     if (!settingsDraft) return;
     const trimmed = settingsDraft.name.trim() || DEFAULT_EXTENSION_INFO.name;
@@ -37398,7 +38906,7 @@ const ExtensionBuilderInner = () => {
   const handleExport = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])(() => {
     console.log('Export clicked, code length:', generatedCode.length);
     try {
-      const fullCode = wrapAsExtension(extInfo, generatedCode, customBlocks);
+      const fullCode = wrapAsExtension(extInfo, generatedCode, customBlocks, variables);
       const blob = new Blob([fullCode], {
         type: 'application/javascript'
       });
@@ -37415,7 +38923,7 @@ const ExtensionBuilderInner = () => {
       console.error('Export failed:', e);
       alert('导出失败: ' + e.message);
     }
-  }, [extInfo, generatedCode, customBlocks]);
+  }, [extInfo, generatedCode, customBlocks, variables]);
 
   // 复制完整代码到剪贴板（兼容非 HTTPS 环境：navigator.clipboard 不可用时
   // 回退到 execCommand）
@@ -37449,18 +38957,70 @@ const ExtensionBuilderInner = () => {
       fallbackCopy();
     }
   }, [exportableCode, generatedCode]);
+
+  // 调试器：当前扩展代码的 Data URL（base64，随代码实时更新，与 CB-ExtGallery 调试页一致）
+  const debugDataUrl = Object(react__WEBPACK_IMPORTED_MODULE_0__["useMemo"])(() => {
+    const text = exportableCode || generatedCode || '';
+    if (!text) return '';
+    try {
+      return 'data:text/plain;base64,' + btoa(unescape(encodeURIComponent(text)));
+    } catch (e) {
+      return '';
+    }
+  }, [exportableCode, generatedCode]);
+
+  // 调试器：复制扩展 Data URL（可在预览环境粘贴加载）
+  const handleCopyDebugDataUrl = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])(() => {
+    if (!debugDataUrl) {
+      alert('暂无可导出的代码，请先拖入积木生成扩展');
+      return;
+    }
+    const flash = () => {
+      setCopyMsg('已复制扩展地址');
+      if (copyMsgTimerRef.current) clearTimeout(copyMsgTimerRef.current);
+      copyMsgTimerRef.current = setTimeout(() => setCopyMsg(''), 1800);
+    };
+    const fallbackCopy = () => {
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = debugDataUrl;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        flash();
+      } catch (err) {
+        alert('复制失败，请从下方文本框手动复制');
+      }
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(debugDataUrl).then(flash).catch(fallbackCopy);
+    } else {
+      fallbackCopy();
+    }
+  }, [debugDataUrl]);
   const handleReset = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])(() => {
     try {
+      // 清空本地自动保存的项目，避免刷新后又恢复旧数据
+      try {
+        localStorage.removeItem(PROJECT_STORAGE_KEY);
+      } catch (e) {/* ignore */}
+      // 重置积木定义列表为空
+      setCustomBlocks([]);
+      setCurrentBlockId('');
+      currentBlockRef.current = '';
+      customBlockXmlRef.current = new Map();
       if (workspaceRef.current) {
         workspaceRef.current.clear();
-        const currentBlock = customBlocks.find(b => b.id === currentBlockRef.current);
-        addStarterBlocks(workspaceRef.current, window._extBuilderBlockly || window.Blockly, (currentBlock === null || currentBlock === void 0 ? void 0 : currentBlock.name) || '我的积木');
       }
     } catch (e) {
       console.error('Reset failed:', e);
       alert('重置失败: ' + e.message);
     }
-  }, [customBlocks]);
+  }, []);
 
   // 插件开关：保存状态 → 重新激活插件（清理旧的原型覆写再应用新的）
   const handleToggleAddon = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])((addonId, enabled) => {
@@ -38448,7 +40008,8 @@ const ExtensionBuilderInner = () => {
         extInfo,
         customBlocks,
         workspaceXmlMap: customBlockXmlRef.current,
-        generatedCode
+        generatedCode,
+        variables
       });
       const name = saveNameInput.trim() || '存档 ' + new Date().toLocaleString();
       Object(_lib_saves_js__WEBPACK_IMPORTED_MODULE_6__["saveProject"])(session.username, {
@@ -38462,7 +40023,7 @@ const ExtensionBuilderInner = () => {
     } catch (err) {
       setSaveMsg('保存失败：' + (err.message || err));
     }
-  }, [session, extInfo, customBlocks, generatedCode, saveNameInput, refreshSaves, saveCurrentWorkspace]);
+  }, [session, extInfo, customBlocks, generatedCode, variables, saveNameInput, refreshSaves, saveCurrentWorkspace]);
 
   // 用当前项目覆盖已有存档
   const handleOverwriteSave = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])(saveId => {
@@ -38473,7 +40034,8 @@ const ExtensionBuilderInner = () => {
         extInfo,
         customBlocks,
         workspaceXmlMap: customBlockXmlRef.current,
-        generatedCode
+        generatedCode,
+        variables
       });
       const old = savesList.find(s => s.id === saveId);
       Object(_lib_saves_js__WEBPACK_IMPORTED_MODULE_6__["saveProject"])(session.username, {
@@ -38486,7 +40048,7 @@ const ExtensionBuilderInner = () => {
     } catch (err) {
       setSaveMsg('更新失败：' + (err.message || err));
     }
-  }, [session, extInfo, customBlocks, generatedCode, savesList, refreshSaves, saveCurrentWorkspace]);
+  }, [session, extInfo, customBlocks, generatedCode, variables, savesList, refreshSaves, saveCurrentWorkspace]);
   const handleDeleteSave = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])(saveId => {
     if (!session) return;
     const target = savesList.find(s => s.id === saveId);
@@ -38510,16 +40072,28 @@ const ExtensionBuilderInner = () => {
       const bt = String(cb.blockType || 'command').toUpperCase();
       t._type = bt === 'BOOLEAN' ? 'BOOLEAN' : bt === 'REPORTER' ? 'REPORTER' : bt === 'HAT' ? 'HAT' : bt === 'CONDITIONAL' ? 'CONDITIONAL' : 'COMMAND';
       t._text = '[' + (cb.name || 'block') + ']';
-      // 同步积木颜色（hex 或默认 290 紫色）
+      // 同步积木名到块上的 NAME 标签（field_label 不随 XML 序列化，
+      // 恢复 / 改名后必须主动写回，否则定义块显示的还是默认"我的积木"）
+      const nameField = t.getField && t.getField('NAME');
+      if (nameField && cb.name) {
+        try {
+          nameField.setValue(cb.name);
+        } catch (e) {/* ignore */}
+      }
+      // 同步积木颜色（hex 或扩展主题色，与预览/导出真实积木一致）
       if (t.setColour) {
         try {
-          t.setColour(cb.colour || 290);
+          t.setColour(cb.colour || extInfo.color1);
         } catch (e) {/* 忽略非法色 */}
       }
       // 定义块禁止删除（覆盖从 XML 存档恢复的块）
       if (t.setDeletable) t.setDeletable(false);
+      // 同步参数到定义块上（像 Scratch 自制积木一样显示参数输入槽）
+      try {
+        syncDefineBlockParams(t, cb);
+      } catch (e) {/* 忽略 */}
     });
-  }, []);
+  }, [extInfo.color1]);
 
   // 任何 customBlocks 变化（创建/编辑/删除/导入）都同步到 Blockly 工作区
   // 并刷新生成代码面板——否则用户在"积木定义"面板改了 name/type 等信息，
@@ -38530,35 +40104,205 @@ const ExtensionBuilderInner = () => {
     if (!ws || !workspaceLoaded) return;
     rehydrateBlockMeta(ws, customBlocks);
     try {
-      setGeneratedCode(_lib_block_definitions_js__WEBPACK_IMPORTED_MODULE_2__["javascriptGenerator"].workspaceToCode(ws));
+      setGeneratedCode(computeGeneratedCode(ws));
     } catch (e) {/* silent */}
-  }, [customBlocks, workspaceLoaded]);
+    // 元数据变化后持久化到 localStorage（防刷新丢失）
+    saveProjectToStorage();
+  }, [customBlocks, workspaceLoaded, saveProjectToStorage]);
+
+  // 同步"函数"分类：每次 customBlocks 变化（创建 / 改名 / 改参数 / 删除）
+  // 都重新注册调用积木并刷新工具箱，让分类里显示的是最新的自定义积木。
+  // 用 250ms 防抖，避免用户改名时每敲一个字就重建 flyout。
+  Object(react__WEBPACK_IMPORTED_MODULE_0__["useEffect"])(() => {
+    const ws = workspaceRef.current;
+    if (!ws || !workspaceLoaded) return;
+    const B = window._extBuilderBlockly || window.Blockly;
+    if (!B) return;
+    const timer = setTimeout(() => {
+      try {
+        // 先记住当前展开的分类名。注意：updateToolbox 会【重建 toolbox 对象】
+        // 并把选中态重置回默认分类，所以名字必须在更新前取，且更新后要用
+        // ws.getToolbox() 重新取新对象——在旧（已废弃）toolbox 上调用 API 会
+        // 破坏 flyout 状态，表现为"其它分类的积木都消失/不再刷新"。
+        let selectedName = null;
+        try {
+          const tbBefore = ws.getToolbox && ws.getToolbox();
+          selectedName = tbBefore && tbBefore.getSelectedCategoryName ? tbBefore.getSelectedCategoryName() : null;
+        } catch (e) {/* ignore */}
+        registerCustomCallBlocks(B, customBlocks, extInfo.color1);
+        if (ws.updateToolbox) {
+          ws.updateToolbox(buildToolboxXml(customBlocks, extInfo.color1, variables));
+        }
+
+        // 用【重建后】的 toolbox 恢复原分类选中（否则每次编辑后工具箱会跳回默认分类）
+        try {
+          const tbAfter = ws.getToolbox && ws.getToolbox();
+          if (tbAfter && selectedName && tbAfter.selectCategoryByName) {
+            tbAfter.selectCategoryByName(selectedName);
+          }
+        } catch (e) {/* ignore */}
+
+        // 定向重建 flyout 里的自定义调用积木：
+        // 改名 / 改类型 / 改色只改积木定义，flyout 里【已生成】的实例不会自动更新
+        // （表现为"函数"栏显示不刷新，拖出来才变）；但整块 flyout.show(contents)
+        // 会清空其它分类——该工具箱把全部分类累积在同一个 flyout 工作区里。
+        // 因此只销毁并就地重建 customcall_* 实例，其它分类的积木原样保留。
+        try {
+          const flyout = ws.getFlyout && ws.getFlyout();
+          const fws = flyout && flyout.getWorkspace && flyout.getWorkspace();
+          if (fws) {
+            const olds = fws.getAllBlocks(false).filter(function (b) {
+              return b.type && b.type.indexOf(CUSTOM_CALL_PREFIX) === 0;
+            });
+            if (olds.length) {
+              const infos = olds.map(function (b) {
+                let x = 0,
+                  y = 0;
+                try {
+                  const xy = b.getRelativeToSurfaceXY();
+                  x = xy.x;
+                  y = xy.y;
+                } catch (e) {/* ignore */}
+                return {
+                  type: b.type,
+                  x: x,
+                  y: y
+                };
+              });
+              olds.forEach(function (b) {
+                try {
+                  b.dispose(false);
+                } catch (e) {/* ignore */}
+              });
+              infos.forEach(function (it) {
+                try {
+                  const nb = fws.newBlock(it.type);
+                  nb.initSvg();
+                  nb.render();
+                  nb.moveBy(it.x, it.y);
+                } catch (e) {/* ignore */}
+              });
+            }
+          }
+        } catch (e) {/* ignore */}
+
+        // 画布上已拖出的自定义调用积木：按新定义刷新外观
+        // （颜色就地改；名称/参数/类型变化则原位重建并恢复连接）
+        try {
+          refreshCanvasCustomCallBlocks(ws, B, customBlocks, extInfo.color1);
+        } catch (e) {/* ignore */}
+      } catch (e) {
+        console.warn('[ExtBuilder] 刷新调用积木分类失败', e);
+      }
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [customBlocks, workspaceLoaded, extInfo.color1, variables]);
 
   // 用存档中的积木列表 + 工作区 XML 重建当前 Blockly 工作区
-  const rebuildWorkspaceFromState = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])((blocks, xmlMap) => {
+  // defineOrder：定义块的 id 顺序（见 saveProjectToStorage 的说明）
+  const rebuildWorkspaceFromState = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])((blocks, xmlMap, defineOrder) => {
     const ws = workspaceRef.current;
     const B = window._extBuilderBlockly || window.Blockly;
     if (!ws || !B) return;
     try {
       ws.clear();
       const firstId = blocks.length ? blocks[0].id : null;
-      currentBlockRef.current = firstId;
-      setCurrentBlockId(firstId);
-      const xml = firstId ? xmlMap.get(firstId) : null;
+      const preferredId = currentBlockRef.current; // 恢复时应为存档里的 current
+      // 保留存档里选中的块（若仍存在），否则退回第一个 —— 不要无条件重置成 block_1
+      const keepId = preferredId && blocks.some(b => b.id === preferredId) ? preferredId : firstId;
+      currentBlockRef.current = keepId;
+      setCurrentBlockId(keepId);
+
+      // 所有定义块共用同一个工作区，每次保存写的是"整个工作区"的快照。
+      // 历史快照里块数可能不一致（旧版本残留/删块后未及时保存）：
+      // 优先选"定义块数量与积木列表一致"的那份，其次当前块的，其次更长的，
+      // 避免恢复出一份过期快照导致多出/缺少定义块。
+      const countDefs = function countDefs(s) {
+        return (String(s).match(/type="block_define"/g) || []).length;
+      };
+      let xml = null,
+        bestScore = Infinity,
+        bestLen = -1;
+      xmlMap.forEach(function (v, k) {
+        if (typeof v !== 'string' || !v) return;
+        const diff = Math.abs(countDefs(v) - blocks.length);
+        const isCurrent = k === preferredId;
+        const score = diff * 1000 + (isCurrent ? 0 : 1);
+        if (score < bestScore || score === bestScore && v.length > bestLen) {
+          bestScore = score;
+          bestLen = v.length;
+          xml = v;
+        }
+      });
+      let restoredOk = false;
       if (xml) {
         try {
           const dom = B.Xml.textToDom(xml);
           B.Xml.domToWorkspace(dom, ws);
+          restoredOk = true;
+          // 把 data-block-id / 名字按顺序还原回恢复出来的定义块
+          try {
+            const order = Array.isArray(defineOrder) && defineOrder.length ? defineOrder.filter(function (id) {
+              return blocks.some(function (b) {
+                return b.id === id;
+              });
+            }) : blocks.map(function (b) {
+              return b.id;
+            });
+            const defsNow = ws.getTopBlocks(true).filter(function (t) {
+              return t.type === 'block_define';
+            });
+            defsNow.forEach(function (t, i) {
+              const id = order[i];
+              if (!id) return;
+              const svg = t.getSvgRoot && t.getSvgRoot();
+              if (svg && svg.setAttribute) svg.setAttribute('data-block-id', id);
+              const cb = blocks.find(function (b) {
+                return b.id === id;
+              });
+              const nf = t.getField && t.getField('NAME');
+              if (cb && nf && cb.name) {
+                try {
+                  nf.setValue(cb.name);
+                } catch (e2) {/* ignore */}
+              }
+              if (cb && t.render) {
+                try {
+                  t.render();
+                } catch (e2) {/* ignore */}
+              }
+            });
+          } catch (e2) {/* ignore */}
         } catch (e) {
           console.warn('Restore XML failed, adding starter blocks instead:', e);
-          blocks.forEach(b => addStarterBlocks(ws, B, b.name, b.id, b.blockType));
         }
-      } else {
+      }
+      if (!restoredOk) {
         blocks.forEach(b => addStarterBlocks(ws, B, b.name, b.id, b.blockType));
+      } else {
+        // 与积木列表对齐：快照里多出的定义块（历史残留）销毁；
+        // 快照缺的按列表补 starter，保证"一个积木 = 一个定义块"
+        try {
+          const defs2 = ws.getTopBlocks(true).filter(function (t) {
+            return t.type === 'block_define';
+          });
+          if (defs2.length > blocks.length) {
+            defs2.slice(blocks.length).forEach(function (t) {
+              try {
+                t.dispose(false);
+              } catch (e2) {/* ignore */}
+            });
+          } else if (defs2.length < blocks.length) {
+            for (let i = defs2.length; i < blocks.length; i++) {
+              const b = blocks[i];
+              if (b) addStarterBlocks(ws, B, b.name, b.id, b.blockType);
+            }
+          }
+        } catch (e2) {/* ignore */}
       }
       rehydrateBlockMeta(ws, blocks);
       try {
-        setGeneratedCode(_lib_block_definitions_js__WEBPACK_IMPORTED_MODULE_2__["javascriptGenerator"].workspaceToCode(ws));
+        setGeneratedCode(computeGeneratedCode(ws));
       } catch (e) {/* silent */}
     } catch (e) {
       console.warn('rebuildWorkspaceFromState failed:', e);
@@ -38573,6 +40317,11 @@ const ExtensionBuilderInner = () => {
       setExtInfo(_objectSpread(_objectSpread({}, DEFAULT_EXTENSION_INFO), restored.extInfo));
       setCustomBlocks(restored.customBlocks);
       customBlockXmlRef.current = restored.workspaceXmlMap;
+      // 恢复变量列表（TurboWarp 风格的工程级变量）
+      const savedVars = Array.isArray(restored.variables) ? restored.variables : [];
+      variablesRef.current = savedVars;
+      setVariables(savedVars);
+      setCurrentVariables(savedVars);
       setGeneratedCode(restored.generatedCode);
       rebuildWorkspaceFromState(restored.customBlocks, restored.workspaceXmlMap);
       setUserPanelType(null);
@@ -38583,7 +40332,77 @@ const ExtensionBuilderInner = () => {
     }
   }, [rebuildWorkspaceFromState]);
 
-  // 从 JSON 文件导入存档（登录后存入当前账号）
+  // ── 工程级 .see 文件（Scratch Extension Editor 专属格式）──
+  // 导出当前整个工程为一个 .see 文件（无需登录）
+  const handleExportProjectFile = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])(() => {
+    try {
+      saveCurrentWorkspace();
+      const data = Object(_lib_saves_js__WEBPACK_IMPORTED_MODULE_6__["collectProjectState"])({
+        extInfo,
+        customBlocks,
+        workspaceXmlMap: customBlockXmlRef.current,
+        generatedCode,
+        variables
+      });
+      Object(_lib_saves_js__WEBPACK_IMPORTED_MODULE_6__["exportSaveFile"])({
+        id: 'project_' + Date.now(),
+        name: extInfo.name || '我的扩展',
+        data
+      });
+      setSaveMsg('已导出工程文件（.see）');
+    } catch (err) {
+      alert('导出工程失败：' + (err.message || err));
+    }
+  }, [extInfo, customBlocks, generatedCode, variables, saveCurrentWorkspace]);
+
+  // 打开 .see 工程文件（兼容旧 .json 存档文件）
+  const handleOpenProjectFile = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])(() => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.see,.json,application/x-scratch-extension-editor,application/json';
+    input.onchange = e => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        try {
+          const parsed = Object(_lib_saves_js__WEBPACK_IMPORTED_MODULE_6__["parseSaveFileText"])(String(ev.target.result));
+          const data = parsed.data || parsed; // 兼容"纯工程快照"文件
+          handleLoadSave({
+            name: parsed.name || file.name,
+            data
+          });
+        } catch (err) {
+          alert('打开工程失败：' + err.message);
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  }, [handleLoadSave]);
+
+  // 桌面版双击 .see 工程文件：Electron 主进程通过 see-open-project 事件派发文件内容
+  Object(react__WEBPACK_IMPORTED_MODULE_0__["useEffect"])(() => {
+    function onSeeOpenProject(e) {
+      try {
+        let payload = e.detail;
+        if (typeof payload === 'string') payload = JSON.parse(payload);
+        if (!payload || !payload.content) return;
+        const parsed = Object(_lib_saves_js__WEBPACK_IMPORTED_MODULE_6__["parseSaveFileText"])(payload.content);
+        const data = parsed.data || parsed;
+        handleLoadSave({
+          name: parsed.name || payload.name,
+          data
+        });
+      } catch (err) {
+        alert('打开工程失败：' + err.message);
+      }
+    }
+    window.addEventListener('see-open-project', onSeeOpenProject);
+    return () => window.removeEventListener('see-open-project', onSeeOpenProject);
+  }, [handleLoadSave]);
+
+  // 从 .see 文件导入存档（Scratch Extension Editor 专属格式，兼容旧 .json）
   const handleImportSaveFile = Object(react__WEBPACK_IMPORTED_MODULE_0__["useCallback"])(() => {
     if (!session) {
       alert('请先登录后再导入存档');
@@ -38591,7 +40410,7 @@ const ExtensionBuilderInner = () => {
     }
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = '.json,application/json';
+    input.accept = '.see,.json,application/x-scratch-extension-editor,application/json';
     input.onchange = e => {
       const file = e.target.files && e.target.files[0];
       if (!file) return;
@@ -38601,7 +40420,7 @@ const ExtensionBuilderInner = () => {
           const save = Object(_lib_saves_js__WEBPACK_IMPORTED_MODULE_6__["parseSaveFileText"])(String(ev.target.result));
           Object(_lib_saves_js__WEBPACK_IMPORTED_MODULE_6__["saveProject"])(session.username, {
             id: save.id || 'save_' + Date.now(),
-            name: save.name || file.name.replace(/\.json$/i, ''),
+            name: save.name || file.name.replace(/\.(see|json)$/i, ''),
             data: save.data
           });
           refreshSaves();
@@ -38710,10 +40529,15 @@ const ExtensionBuilderInner = () => {
     d: "M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"
   })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
     className: "ext-menu-btn-label"
-  }, "\u8BBE\u7F6E")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
+  }, "\u8BBE\u7F6E")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+    className: "ext-file-dropdown",
+    onBlur: e => {
+      if (!e.currentTarget.contains(e.relatedTarget)) setShowFileMenu(false);
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
     className: "ext-menu-btn",
-    onClick: handleOpenPreview,
-    title: "\u9884\u89C8\u6240\u6709\u79EF\u6728"
+    onClick: () => setShowFileMenu(v => !v),
+    title: "\u6587\u4EF6"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("svg", {
     className: "ext-menu-btn-icon",
     width: "14",
@@ -38723,14 +40547,155 @@ const ExtensionBuilderInner = () => {
     stroke: "currentColor",
     strokeWidth: "2"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("path", {
+    d: "M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("polyline", {
+    points: "14,2 14,8 20,8"
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
+    className: "ext-menu-btn-label"
+  }, "\u6587\u4EF6"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
+    className: "ext-menu-arrow"
+  }, "\u25BE")), showFileMenu && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+    className: "ext-file-menu"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
+    className: "ext-file-menu-item",
+    onClick: () => {
+      setShowFileMenu(false);
+      setShowBlockBuilder(true);
+      setBuilderMinimized(false);
+      setBuilderMaximized(false);
+      setBuilderModalPos(null);
+      setBuilderSize(null);
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("svg", {
+    width: "16",
+    height: "16",
+    viewBox: "0 0 24 24",
+    fill: "#5b21b6",
+    stroke: "#5b21b6",
+    strokeWidth: "1.5"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("path", {
+    d: "M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+  })), "\u5236\u4F5C\u79EF\u6728"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+    className: "ext-file-menu-divider"
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
+    className: "ext-file-menu-item",
+    onClick: () => {
+      setShowFileMenu(false);
+      handleOpenPreview();
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("svg", {
+    width: "16",
+    height: "16",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "#5f6368",
+    strokeWidth: "2"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("path", {
     d: "M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
   }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("circle", {
     cx: "12",
     cy: "12",
     r: "3"
-  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
-    className: "ext-menu-btn-label"
-  }, "\u9884\u89C8")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+  })), "\u9884\u89C8\u79EF\u6728"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
+    className: "ext-file-menu-item",
+    onClick: () => {
+      setShowFileMenu(false);
+      handleLoadExtension();
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("svg", {
+    width: "16",
+    height: "16",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "#5f6368",
+    strokeWidth: "2"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("path", {
+    d: "M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("polyline", {
+    points: "17,8 12,3 7,8"
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("line", {
+    x1: "12",
+    y1: "3",
+    x2: "12",
+    y2: "15"
+  })), "\u4ECE\u7535\u8111\u52A0\u8F7D\u6269\u5C55"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
+    className: "ext-file-menu-item",
+    onClick: () => {
+      setShowFileMenu(false);
+      handleExport();
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("svg", {
+    width: "16",
+    height: "16",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "#5f6368",
+    strokeWidth: "2"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("path", {
+    d: "M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("polyline", {
+    points: "7,10 12,15 17,10"
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("line", {
+    x1: "12",
+    y1: "15",
+    x2: "12",
+    y2: "3"
+  })), "\u5BFC\u51FA .js \u6587\u4EF6"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+    className: "ext-file-menu-divider"
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
+    className: "ext-file-menu-item",
+    onClick: () => {
+      setShowFileMenu(false);
+      handleOpenProjectFile();
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("svg", {
+    width: "16",
+    height: "16",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "#5f6368",
+    strokeWidth: "2"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("path", {
+    d: "M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"
+  })), "\u6253\u5F00\u5DE5\u7A0B (.see)"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
+    className: "ext-file-menu-item",
+    onClick: () => {
+      setShowFileMenu(false);
+      handleExportProjectFile();
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("svg", {
+    width: "16",
+    height: "16",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "#5f6368",
+    strokeWidth: "2"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("path", {
+    d: "M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("polyline", {
+    points: "17,21 17,13 7,13 7,21"
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("polyline", {
+    points: "7,3 7,8 15,8"
+  })), "\u4FDD\u5B58\u5DE5\u7A0B (.see)"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+    className: "ext-file-menu-divider"
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
+    className: "ext-file-menu-item ext-file-menu-warn",
+    onClick: () => {
+      setShowFileMenu(false);
+      handleReset();
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("svg", {
+    width: "16",
+    height: "16",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "#d32f2f",
+    strokeWidth: "2"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("polyline", {
+    points: "23,4 23,10 17,10"
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("path", {
+    d: "M20.49 15a9 9 0 11-2.12-9.36L23 10"
+  })), "\u91CD\u7F6E\u5DE5\u4F5C\u533A"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
     className: "ext-tools-dropdown",
     onBlur: e => {
       if (!e.currentTarget.contains(e.relatedTarget)) setShowToolsMenu(false);
@@ -38952,29 +40917,6 @@ const ExtensionBuilderInner = () => {
     className: "ext-menu-bar-right"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
     className: "ext-menu-btn",
-    onClick: handleLoadExtension,
-    title: "\u52A0\u8F7D\u6269\u5C55"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("svg", {
-    className: "ext-menu-btn-icon",
-    width: "14",
-    height: "14",
-    viewBox: "0 0 24 24",
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: "2"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("path", {
-    d: "M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("polyline", {
-    points: "17,8 12,3 7,8"
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("line", {
-    x1: "12",
-    y1: "3",
-    x2: "12",
-    y2: "15"
-  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
-    className: "ext-menu-btn-label"
-  }, "\u52A0\u8F7D")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
-    className: "ext-menu-btn",
     onClick: handleExport,
     title: "\u5BFC\u51FA .js \u6587\u4EF6"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("svg", {
@@ -38996,25 +40938,7 @@ const ExtensionBuilderInner = () => {
     y2: "3"
   })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
     className: "ext-menu-btn-label"
-  }, "\u5BFC\u51FA")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
-    className: "ext-menu-btn ext-menu-btn-warn",
-    onClick: handleReset,
-    title: "\u91CD\u7F6E\u5DE5\u4F5C\u533A"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("svg", {
-    className: "ext-menu-btn-icon",
-    width: "14",
-    height: "14",
-    viewBox: "0 0 24 24",
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: "2"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("polyline", {
-    points: "23,4 23,10 17,10"
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("path", {
-    d: "M20.49 15a9 9 0 11-2.12-9.36L23 10"
-  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
-    className: "ext-menu-btn-label"
-  }, "\u91CD\u7F6E")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+  }, "\u5BFC\u51FA")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
     className: "ext-block-count-badge",
     onClick: () => setShowStatsPanel(v => !v),
     title: "\u70B9\u51FB\u67E5\u770B\u9879\u76EE\u6570\u636E\u5206\u6790"
@@ -39023,22 +40947,6 @@ const ExtensionBuilderInner = () => {
   }, projectStats.blockCount), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
     className: "ext-block-count-label"
   }, "\u4E2A\u79EF\u6728")))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-    className: "ext-builder-left"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
-    className: "ext-left-btn ".concat(showBlockBuilder ? 'active' : ''),
-    onClick: () => {
-      setShowBlockBuilder(true);
-      setBuilderMinimized(false);
-      setBuilderMaximized(false);
-      setBuilderModalPos(null);
-      setBuilderSize(null);
-    },
-    title: "\u5236\u4F5C\u79EF\u6728"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("img", {
-    src: "/make-blocks-btn.png",
-    alt: "\u5236\u4F5C\u79EF\u6728",
-    className: "ext-left-btn-img"
-  }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
     className: "ext-builder-right"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
     className: "ext-builder-tabs"
@@ -39090,7 +40998,105 @@ const ExtensionBuilderInner = () => {
     r: "3"
   }))), "\u8C03\u8BD5\u5668")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
     className: "ext-builder-main"
-  }, showBlockBuilder && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+  }, varModal && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+    className: "ext-builder-modal-backdrop"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+    ref: varModalRef,
+    className: "ext-var-modal",
+    role: "dialog",
+    "aria-modal": "true",
+    style: varModalPos ? {
+      left: varModalPos.x,
+      top: varModalPos.y,
+      bottom: 'auto',
+      transform: 'none'
+    } : null
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+    className: "ext-var-modal-header",
+    onMouseDown: handleVarDragStart,
+    title: "\u62D6\u52A8\u79FB\u52A8\u7A97\u53E3"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
+    className: "ext-var-modal-title"
+  }, varModal.mode === 'delete' ? '变量管理' : varModal.mode === 'edit' ? '重命名变量' : '注册变量'), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
+    type: "button",
+    className: "ext-var-modal-close",
+    onClick: () => setVarModal(null),
+    "aria-label": "\u5173\u95ED"
+  }, "\xD7")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+    className: "ext-var-modal-body"
+  }, varModal.mode === 'delete' ? variables.length === 0 ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+    className: "ext-var-modal-empty"
+  }, "\u8FD8\u6CA1\u6709\u521B\u5EFA\u4EFB\u4F55\u53D8\u91CF") : /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("ul", {
+    className: "ext-var-delete-list"
+  }, variables.map(v => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("li", {
+    key: v.id,
+    className: "ext-var-delete-item"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
+    className: "ext-var-delete-name"
+  }, v.name), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
+    className: "ext-var-delete-actions"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
+    type: "button",
+    className: "ext-var-edit-btn",
+    onClick: () => openEditVariableModal(v)
+  }, "\u91CD\u547D\u540D"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
+    type: "button",
+    className: "ext-var-delete-btn",
+    onClick: () => deleteVariable(v.id)
+  }, "\u5220\u9664"))))) : /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(react__WEBPACK_IMPORTED_MODULE_0___default.a.Fragment, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("label", {
+    className: "ext-var-modal-label",
+    htmlFor: "extVarNameInput"
+  }, "\u53D8\u91CF\u540D\uFF1A"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
+    id: "extVarNameInput",
+    className: "ext-var-modal-input",
+    type: "text",
+    autoFocus: true,
+    value: varNameInput,
+    onChange: e => setVarNameInput(e.target.value),
+    onKeyDown: e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (varModal.mode === 'edit') confirmEditVariable();else confirmCreateVariable();
+      }
+    }
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("label", {
+    className: "ext-var-modal-label",
+    htmlFor: "extVarTypeSelect",
+    style: {
+      marginTop: '12px'
+    }
+  }, "\u5143\u7D20\u7C7B\u578B\uFF1A"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("select", {
+    id: "extVarTypeSelect",
+    className: "ext-var-modal-select",
+    value: varType,
+    onChange: e => setVarType(e.target.value)
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("option", {
+    value: "EMPTY"
+  }, "\u7A7A\u53D8\u91CF"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("option", {
+    value: "STRING"
+  }, "\u5B57\u7B26\u4E32"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("option", {
+    value: "NUMBER"
+  }, "\u6570\u5B57"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("option", {
+    value: "BOOLEAN"
+  }, "\u5E03\u5C14"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("option", {
+    value: "LIST"
+  }, "\u5217\u8868"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("option", {
+    value: "VECTOR"
+  }, "\u5411\u91CF")))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+    className: "ext-var-modal-footer"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
+    type: "button",
+    className: "ext-var-modal-btn",
+    onClick: () => setVarModal(null)
+  }, "\u53D6\u6D88"), varModal.mode === 'delete' ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
+    type: "button",
+    className: "ext-var-modal-btn primary",
+    onClick: () => setVarModal(null)
+  }, "\u5B8C\u6210") : /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
+    type: "button",
+    className: "ext-var-modal-btn primary",
+    onClick: varModal.mode === 'edit' ? confirmEditVariable : confirmCreateVariable
+  }, varModal.mode === 'edit' ? '确定' : '注册')))), showBlockBuilder && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
     className: "ext-builder-modal-backdrop"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
     ref: builderModalRef,
@@ -39102,13 +41108,13 @@ const ExtensionBuilderInner = () => {
     } : null), builderSize ? {
       width: builderSize.width,
       height: builderSize.height
-    } : null), builderMaximized ? {
-      top: 8,
-      left: 8,
-      right: 8,
-      bottom: 8,
-      height: 'auto',
-      maxHeight: 'none'
+    } : null), !builderModalPos && !builderSize && !builderMaximized ? {
+      top: '48px',
+      left: '12px',
+      right: '12px',
+      bottom: '12px',
+      width: 'calc(100vw - 24px)',
+      height: 'calc(100vh - 60px)'
     } : null), builderMinimized ? {
       display: 'none'
     } : null)
@@ -39131,7 +41137,13 @@ const ExtensionBuilderInner = () => {
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("path", {
     d: "M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
-  })), "\u5236\u4F5C\u79EF\u6728"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+  })), "\u5236\u4F5C\u79EF\u6728 ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("small", {
+    style: {
+      color: '#bbb',
+      fontSize: '10px',
+      fontWeight: 400
+    }
+  }, BUILD_TAG)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
     className: "ext-builder-modal-controls"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
     type: "button",
@@ -39207,7 +41219,7 @@ const ExtensionBuilderInner = () => {
       handleStartRename(block.id, block.name);
     },
     title: "\u53CC\u51FB\u91CD\u547D\u540D"
-  }, block.name), customBlocks.length > 1 && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
+  }, block.name), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
     className: "ext-block-list-delete",
     onClick: e => {
       e.stopPropagation();
@@ -39234,7 +41246,7 @@ const ExtensionBuilderInner = () => {
   })))))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
     className: "ext-block-list-add",
     onClick: handleCreateBlock
-  }, "+ \u521B\u5EFA\u79EF\u6728"), (() => {
+  }, "+ \u521B\u5EFA\u79EF\u6728")), (() => {
     const currentBlock = customBlocks.find(b => b.id === currentBlockId);
     if (!currentBlock) return null;
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
@@ -39251,7 +41263,7 @@ const ExtensionBuilderInner = () => {
       className: "ext-block-editor-preview-header"
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
       className: "ext-block-editor-preview-label"
-    }, currentBlock.blockType === 'command' ? '命令积木' : currentBlock.blockType === 'Boolean' ? '布尔积木' : currentBlock.blockType === 'reporter' ? '报告积木' : currentBlock.blockType === 'hat' ? '帽子积木' : '条件积木')), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+    }, canonicalBlockType(currentBlock.blockType) === 'command' ? '命令积木' : canonicalBlockType(currentBlock.blockType) === 'Boolean' ? '布尔积木' : canonicalBlockType(currentBlock.blockType) === 'reporter' ? '返回' : canonicalBlockType(currentBlock.blockType) === 'hat' ? '帽子积木' : '条件积木')), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
       className: "ext-block-editor-preview-svg",
       dangerouslySetInnerHTML: {
         __html: panelPreviewSvg || '<span class="ext-block-editor-preview-empty">编辑字段以预览积木</span>'
@@ -39269,7 +41281,7 @@ const ExtensionBuilderInner = () => {
       className: "ext-block-editor-fields-row"
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("select", {
       className: "ext-block-editor-input ext-block-editor-input-type",
-      value: f.kind || 'text',
+      value: f.kind === 'boolean' ? 'dropdown' : f.kind || 'text',
       onChange: e => handleUpdateField(currentBlock.id, idx, {
         kind: e.target.value
       })
@@ -39280,8 +41292,8 @@ const ExtensionBuilderInner = () => {
     }, "\u5B57\u7B26\u4E32"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("option", {
       value: "number"
     }, "\u6570\u5B57"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("option", {
-      value: "boolean"
-    }, "\u5E03\u5C14")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
+      value: "dropdown"
+    }, "\u4E0B\u62C9\u6846")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
       className: "ext-block-editor-input ext-block-editor-input-text",
       value: f.text || '',
       onChange: e => handleUpdateField(currentBlock.id, idx, {
@@ -39297,18 +41309,80 @@ const ExtensionBuilderInner = () => {
       }),
       placeholder: "\u9ED8\u8BA4\u503C",
       title: "\u6570\u5B57\u9ED8\u8BA4\u503C"
-    }), f.kind === 'boolean' && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("select", {
+    }), (f.kind === 'dropdown' || f.kind === 'boolean') && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+      className: "ext-block-editor-dropdown-opts"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("select", {
       className: "ext-block-editor-input ext-block-editor-input-default",
-      value: f.default || 'true',
+      value: f.default || f.options && f.options[0] && f.options[0].value || '',
       onChange: e => handleUpdateField(currentBlock.id, idx, {
         default: e.target.value
       }),
-      title: "\u5E03\u5C14\u9ED8\u8BA4\u503C"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("option", {
-      value: "true"
-    }, "\u662F"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("option", {
-      value: "false"
-    }, "\u5426")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
+      title: "\u4E0B\u62C9\u6846\u9ED8\u8BA4\u503C"
+    }, (f.options || []).map((opt, oi) => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("option", {
+      key: oi,
+      value: opt.value
+    }, opt.text))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
+      type: "button",
+      className: "ext-block-editor-fields-opt-btn",
+      onClick: () => {
+        const opts = Array.isArray(f.options) ? [...f.options] : [];
+        const newIdx = opts.length;
+        const val = prompt('新选项的值 (英文标识):', 'option' + (newIdx + 1));
+        if (!val || !val.trim()) return;
+        const txt = prompt('新选项的显示文字:', val.trim()) || val.trim();
+        opts.push({
+          text: txt.trim(),
+          value: val.trim()
+        });
+        handleUpdateField(currentBlock.id, idx, {
+          options: opts,
+          default: opts[0].value
+        });
+      },
+      title: "\u6DFB\u52A0\u9009\u9879"
+    }, "+")), (f.kind === 'dropdown' || f.kind === 'boolean') && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+      className: "ext-block-editor-dropdown-optlist"
+    }, (f.options || []).map((opt, oi) => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
+      key: oi,
+      className: "ext-block-editor-dropdown-optitem"
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
+      className: "ext-block-editor-dropdown-optinput",
+      value: opt.text,
+      onChange: e => {
+        const opts = [...f.options];
+        opts[oi] = _objectSpread(_objectSpread({}, opts[oi]), {}, {
+          text: e.target.value
+        });
+        handleUpdateField(currentBlock.id, idx, {
+          options: opts
+        });
+      },
+      title: "\u663E\u793A\u6587\u5B57"
+    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
+      className: "ext-block-editor-dropdown-optinput ext-block-editor-dropdown-optval",
+      value: opt.value,
+      onChange: e => {
+        const opts = [...f.options];
+        opts[oi] = _objectSpread(_objectSpread({}, opts[oi]), {}, {
+          value: e.target.value
+        });
+        handleUpdateField(currentBlock.id, idx, {
+          options: opts
+        });
+      },
+      title: "\u503C"
+    }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
+      type: "button",
+      className: "ext-block-editor-fields-opt-del",
+      onClick: () => {
+        const opts = f.options.filter((_, j) => j !== oi);
+        handleUpdateField(currentBlock.id, idx, {
+          options: opts,
+          default: opts.length ? opts[0].value : ''
+        });
+      },
+      title: "\u5220\u9664\u9009\u9879"
+    }, "\xD7")))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
       type: "button",
       className: "ext-block-editor-fields-delete",
       onClick: () => handleRemoveField(currentBlock.id, idx),
@@ -39318,11 +41392,13 @@ const ExtensionBuilderInner = () => {
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
       type: "button",
       className: "ext-block-editor-fields-add-btn",
-      onClick: () => handleAddField(currentBlock.id, 'text')
+      onClick: () => handleAddField(currentBlock.id, addFieldKind)
     }, "\u6DFB\u52A0\u5B57\u6BB5"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("select", {
       className: "ext-block-editor-input ext-block-editor-fields-add-type",
-      defaultValue: "text",
-      id: "ext-block-editor-fields-add-type-select"
+      value: addFieldKind,
+      onChange: e => setAddFieldKind(e.target.value),
+      id: "ext-block-editor-fields-add-type-select",
+      title: "\u9009\u62E9\u8981\u6DFB\u52A0\u7684\u5B57\u6BB5\u7C7B\u578B"
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("option", {
       value: "label"
     }, "\u6807\u7B7E"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("option", {
@@ -39330,10 +41406,10 @@ const ExtensionBuilderInner = () => {
     }, "\u5B57\u7B26\u4E32"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("option", {
       value: "number"
     }, "\u6570\u5B57"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("option", {
-      value: "boolean"
-    }, "\u5E03\u5C14"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("details", {
+      value: "dropdown"
+    }, "\u4E0B\u62C9\u6846"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
       className: "ext-block-editor-meta"
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("summary", null, "\u79EF\u6728\u5143\u6570\u636E\uFF08\u9AD8\u7EA7\uFF09"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("label", {
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("label", {
       className: "ext-block-editor-label"
     }, "ID"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
       className: "ext-block-editor-input",
@@ -39344,7 +41420,7 @@ const ExtensionBuilderInner = () => {
       className: "ext-block-editor-label"
     }, "\u79EF\u6728\u7C7B\u578B"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("select", {
       className: "ext-block-editor-input",
-      value: currentBlock.blockType || 'command',
+      value: canonicalBlockType(currentBlock.blockType),
       onChange: e => handleUpdateBlock(currentBlock.id, {
         blockType: e.target.value
       })
@@ -39354,7 +41430,7 @@ const ExtensionBuilderInner = () => {
       value: "Boolean"
     }, "\u5E03\u5C14\u79EF\u6728"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("option", {
       value: "reporter"
-    }, "\u62A5\u544A\u79EF\u6728"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("option", {
+    }, "\u8FD4\u56DE"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("option", {
       value: "hat"
     }, "\u5E3D\u5B50\u79EF\u6728"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("option", {
       value: "conditional"
@@ -39365,7 +41441,7 @@ const ExtensionBuilderInner = () => {
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
       type: "color",
       className: "ext-block-colour-input",
-      value: /^#[0-9a-fA-F]{6}$/.test(currentBlock.colour || '') ? currentBlock.colour : '#9966FF',
+      value: /^#[0-9a-fA-F]{6}$/.test(currentBlock.colour || '') ? currentBlock.colour : extInfo.color1 || '#FF6680',
       onChange: e => handleUpdateBlock(currentBlock.id, {
         colour: e.target.value
       }),
@@ -39438,8 +41514,11 @@ const ExtensionBuilderInner = () => {
     }, currentBlock.icon ? '移除图标' : '上传积木图标')), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
       className: "ext-block-editor-hint"
     }, "\u5728\u53F3\u4FA7 Blockly \u5DE5\u4F5C\u533A\u62D6\u5165\u79EF\u6728\u6765\u5B9A\u4E49\u6B64\u79EF\u6728\u7684\u4EE3\u7801\u5B9E\u73B0"));
-  })())))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-    className: "ext-builder-workspace-full"
+  })()))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+    className: "ext-builder-workspace-full",
+    style: activeTab === 'debugger' ? {
+      display: 'none'
+    } : null
   }, loadError && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
     className: "ext-builder-load-error"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("p", {
@@ -39451,7 +41530,10 @@ const ExtensionBuilderInner = () => {
     ref: blocklyDivRef,
     className: "blockly-host"
   })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-    className: "ext-builder-stage"
+    className: "ext-builder-stage",
+    style: activeTab === 'debugger' ? {
+      display: 'none'
+    } : null
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
     className: "ext-stage-header"
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
@@ -39645,7 +41727,54 @@ const ExtensionBuilderInner = () => {
   })), " ", projectStats.lineCount, " \u884C"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
     className: "ext-stat-item",
     title: "\u5BFC\u51FA\u6587\u4EF6\u5927\u5C0F"
-  }, formatBytes(projectStats.fullSize))))))), showSettingsPanel && settingsDraft && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(react__WEBPACK_IMPORTED_MODULE_0___default.a.Fragment, null, !settingsMinimized && !settingsMaximized && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+  }, formatBytes(projectStats.fullSize))))), activeTab === 'debugger' && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+    className: "ext-debugger-view"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+    className: "ext-debugger-row"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
+    className: "ext-debugger-row-label"
+  }, "\u9884\u89C8\u73AF\u5883", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("br", null), "\u5730\u5740"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
+    className: "ext-debugger-url-input",
+    value: debuggerUrl,
+    onChange: e => setDebuggerUrl(e.target.value),
+    spellCheck: false,
+    title: "\u9884\u89C8\u73AF\u5883\u5730\u5740\uFF08\u53EF\u4FEE\u6539\uFF09"
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
+    className: "ext-debugger-green-btn",
+    onClick: handleCopyDebugDataUrl,
+    title: "\u590D\u5236\u5F53\u524D\u6269\u5C55\u4EE3\u7801\u7684 Data URL\uFF0C\u5230\u9884\u89C8\u73AF\u5883\u7C98\u8D34\u52A0\u8F7D"
+  }, "\u590D\u5236\u6269\u5C55\u5730\u5740"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
+    className: "ext-debugger-green-btn",
+    onClick: () => {
+      if (!debugDataUrl) {
+        alert('暂无可导出的代码，请先拖入积木生成扩展');
+        return;
+      }
+      // 例：https://remixwarp.pages.dev//editor?extension=<Data URL>
+      // 必须 encodeURIComponent：base64 里的 + 号在 query 中会被当成空格而损坏
+      window.open(debuggerUrl + '/editor?extension=' + encodeURIComponent(debugDataUrl), '_blank');
+    },
+    title: "\u5728\u65B0\u6807\u7B7E\u9875\u6253\u5F00\u9884\u89C8\u73AF\u5883\uFF0C\u5E76\u901A\u8FC7 ?extension= \u81EA\u52A8\u52A0\u8F7D\u5F53\u524D\u6269\u5C55"
+  }, "\u5728\u65B0\u6807\u7B7E\u9875\u4E2D\u6253\u5F00")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+    className: "ext-debugger-row"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
+    className: "ext-debugger-row-label"
+  }, "\u5F53\u524D\u6269\u5C55\uFF1A"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
+    className: "ext-debugger-ext-info"
+  }, extInfo.name, "\uFF08", extInfo.id, "\uFF09")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+    className: "ext-debugger-row"
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
+    className: "ext-debugger-row-label"
+  }, "\u6269\u5C55\u4EE3\u7801\u7EAF\u5740\uFF08Data URL\uFF09")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("textarea", {
+    className: "ext-debugger-dataurl-box",
+    readOnly: true,
+    value: debugDataUrl || '// 拖入积木生成代码后，这里会实时显示扩展的 Data URL',
+    spellCheck: false,
+    onClick: e => e.target.select(),
+    title: "\u70B9\u51FB\u5168\u9009\uFF0CCtrl+C \u590D\u5236"
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+    className: "ext-debugger-hint"
+  }, "\u4E0B\u65B9\u6587\u672C\u6846\u4F1A\u6839\u636E\u5F53\u524D\u751F\u6210\u7684 JS \u5B9E\u65F6\u66F4\u65B0\uFF0C\u5728\u65B0\u6807\u7B7E\u9875\u6253\u5F00\u9884\u89C8\u73AF\u5883\u540E\uFF0C\u53EF\u7C98\u8D34\u6B64\u5904\u5730\u5740\u52A0\u8F7D\u6269\u5C55\u3002")))), showSettingsPanel && settingsDraft && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(react__WEBPACK_IMPORTED_MODULE_0___default.a.Fragment, null, !settingsMinimized && !settingsMaximized && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
     className: "ext-float-resize-layer",
     ref: settingsResizeLayerRef
   }, ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'].map(dir => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
@@ -40841,7 +42970,7 @@ const ExtensionBuilderInner = () => {
     onClick: () => handleOverwriteSave(save.id)
   }, "\u8986\u76D6"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
     className: "ext-saves-act",
-    title: "\u5BFC\u51FA\u4E3A JSON \u6587\u4EF6",
+    title: "\u5BFC\u51FA\u4E3A .see \u6587\u4EF6\uFF08Scratch Extension Editor \u4E13\u5C5E\u683C\u5F0F\uFF09",
     onClick: () => Object(_lib_saves_js__WEBPACK_IMPORTED_MODULE_6__["exportSaveFile"])(save)
   }, "\u5BFC\u51FA"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
     className: "ext-saves-act ext-saves-act-del",
@@ -40888,7 +43017,7 @@ const ExtensionBuilderInner = () => {
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
     className: "ext-saves-act",
     onClick: handleImportSaveFile
-  }, "\u5BFC\u5165\u5B58\u6863\u6587\u4EF6(.json)"))))))), showStatsPanel && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(react__WEBPACK_IMPORTED_MODULE_0___default.a.Fragment, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+  }, "\u5BFC\u5165\u5B58\u6863\u6587\u4EF6(.see)"))))))), showStatsPanel && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(react__WEBPACK_IMPORTED_MODULE_0___default.a.Fragment, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
     className: "ext-float-resize-layer",
     ref: statsResizeLayerRef
   }, ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'].map(dir => /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
@@ -40999,7 +43128,7 @@ const ExtensionBuilderInner = () => {
       gap: 8,
       marginBottom: 14
     }
-  }, [[projectStats.blockCount, '积木总数', '#4C97FF'], [projectStats.hatCount, '帽积木', '#FF6680'], [projectStats.cmdCount, '命令积木', '#4C97FF'], [projectStats.reporterCount, '报告积木', '#9966FF'], [projectStats.boolCount, '布尔积木', '#FF8C1A']].filter(v => v[0] > 0).map(_ref2 => {
+  }, [[projectStats.blockCount, '积木总数', '#4C97FF'], [projectStats.hatCount, '帽积木', '#FF6680'], [projectStats.cmdCount, '命令积木', '#4C97FF'], [projectStats.reporterCount, '返回', '#9966FF'], [projectStats.boolCount, '布尔积木', '#FF8C1A']].filter(v => v[0] > 0).map(_ref2 => {
     let [val, label, color] = _ref2;
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
       key: label,
@@ -41110,7 +43239,7 @@ function formatBytes(bytes) {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 }
-function wrapAsExtension(extInfo, generatedCode, customBlocks) {
+function wrapAsExtension(extInfo, generatedCode, customBlocks, variables) {
   const esc = s => String(s || '').replace(/'/g, "\\'");
   const headerLines = [' * ' + extInfo.name, ' * Extension ID: ' + extInfo.id, extInfo.description ? ' * Description: ' + extInfo.description : null, extInfo.author ? ' * Author: ' + extInfo.author : null, extInfo.docsUrl ? ' * Docs: ' + extInfo.docsUrl : null, ' * License: ' + (extInfo.license || 'MPL-2.0'), ' * Blocks: ' + (Array.isArray(customBlocks) ? customBlocks.length : 0), ' * Generated by TurboWarp Extension Editor'].filter(Boolean).join('\n');
 
@@ -41126,12 +43255,32 @@ function wrapAsExtension(extInfo, generatedCode, customBlocks) {
     if (b.filterSprite) filter.push('TARGET_SPRITE');
     if (b.filterStage) filter.push('TARGET_STAGE');
     // 从 parts 构建 arguments（TurboWarp 的 ArgumentType 字符串形式）
+    // ⚠️ TurboWarp 没有 "boolean dropdown" 类型；要显示「是/否」下拉框，
+    // 必须用 type:'string' + menu 引用，在 getInfo() 的 menus 中定义选项。
     const argumentsDef = {};
     parts.forEach(p => {
       if (!p || p.kind !== 'input' || !p.name) return;
+      let type = 'string';
+      let defaultValue = '';
+      if (p.inputType === 'Number') {
+        type = 'number';
+        defaultValue = 0;
+      } else if (p.inputType === 'Dropdown' || p.inputType === 'Boolean') {
+        // 用 menu 实现下拉框
+        type = 'string';
+        const opts = Array.isArray(p.options) ? p.options : [];
+        defaultValue = opts.length && opts[0].value ? opts[0].value : 'true';
+        const menuName = 'DROPDOWN_MENU_' + p.name;
+        argumentsDef[p.name] = {
+          type,
+          defaultValue,
+          menu: menuName
+        };
+        return;
+      }
       argumentsDef[p.name] = {
-        type: p.inputType === 'Number' ? 'number' : 'string',
-        defaultValue: p.inputType === 'Number' ? 0 : ''
+        type,
+        defaultValue
       };
     });
     const entry = {
@@ -41175,12 +43324,362 @@ function wrapAsExtension(extInfo, generatedCode, customBlocks) {
     return entry;
   });
   const blocksJson = JSON.stringify(blocks, null, 4).split('\n').map(l => '                ' + l).join('\n');
-  const metaFields = ["                id: '" + esc(extInfo.id) + "',", "                name: '" + esc(extInfo.name) + "',", "                color1: '" + extInfo.color1 + "',", "                color2: '" + extInfo.color2 + "',", "                color3: '" + extInfo.color3 + "',", extInfo.description ? "                description: '" + esc(extInfo.description) + "'," : null, extInfo.author ? "                author: '" + esc(extInfo.author) + "'," : null, extInfo.docsUrl ? "                docsURL: '" + esc(extInfo.docsUrl) + "'," : null, extInfo.license ? "                license: '" + esc(extInfo.license) + "'," : null, '                blocks: ' + blocksJson].filter(Boolean).join('\n');
+
+  // 收集所有下拉框字段的 menu 定义（去重）
+  const dropdownMenuMap = new Map(); // name → options
+  (Array.isArray(customBlocks) ? customBlocks : []).forEach(b => {
+    const parts = Array.isArray(b.parts) ? b.parts : [];
+    parts.forEach(p => {
+      if (p && p.kind === 'input' && (p.inputType === 'Dropdown' || p.inputType === 'Boolean') && p.name) {
+        dropdownMenuMap.set(p.name, p.options || []);
+      }
+    });
+  });
+  const menusObj = {};
+  dropdownMenuMap.forEach((opts, name) => {
+    const items = Array.isArray(opts) && opts.length ? opts.map(o => ({
+      text: o.text || o.value,
+      value: o.value || o.text
+    })) : [{
+      text: '是',
+      value: 'true'
+    }, {
+      text: '否',
+      value: 'false'
+    }];
+    menusObj['DROPDOWN_MENU_' + name] = {
+      acceptReporters: false,
+      items
+    };
+  });
+  let menusJson = '';
+  if (Object.keys(menusObj).length) {
+    const lines = ['                menus: {'];
+    Object.keys(menusObj).forEach((k, i, arr) => {
+      const v = menusObj[k];
+      const comma = i < arr.length - 1 ? ',' : '';
+      lines.push('                    "' + k + '": {');
+      lines.push('                        acceptReporters: false,');
+      lines.push('                        items: [');
+      v.items.forEach((item, j, items) => {
+        const itemComma = j < items.length - 1 ? ',' : '';
+        lines.push('                            {text: \'' + item.text + '\', value: \'' + item.value + '\'}' + itemComma);
+      });
+      lines.push('                        ]');
+      lines.push('                    }' + comma);
+    });
+    lines.push('                },');
+    menusJson = '\n' + lines.join('\n');
+  }
+  const metaFields = ["                id: '" + esc(extInfo.id) + "',", "                name: '" + esc(extInfo.name) + "',", "                color1: '" + extInfo.color1 + "',", "                color2: '" + extInfo.color2 + "',", "                color3: '" + extInfo.color3 + "',", extInfo.description ? "                description: '" + esc(extInfo.description) + "'," : null, extInfo.author ? "                author: '" + esc(extInfo.author) + "'," : null, extInfo.docsUrl ? "                docsURL: '" + esc(extInfo.docsUrl) + "'," : null, extInfo.license ? "                license: '" + esc(extInfo.license) + "'," : null, menusJson || null, '                blocks: ' + blocksJson].filter(Boolean).join('\n');
   const className = extInfo.id.split(/[^a-zA-Z0-9]/).filter(Boolean).map(capitalize).join('') || 'MyExtension';
-  return "/**\n".concat(headerLines, "\n */\n\n") + "(function(Scratch) {\n" + "    'use strict';\n\n" + _lib_extforge_runtime_js__WEBPACK_IMPORTED_MODULE_4__["EXT_FORGE_RUNTIME"].split('\n').map(l => '    ' + l).join('\n') + '\n\n' + "    class ".concat(className, " {\n") + "        getInfo() {\n" + "            return {\n" + "".concat(metaFields, "\n") + "            };\n" + "        }\n\n" + "".concat(Object(_lib_extforge_runtime_js__WEBPACK_IMPORTED_MODULE_4__["withUtilInjection"])(generatedCode).split('\n').map(l => '        ' + l).join('\n'), "\n") + "    }\n\n" + "    Scratch.extensions.register(new ".concat(className, "());\n") + "})(Scratch);\n";
+  return "/**\n".concat(headerLines, "\n */\n\n") + "(function(Scratch) {\n" + "    'use strict';\n\n" + _lib_extforge_runtime_js__WEBPACK_IMPORTED_MODULE_4__["EXT_FORGE_RUNTIME"].split('\n').map(l => '    ' + l).join('\n') + '\n\n' + buildVariableDeclarations(variables) + "    class ".concat(className, " {\n") + "        getInfo() {\n" + "            return {\n" + "".concat(metaFields, "\n") + "            };\n" + "        }\n\n" + "".concat(Object(_lib_extforge_runtime_js__WEBPACK_IMPORTED_MODULE_4__["withUtilInjection"])(generatedCode).split('\n').map(l => '        ' + l).join('\n'), "\n") + "    }\n\n" + "    Scratch.extensions.register(new ".concat(className, "());\n") + "})(Scratch);\n";
 }
 function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+// ── 自定义积木的"调用"积木（工具箱"函数"分类）────────────────────
+// 每个用户创建的自定义积木都会在"函数"分类里生成一个对应的调用积木，
+// 类型名为 `customcall_<id>`，形状与源积木一致（命令 / 返回值 / 布尔），
+// 输入孔与源积木 parts 里的 input 片段一一对应。
+// 生成的代码是 `this.<opcode>({参数: 值, ...}, util)`——因为导出时
+// wrapAsExtension 把每个自定义积木编译成扩展类上的
+// `${opcode}(args, util) { ... }` 方法，只能用 this 调用。
+const CUSTOM_CALL_PREFIX = 'customcall_';
+
+// 工具箱分类 id（与 scratch 分类圆点 scratchCategoryId-{id} 对应）
+const CATEGORY_IDS = ['events', 'control', 'math', 'strings', 'vectors', 'input', 'variables', 'lists', 'functions', 'blocks', 'runtime', 'targets', 'browser', 'music', 'script', 'extra'];
+function customCallType(blockId) {
+  return CUSTOM_CALL_PREFIX + String(blockId || '').replace(/[^a-zA-Z0-9_]/g, '_');
+}
+function customBlockOpcode(blockId) {
+  return String(blockId || 'block').replace(/[^a-zA-Z0-9]/g, '_');
+}
+
+// message0 里 '%' 是参数占位符引导符，中文用户文本里的 % 必须替换掉，
+// 否则 Blockly 会把它当成 %1 解析导致积木文字错乱。
+function safeMsgText(s) {
+  return String(s === null || s === undefined ? '' : s).replace(/%/g, '％');
+}
+function escapeXmlAttr(s) {
+  return String(s === null || s === undefined ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// 由 customBlocks 元数据推导调用积木的 Blockly JSON 定义
+function buildCustomCallDef(cb, fallbackColour) {
+  const parts = Array.isArray(cb.parts) ? cb.parts : [];
+  let msg = '';
+  let n = 0;
+  const args0 = [];
+  parts.forEach(p => {
+    if (!p) return;
+    if (p.kind === 'input') {
+      n += 1;
+      msg += '%' + n;
+      if (p.inputType === 'Number') {
+        args0.push({
+          type: 'input_value',
+          name: 'ARG_' + p.name,
+          check: 'Number'
+        });
+      } else if (p.inputType === 'Dropdown' || p.inputType === 'Boolean') {
+        const opts = Array.isArray(p.options) && p.options.length ? p.options.map(o => [o.text || o.value, o.value || o.text]) : [['是', 'true'], ['否', 'false']];
+        args0.push({
+          type: 'field_dropdown',
+          name: 'ARG_' + p.name,
+          options: opts
+        });
+      } else {
+        args0.push({
+          type: 'input_value',
+          name: 'ARG_' + p.name,
+          check: 'String'
+        });
+      }
+    } else {
+      msg += safeMsgText(p.value);
+    }
+  });
+  if (!msg.trim()) msg = safeMsgText(cb.name || '积木');
+  const def = {
+    type: customCallType(cb.id),
+    message0: msg,
+    args0: args0,
+    colour: cb.colour || fallbackColour || '#FF6680'
+  };
+  // blockType 用 TurboWarp 的大小写（command / Boolean / reporter / hat /
+  // conditional），统一转成大写比较，避免 'boolean' / 'Boolean' 两种写法。
+  const bt = String(cb.blockType || 'command').toUpperCase();
+  if (bt === 'REPORTER') {
+    def.output = 'Number';
+    def.id = 'REPORTER';
+  } else if (bt === 'BOOLEAN') {
+    def.output = 'Boolean';
+    def.id = 'BOOLEAN';
+  } else {
+    // command 可堆叠；hat / conditional / loop 也按可堆叠命令块渲染
+    def.previousStatement = null;
+    def.nextStatement = null;
+    def.id = 'COMMAND';
+  }
+  return {
+    def,
+    inputs: parts.filter(p => p && p.kind === 'input' && p.name)
+  };
+}
+
+// 为每个自定义积木注册调用积木（Blockly 定义 + JS 生成器）
+function registerCustomCallBlocks(Blockly, customBlocks, fallbackColour) {
+  if (!Blockly || !Blockly.Blocks) return;
+  const list = Array.isArray(customBlocks) ? customBlocks : [];
+  list.forEach(cb => {
+    const built = buildCustomCallDef(cb, fallbackColour);
+    const def = built.def;
+    const inputs = built.inputs;
+    const type = def.type;
+    const opcode = customBlockOpcode(cb.id);
+    const isValue = def.output === 'Number' || def.output === 'Boolean';
+    const isAsync = !!cb.isAsync;
+    const cleanDef = {};
+    Object.keys(def).forEach(k => {
+      if (k !== 'type') cleanDef[k] = def[k];
+    });
+    Blockly.Blocks[type] = {
+      init: function init() {
+        this.jsonInit(cleanDef);
+        if (this.outputConnection) {
+          let shape = null;
+          if (cleanDef.output === 'Boolean') shape = 1;else if (cleanDef.output === 'Number' || cleanDef.output === 'String') shape = 2;
+          if (shape !== null && this.setOutputShape) this.setOutputShape(shape);
+        }
+        // 给每个输入孔挂默认 shadow，用户可直接键入数字/文本
+        // ⚠️ Dropdown 类型是 field_dropdown，没有 input slot，不挂 shadow
+        inputs.forEach(p => {
+          if (p.inputType === 'Dropdown' || p.inputType === 'Boolean') return;
+          const input = this.getInput('ARG_' + p.name);
+          if (!input || !input.connection) return;
+          if (input.connection.targetBlock()) return;
+          try {
+            const isNum = p.inputType === 'Number';
+            const shadow = this.workspace.newBlock(isNum ? 'math_number' : 'text');
+            shadow.setShadow(true);
+            shadow.setFieldValue(isNum ? '0' : '', isNum ? 'NUM' : 'TEXT');
+            shadow.initSvg();
+            shadow.render();
+            input.connection.connect(shadow.outputConnection);
+          } catch (e) {/* 忽略 */}
+        });
+      }
+    };
+    _lib_block_definitions_js__WEBPACK_IMPORTED_MODULE_2__["CODE_GENERATORS"][type] = b => {
+      const argList = inputs.map(p => {
+        let v;
+        if (p.inputType === 'Dropdown' || p.inputType === 'Boolean') {
+          v = b.getFieldValue('ARG_' + p.name);
+          if (v === null || v === undefined) {
+            v = p.options && p.options[0] && p.options[0].value || '';
+          }
+          v = JSON.stringify(String(v));
+        } else {
+          v = _lib_block_definitions_js__WEBPACK_IMPORTED_MODULE_2__["javascriptGenerator"].valueToCode(b, 'ARG_' + p.name, 0);
+          const fallback = p.inputType === 'Number' ? '0' : "''";
+          v = v === '' || v === null || v === undefined ? fallback : v;
+        }
+        return "".concat(p.name, ": ").concat(v);
+      });
+      const call = "this.".concat(opcode, "({").concat(argList.join(', '), "}, util)");
+      const expr = (isAsync ? 'await ' : '') + call;
+      return isValue ? [expr, 0] : expr + ';\n';
+    };
+  });
+}
+
+// 让画布上【已经拖出来】的自定义调用积木按最新定义刷新外观。
+// Blockly 的既有块实例不会在定义变化后自动重新 init，所以：
+//   - 定义签名不变 → 仅同步颜色（扩展主题色可能变了）
+//   - 定义变了（名称/参数/类型）→ 原位重建并尽量恢复连接关系
+// 首次见到的块（没有签名）以当前定义为准，只记录签名、不重建，避免刷新页面时误重建。
+function refreshCanvasCustomCallBlocks(ws, Blockly, customBlocks, fallbackColour) {
+  if (!ws || !Blockly || !Blockly.Blocks) return;
+  let blocks = [];
+  try {
+    blocks = ws.getAllBlocks(false).filter(function (b) {
+      return b.type && b.type.indexOf(CUSTOM_CALL_PREFIX) === 0;
+    });
+  } catch (e) {
+    return;
+  }
+  blocks.forEach(function (oldBlock) {
+    let cb = null;
+    try {
+      cb = (customBlocks || []).find(function (c) {
+        return customCallType(c.id) === oldBlock.type;
+      });
+    } catch (e) {}
+    if (!cb) return;
+    const built = buildCustomCallDef(cb, fallbackColour);
+
+    // 颜色总是就地同步（便宜，且扩展主题色变化也要跟随）
+    try {
+      if (oldBlock.setColour && built.def.colour && oldBlock.colour_ !== built.def.colour) {
+        oldBlock.setColour(built.def.colour);
+        if (oldBlock.render) oldBlock.render();
+      }
+    } catch (e) {/* ignore */}
+
+    // 签名只覆盖影响"结构/文字"的部分（名称/参数/类型），颜色单独处理
+    const sig = JSON.stringify({
+      m: built.def.message0,
+      a: built.def.args0,
+      o: built.def.output || ''
+    });
+
+    // 首次见到：以当前定义为准，只记录签名
+    if (!oldBlock._extCallSig) {
+      oldBlock._extCallSig = sig;
+      return;
+    }
+    if (oldBlock._extCallSig === sig) return; // 定义未变
+    oldBlock._extCallSig = sig;
+    try {
+      const xy = oldBlock.getRelativeToSurfaceXY ? oldBlock.getRelativeToSurfaceXY() : {
+        x: 0,
+        y: 0
+      };
+      // 记录连接关系（父/上一个/下一个/各输入）
+      let prevTarget = null,
+        outTarget = null,
+        nextBlock = null;
+      try {
+        if (oldBlock.previousConnection && oldBlock.previousConnection.targetConnection) prevTarget = oldBlock.previousConnection.targetConnection;
+      } catch (e) {}
+      try {
+        if (oldBlock.outputConnection && oldBlock.outputConnection.targetConnection) outTarget = oldBlock.outputConnection.targetConnection;
+      } catch (e) {}
+      try {
+        if (oldBlock.nextConnection && oldBlock.nextConnection.targetBlock) nextBlock = oldBlock.nextConnection.targetBlock();
+      } catch (e) {}
+      const inputTargets = {};
+      try {
+        (oldBlock.inputList || []).forEach(function (inp) {
+          const t = inp.connection && inp.connection.targetBlock ? inp.connection.targetBlock() : null;
+          if (t && !(t.isShadow && t.isShadow())) inputTargets[inp.name] = t;
+        });
+      } catch (e) {}
+      const eventsApi = Blockly.Events;
+      try {
+        if (eventsApi && eventsApi.disable) eventsApi.disable();
+      } catch (e) {}
+      try {
+        oldBlock.dispose(false);
+        const nb = ws.newBlock(oldBlock.type);
+        nb._extCallSig = sig;
+        nb.initSvg();
+        nb.render();
+        nb.moveBy(xy.x, xy.y);
+        try {
+          if (prevTarget && nb.previousConnection) prevTarget.connect(nb.previousConnection);
+        } catch (e) {}
+        try {
+          if (outTarget && nb.outputConnection) outTarget.connect(nb.outputConnection);
+        } catch (e) {}
+        try {
+          if (nextBlock && nb.nextConnection && nextBlock.previousConnection) nb.nextConnection.connect(nextBlock.previousConnection);
+        } catch (e) {}
+        Object.keys(inputTargets).forEach(function (k) {
+          try {
+            const inp = nb.getInput(k);
+            const t = inputTargets[k];
+            if (inp && inp.connection && t && t.outputConnection) inp.connection.connect(t.outputConnection);
+          } catch (e) {}
+        });
+        nb.render();
+      } finally {
+        try {
+          if (eventsApi && eventsApi.enable) eventsApi.enable();
+        } catch (e) {}
+      }
+    } catch (e) {/* 单块更新失败不影响其它 */}
+  });
+}
+
+// 构建完整工具箱 XML（"函数"分类内容由 customBlocks 动态生成，
+// "变量"分类内容由 variables 动态生成）
+function buildToolboxXml(customBlocks, fallbackColour, variables) {
+  const callBlocksXml = (Array.isArray(customBlocks) ? customBlocks : []).map(cb => "<block type=\"".concat(escapeXmlAttr(customCallType(cb.id)), "\"/>")).join('');
+  const vars = Array.isArray(variables) ? variables : [];
+  // 变量分类（TurboWarp 风格）：顶部「建立一个变量」按钮（有变量时再加
+  // 「删除一个变量」），随后是每个变量的取值积木，最后是通用的
+  // 「将 [] 设为 []」「将 [] 增加 []」。下拉选项由 block-definitions 的
+  // _variableOptionsProvider 动态提供。
+  // 关键：没有任何变量时**不显示**「将 [] 设为 []」「将 [] 增加 []」——
+  // 否则它们会退化成下拉回退值 `var_1`（一个从未声明的幽灵变量），
+  // 拖到画布后生成的代码 `var_1 = 0;` 在运行时直接 ReferenceError。
+  // Scratch 也是「有变量后」才出现这两个积木。
+  const varCategoryXml = "<button text=\"\u5EFA\u7ACB\u4E00\u4E2A\u53D8\u91CF\" callbackKey=\"MAKE_VARIABLE\"></button>" + (vars.length ? "<button text=\"\u7BA1\u7406\u53D8\u91CF\" callbackKey=\"DELETE_VARIABLE\"></button>" : '') + vars.map(v => "<block type=\"var_get\"><field name=\"NAME\">".concat(escapeXmlAttr(v.id), "</field></block>")).join('') + (vars.length ? "<block type=\"var_set\"><value name=\"VALUE\"><shadow type=\"math_number\"><field name=\"NUM\">0</field></shadow></value></block>" + "<block type=\"var_change\"><value name=\"DELTA\"><shadow type=\"math_number\"><field name=\"NUM\">1</field></shadow></value></block>" : '');
+  return '<xml xmlns="https://developers.google.com/blockly/xml">' + _lib_block_definitions_js__WEBPACK_IMPORTED_MODULE_2__["TOOLBOX_CONFIG"].contents.map((cat, idx) => {
+    let childXml;
+    if (cat.dynamic === 'customCalls') {
+      childXml = callBlocksXml;
+    } else if (cat.dynamic === 'variables') {
+      childXml = varCategoryXml;
+    } else {
+      childXml = cat.contents.map(b => {
+        const shadows = PLACEHOLDER_SHADOWS[b.type];
+        if (!shadows) return "<block type=\"".concat(b.type, "\"/>");
+        const valueXml = Object.keys(shadows).map(name => {
+          const s = shadows[name];
+          return "<value name=\"".concat(name, "\"><shadow type=\"").concat(s.type, "\"><field name=\"").concat(s.field, "\">").concat(s.value, "</field></shadow></value>");
+        }).join('');
+        return "<block type=\"".concat(b.type, "\">").concat(valueXml, "</block>");
+      }).join('');
+    }
+    const safeName = escapeXmlAttr(cat.name);
+    const safeColour = String(cat.colour || '#FF6680').replace(/[^#0-9a-fA-F]/g, '');
+    const catId = CATEGORY_IDS[idx] || 'cat' + idx;
+    return "<category name=\"".concat(safeName, "\" id=\"").concat(catId, "\" colour=\"").concat(safeColour, "\" secondaryColour=\"").concat(safeColour, "\">").concat(childXml, "</category>");
+  }).join('') + '</xml>';
 }
 
 // 从 hex 颜色按比例变暗，派生 color2/color3（'#RRGGBB' -> '#RRGGBB'）
@@ -41199,79 +43698,89 @@ function darkenHex(hex, factor) {
  * workspace) and return the wrapped SVG string. Module-level so both the
  * modal preview and the builder-panel preview can reuse it.
  */
-function renderCustomBlockToSvg(ws, cb, idx) {
+// 构建标记：显示在「制作积木」标题旁，用于确认浏览器加载的是最新代码而非缓存旧版
+const BUILD_TAG = 'B0910-1900';
+
+// 归一化积木类型：历史存档可能写入 'boolean' / 'Boolean'、'reporter' / 'REPORTER'
+// 等不同大小写，统一成下拉框选项里的规范值，避免 UI 与预览形状判定失配。
+function canonicalBlockType(v) {
+  const s = String(v || '').trim();
+  const u = s.toUpperCase();
+  if (u === 'BOOLEAN') return 'Boolean';
+  if (u === 'REPORTER') return 'reporter';
+  if (u === 'HAT') return 'hat';
+  if (u === 'CONDITIONAL') return 'conditional';
+  if (u === 'COMMAND' || u === '') return 'command';
+  return s;
+}
+function renderCustomBlockToSvg(ws, cb, idx, fallbackColour) {
   if (!ws || !cb) return '';
   const B = window._extBuilderBlockly || window.Blockly;
   if (!B || !B.Blocks) return '';
   const name = cb.name || '我的积木 ' + ((idx || 0) + 1);
-  const fields = Array.isArray(cb.fields) ? cb.fields : [];
+  const parts = Array.isArray(cb.parts) ? cb.parts : [];
 
-  // Build message template + args from the fields
+  // Build message template + args from parts — same structure as the export.
+  // TurboWarp text: "文字1 [参数名] 文字2" → 文字显示为文本，[参数名] 变成输入槽。
+  // 预览必须保持一致：text → field_label，input → input_value（不加额外标签）。
   let message0 = '%1';
   const args0 = [{
     type: 'field_label',
     text: name,
     name: 'NAME'
   }];
-  fields.forEach(function (f, fi) {
-    if (!f) return;
-    const ftype = f.kind || 'text';
-    const textIdx = fi * 2 + 2;
-    const inputIdx = fi * 2 + 3;
-    if (ftype === 'label') {
+  let argIdx = 2;
+  parts.forEach(function (p) {
+    if (!p) return;
+    if (p.kind === 'text') {
       args0.push({
         type: 'field_label',
-        text: f.text || '',
-        name: 'TXT' + fi
+        text: p.value || '',
+        name: 'TXT' + argIdx
       });
-      message0 += ' %' + textIdx;
-    } else {
-      args0.push({
-        type: 'field_label',
-        text: f.text || '',
-        name: 'TXT' + fi
-      });
-      if (ftype === 'number') {
+      message0 += ' %' + argIdx;
+      argIdx++;
+    } else if (p.kind === 'input') {
+      if (p.inputType === 'Number') {
         args0.push({
           type: 'field_number',
-          value: Number(f.default) || 0,
-          name: 'FLD' + fi,
+          value: 0,
+          name: 'FLD_' + p.name,
           precision: 1
         });
-      } else if (ftype === 'boolean') {
+      } else if (p.inputType === 'Dropdown' || p.inputType === 'Boolean') {
+        const opts = Array.isArray(p.options) && p.options.length ? p.options.map(o => [o.text || o.value, o.value || o.text]) : [['是', 'true'], ['否', 'false']];
         args0.push({
           type: 'field_dropdown',
-          options: [['是', 'true'], ['否', 'false']],
-          name: 'FLD' + fi
+          options: opts,
+          name: 'FLD_' + p.name
         });
       } else {
         args0.push({
           type: 'field_input',
-          text: f.default || f.text || '',
-          name: 'FLD' + fi
+          text: '',
+          name: 'FLD_' + p.name
         });
       }
-      message0 += ' %' + textIdx + ' %' + inputIdx;
+      message0 += ' %' + argIdx;
+      argIdx++;
     }
   });
 
-  // Choose the scratch block shape + colour by blockType
+  // Choose the scratch block shape + colour by blockType.
+  // 颜色一律用 hex 字符串，不传 hue 数字：hue 数字（如 344）在不同 Blockly
+  // 状态下会被不同公式转换（scratch 调色板 → #FF6680；经典 HSV(0.45,0.65)
+  // → #A55B6F），导致预览与真实积木颜色不一致。
+  // 默认色用扩展主题色 color1 —— 无块级颜色时 TurboWarp 真实渲染用的就是它。
+  const fallback = typeof fallbackColour === 'string' && fallbackColour || '#FF6680';
   let shapeDef = {
-    colour: 344,
+    colour: cb.colour || fallback,
     id: 'C'
   };
-  if (cb.blockType === 'reporter') shapeDef = {
-    colour: 270,
-    output: 'Number'
-  };else if (cb.blockType === 'Boolean') shapeDef = {
-    colour: 270,
-    output: 'Boolean'
-  };else if (cb.blockType === 'hat') shapeDef = {
-    colour: 45,
-    id: 'HAT'
-  };
-  // 用户自定义积木颜色覆盖默认色（与 block_define 工作区 / 导出代码一致）
-  if (cb.colour) shapeDef.colour = cb.colour;
+  // 类型判定统一转大写比较：历史存档 / 不同入口可能写入 'boolean' 或 'Boolean'，
+  // 精确字符串比较会让布尔积木被当成命令积木渲染（形状永远不变）。
+  const bt = String(cb.blockType || 'command').toUpperCase();
+  if (bt === 'REPORTER') shapeDef.output = 'Number';else if (bt === 'BOOLEAN') shapeDef.output = 'Boolean';else if (bt === 'HAT') shapeDef.id = 'HAT';
   const previewType = (cb.id || 'b' + idx) + '__preview';
   // Force re-registration so shape / fields changes are reflected live.
   if (B.Blocks[previewType]) B.Blocks[previewType] = null;
@@ -42141,6 +44650,183 @@ function loginWithGitHub(profile, remember) {
 
 /***/ }),
 
+/***/ "./src/extension-builder/lib/bilup-nova/adapt-bundle.js":
+/*!**************************************************************!*\
+  !*** ./src/extension-builder/lib/bilup-nova/adapt-bundle.js ***!
+  \**************************************************************/
+/*! exports provided: adaptNovaBundle, patchSystemPrompt, patchToolSchemas, patchToolSchemasAdd, patchToolGuard, patchToolMethods, getInjectedToolNames, AI_SYSTEM_PROMPT, TOOL_SCHEMA_PATCHES, TOOL_METHOD_PATCHES, TOOL_SCHEMA_INJECTION */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "adaptNovaBundle", function() { return adaptNovaBundle; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "patchSystemPrompt", function() { return patchSystemPrompt; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "patchToolSchemas", function() { return patchToolSchemas; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "patchToolSchemasAdd", function() { return patchToolSchemasAdd; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "patchToolGuard", function() { return patchToolGuard; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "patchToolMethods", function() { return patchToolMethods; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getInjectedToolNames", function() { return getInjectedToolNames; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "AI_SYSTEM_PROMPT", function() { return AI_SYSTEM_PROMPT; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "TOOL_SCHEMA_PATCHES", function() { return TOOL_SCHEMA_PATCHES; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "TOOL_METHOD_PATCHES", function() { return TOOL_METHOD_PATCHES; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "TOOL_SCHEMA_INJECTION", function() { return TOOL_SCHEMA_INJECTION; });
+/**
+ * adapt-bundle.js —— Bilup Nova（novatheai）原始 bundle 的「本项目适配」改写层
+ * ════════════════════════════════════════════════════════════════════════
+ * 原版 Bilup Nova 假设自己跑在「TurboWarp / Scratch 运行时」里，所以：
+ *   - 系统提示词说它在 Bilup(Scratch environment)，要求它去「安装内置扩展」；
+ *   - getProjectOverview / listFiles 读的是 Scratch 项目的 sprites / costumes；
+ *   - installExtension 依赖 vm.extensionManager.loadExtensionURL。
+ * 而本宿主是「scratch扩展编辑器」——一个**制作**扩展的网页工具（自定义积木 +
+ * 实现 + 导出），**没有 Scratch VM**。于是原版工具一调用就报
+ * "Scratch VM extensionManager.loadExtensionURL is not available"。
+ *
+ * 这里不改动 1.6MB 的 bundle 源文件本身，而是在 eval 之前对它做两类改写：
+ *   1) 换掉那条英文 system prompt → 面向本编辑器的中文提示词；
+ *   2) 在依赖 VM 的工具方法体开头注入 return，改走宿主 API window._extBuilderAI
+ *      （由 components/ExtensionBuilder.jsx 暴露：读写积木定义/变量/扩展信息/代码）；
+ *   3) 改写工具 schema 的 description，让模型看到的就是本编辑器语境。
+ *
+ * 之所以用「字符串外科手术」而不是重写方法，是因为 bundle 是压缩产物，
+ * 在方法体首行插入短路分支是最小侵入、且不受压缩变量名影响的做法。
+ *
+ * 本模块不依赖任何外部模块，纯字符串函数，可直接在 Node 里离线单测。
+ */
+
+// 本编辑器的系统提示词（替换 bundle 内那条英文 prompt）
+const AI_SYSTEM_PROMPT = ['你是「scratch扩展编辑器」（Scratch / TurboWarp 扩展编辑器）内置的 AI 助手，帮助用户**制作和修改 Scratch 扩展**。', '', '## 你在哪里（重要）', '你运行在一个**网页版扩展开发工具**里。用户用它把「自定义积木 + 实现代码」打包成一个 TurboWarp 扩展（.js），再导入 TurboWarp 使用。', '⚠️ 这里**不是** Scratch 运行时，**没有 Scratch VM**：不要尝试「安装/搜索 Scratch 内置扩展」，那在本环境不存在也不适用（原版工具的 installExtension 会直接失败）。', '用户说的「制作一个扩展」「做一个简单扩展」= 在编辑器里**定义积木**并说明/搭出**实现**。', '', '## 编辑器的核心概念', '- 一个扩展 = 一组「积木定义」+ 每块积木的「实现」。', '- 积木定义字段：name（显示名）、blockType（command 命令块 / hat 帽子块 / reporter 返回值椭圆 / Boolean 布尔六边形 / C C 形块）、', '  parts（积木面板文案与参数，数组：{kind:"text",value:"文本"} 文本片段、{kind:"input",name:"参数名",inputType:"String"|"Number"} 参数）、', '  colour（可选，形如 #4C97FF）、isAsync（异步积木）、isTerminal（终止积木）。', '', '### ⚠️ 积木类型选择指南（非常重要）', '一个扩展通常需要**混合使用多种积木类型**，不要全部用同一种。根据功能选择正确的类型：', '- **command（命令块）**：执行动作但不返回值。如「移动 [steps] 步」「说 [message]」。', '- **reporter（报告器/椭圆）**：返回一个值，可嵌入其他积木的输入。如「当前时间」「[a] 加 [b]」。', '- **Boolean（布尔/六边形）**：返回 true/false，用于条件判断。如「按下 [key] 键？」「碰到 [color]？」。', '- **hat（帽子块/事件）**：事件触发入口，放在脚本顶部。如「当收到 [message]」「当 [condition]」。', '- **C（C 形块/控制）**：包含内部空间，可包裹其他积木。如「重复 [n] 次」「如果 [condition] 则」。', '  C 形块需用 nextStatement/previousStatement 搭建内部逻辑。', '', '示例：一个「数学工具」扩展应该包含：reporter 类的「[a] 加 [b]」、Boolean 类的「[a] 大于 [b]？」、command 类的「设置 [var] 为 [value]」。', '示例：一个「游戏控制」扩展应该包含：hat 类的「当按下 [key]」、command 类的「移动 [dir]」、Boolean 类的「碰到 [target]？」。', '', '- 变量：工程级变量列表，会被注入到生成的实现代码中。', '- 实现：每块积木的实现由画布上的 Scratch 积木搭成，编辑器据此生成 JS。', '- 导出：编辑器把扩展信息 + 生成代码打包成 TurboWarp 扩展 JS。', '', '## 可用工具在本编辑器里的含义', '【读】', '- getProjectOverview：读取当前扩展概览（扩展信息 / 积木列表 / 变量 / 生成代码长度）。**开工前先调用**。', '- listFiles / listBlocks：列出当前扩展的积木定义（积木清单）。', '- getExportCode：读取当前扩展导出的完整 TurboWarp 扩展 JS 代码。', '- searchBlocks / getBlockHelp / getScratchGuide：查询 Scratch 积木的 opcode 与用法——用于给积木搭实现时选对积木。', '【写 · 直接用它们制作扩展】', '- defineBlock：**新增一块积木**。传 name（面板文字，参数位置写成 [参数名]，如「移动 [steps] 步」）、', '  blockType（command/hat/reporter/Boolean/C）、parts（面板片段数组：{kind:"text",value:"文字"} 或 {kind:"input",name:"steps",inputType:"Number"}）、', '  可选 colour（#RRGGBB）、isAsync（含 await 的异步积木）。**这是"制作扩展"的主力工具**。', '- updateBlockDef：修改已有积木（传 id + 要改的字段），用于改名、换类型、加参数、改颜色。', '- deleteBlockDef：删除积木（传 id）。', '- setExtensionInfo：设置扩展信息（name/description/author/color1/id）。', '- addVariable：新增工程级变量（name + type）。', '- addImplementationBlocks：**给积木搭实现**（传 id + xml）。xml 是 scratch-blocks 积木片段，', '  例如让积木「移动 10 步」：', '    <block type="motion_movesteps"><value name="STEPS"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>', '  串联多块用 <next>：第一块的 </block> 前插 <next>…第二块…</next>。', '  规则：实现必须以**语句积木**（command / C 形）开头；reporter / Boolean 这类返回值积木要放进 <value> 当输入，不能直接串。', '  输入的名字（如 STEPS / MESSAGE / CONDITION）与字段名（如 NUM / TEXT）**务必先用 describeBlock 核对**，', '  或用 searchBlocks / getBlockHelp 查；写错输入名会被 Blockly 静默忽略（积木变空壳），', '  addImplementationBlocks 会预校验并回报合法名字、同时取消本次插入。', '- clearBlockImplementation：**清空某块积木的实现**（搭错了要重来时用，然后重新 addImplementationBlocks）。', '- describeBlock：查询某积木类型的**合法输入名 / 语句输入名 / 字段名**（写 XML 前先问它）。', '- listAvailableBlocks：**列出本编辑器工具箱里真实可用的积木**（按分类，带合法输入名与推荐默认影子）。', '  ⚠️ 本编辑器只支持工具箱里的积木；想用某个积木前先在这里查（或 describeBlock 核对），', '  不要凭 Scratch 通用文档猜（诸如造型/角色/画笔/音乐等其它扩展的积木在本编辑器里可能不存在）。', '- getBlockImplementationXml：读取某块积木的工作区 XML 快照（确认已有实现 / 参照 XML 写法）。', '- validateExtension：**自检**。校验导出 JS 能否通过语法解析，并列出没有实现/没进代码的积木。', '  **建完积木与实现后必须调用它**：若返回 ok:false 或 missingImplementations 非空，先修好再告诉用户完成。', '【不适用】', '- searchExtensions / installExtension：**在本编辑器中不适用**（这里没有 Scratch 运行时，也没有"内置扩展"可装）。', '  若用户想增加功能，请直接用 defineBlock 定义积木，而不是安装扩展。', '', '## 收到「制作一个扩展」这类需求时的工作流程', '1. 先调用 getProjectOverview 看清现状（已有积木、变量、扩展信息）。', '2. 用自然语言把方案讲清楚：扩展叫什么、有哪几块积木、每块做什么、参数是什么。**注意混合使用不同积木类型**（command/reporter/Boolean/hat/C），不要全用同一种。', '3. 用 setExtensionInfo 设定扩展名称与描述。', '4. 用 defineBlock **逐块真正创建积木**（给出 name / blockType / parts / 颜色）。每块积木根据功能选择正确的 blockType。', '5. 需要变量时用 addVariable。', '6. 用 addImplementationBlocks **给每块积木搭上实现**（查准 opcode 与输入名后用 XML 插入）。⚠️ 必须使用真实积木（control_if、operator_*、math_*、variables_*、looks_say 等），不要用 extra_rawCode（原始代码）！', '7. **必须用 validateExtension 自检**；若报语法错误或 missingImplementations 非空，先修好。', '   修实现时：可先 clearBlockImplementation 清空，再用 addImplementationBlocks 重搭，然后重新自检。', '8. 用 getBlockImplementationXml 或 getExportCode 复核实现确实生效。', '9. 告诉用户：积木与实现已建好，可在画布上继续微调，然后点右上角「导出」得到扩展 .js 文件并在 TurboWarp 里加载。', '', '重要：不要只在回复里"描述"积木，而要**真的调用 defineBlock / addImplementationBlocks 把它们建出来**，否则用户的工作区不会发生任何变化。', '', '## 语言与风格', '- 使用与用户最新消息相同的语言；不确定时用简体中文。', '- 回答简明、分步骤、可执行；不要输出与 Scratch 运行时相关的无关操作。', '', '## 实现 XML 常用模板（直接复制改参数即可）', '', '### 1. 简单命令：说文字', '```xml', '<block type="looks_say"><value name="MESSAGE"><shadow type="text"><field name="TEXT">Hello!</field></shadow></value></block>', '```', '', '### 2. 如果（条件积木 + 语句内部）', '```xml', '<block type="control_if">', '  <value name="COND">', '    <block type="operator_equals">', '      <value name="A"><block type="variables_get"><field name="VAR">score</field></block></value>', '      <value name="B"><shadow type="math_number"><field name="NUM">100</field></shadow></value>', '    </block>', '  </value>', '  <statement name="DO">', '    <block type="looks_say"><value name="MESSAGE"><shadow type="text"><field name="TEXT">你赢了！</field></shadow></value></block>', '  </statement>', '</block>', '```', '', '### 3. 如果否则', '```xml', '<block type="control_ifElse">', '  <value name="COND">', '    <block type="math_compare">', '      <field name="OP">GT</field>', '      <value name="A"><block type="variables_get"><field name="VAR">hp</field></block></value>', '      <value name="B"><shadow type="math_number"><field name="NUM">0</field></shadow></value>', '    </block>', '  </value>', '  <statement name="DO">', '    <block type="looks_say"><value name="MESSAGE"><shadow type="text"><field name="TEXT">存活</field></shadow></value></block>', '  </statement>', '  <statement name="ELSE">', '    <block type="looks_say"><value name="MESSAGE"><shadow type="text"><field name="TEXT">死亡</field></shadow></value></block>', '  </statement>', '</block>', '```', '', '### 4. 等待 N 秒', '```xml', '<block type="control_wait">', '  <value name="TIME"><shadow type="math_number"><field name="NUM">1</field></shadow></value>', '  <statement name="DO">', '    <block type="looks_say"><value name="MESSAGE"><shadow type="text"><field name="TEXT">等待结束</field></shadow></value></block>', '  </statement>', '</block>', '```', '', '### 5. 重复 N 次', '```xml', '<block type="control_repeat">', '  <value name="TIMES"><shadow type="math_number"><field name="NUM">10</field></shadow></value>', '  <statement name="SUBSTACK">', '    <block type="motion_movesteps"><value name="STEPS"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>', '  </statement>', '</block>', '```', '', '### 6. 当条件循环', '```xml', '<block type="control_while">', '  <value name="COND">', '    <block type="math_compare">', '      <field name="OP">LT</field>', '      <value name="A"><block type="variables_get"><field name="VAR">i</field></block></value>', '      <value name="B"><shadow type="math_number"><field name="NUM">10</field></shadow></value>', '    </block>', '  </value>', '  <statement name="DO">', '    <block type="variables_change"><field name="VAR">i</field><value name="DELTA"><shadow type="math_number"><field name="NUM">1</field></shadow></value></block>', '  </statement>', '</block>', '```', '', '### 7. 串联多块（用 <next>）', '```xml', '<block type="variables_set"><field name="VAR">x</field><value name="VALUE"><shadow type="math_number"><field name="NUM">0</field></shadow></value>', '  <next>', '    <block type="control_repeat">', '      <value name="TIMES"><shadow type="math_number"><field name="NUM">5</field></shadow></value>', '      <statement name="SUBSTACK">', '        <block type="variables_change"><field name="VAR">x</field><value name="DELTA"><shadow type="math_number"><field name="NUM">1</field></shadow></value></block>', '      </statement>', '    </block>', '  </next>', '</block>', '```', '', '### 8. 运算作为输入', '```xml', '<block type="variables_set">', '  <field name="VAR">result</field>', '  <value name="VALUE">', '    <block type="math_arithmetic">', '      <field name="OP">add</field>', '      <value name="A"><shadow type="math_number"><field name="NUM">1</field></shadow></value>', '      <value name="B"><shadow type="math_number"><field name="NUM">2</field></shadow></value>', '    </block>', '  </value>', '</block>', '```', '', '### 9. reporter 返回值（如返回正弦）', '```xml', '<block type="control_inlineReturn">', '  <value name="VALUE">', '    <block type="extra_rawCode"><field name="CODE">Math.sin(args.angle)</field></block>', '  </value>', '</block>', '```', '', '⚠️ 优先用真实积木（control_*、operator_*、math_*、variables_*、looks_*、motion_*）；', '仅当没有对应积木时才用 extra_rawCode 写原始代码。'].join('\n');
+
+// 工具 schema 描述改写（精确字符串 → 本编辑器语境；找不到则跳过，不影响运行）
+const TOOL_SCHEMA_PATCHES = [['List virtual Scratch project files, including writable stage/sprite JS files, writable SVG costume files, and read-only docs.', '列出当前扩展的积木定义（每块积木的名称、类型、参数、是否已有实现）。'], ['Get a compact overview of Scratch targets, stage size/runtime options, virtual file paths, scripts, costumes, variables, and lists. Prefer this before reading full files when orienting.', '获取当前扩展项目概览：扩展信息（名称/ID/描述）、积木列表、变量、生成代码长度。开始工作前先调用它。'], ['Search built-in and known remote Scratch/TurboWarp/Mist/SharkPool/Bilup extensions by ID, name, keyword, source, or URL stem. Use before installing extension blocks that are not already loaded.', '【本编辑器不适用】这里没有 Scratch 运行时，无法搜索/安装内置扩展。若要新增功能，请改用「定义积木」方案（名称/类型/参数）。'], ['Install one built-in or known remote extension into the current Scratch VM, then return loaded extension blocks. External direct URLs require allowExternalUrl: true because remote extensions execute unsandboxed.', '【本编辑器不适用】本编辑器是「制作扩展」的工具，没有 Scratch VM，无法安装内置扩展。请改用「定义积木」方案来表达新功能。']];
+
+// 工具方法改写：在方法体首行短路，改走宿主 API（找不到锚点则跳过）
+const TOOL_METHOD_PATCHES = [['listFiles(){', 'if(window._extBuilderAI&&window._extBuilderAI.listFiles)return window._extBuilderAI.listFiles();'], ['getProjectOverview(){', 'if(window._extBuilderAI&&window._extBuilderAI.getProjectOverview){' + 'var _ai=window._extBuilderAI.getProjectOverview();' + '_ai.success=true;' + '_ai.files=(_ai.blocks||[]).map(function(b){return{path:"/blocks/"+b.id+".js",kind:"block",name:b.name,blockType:b.blockType};});' + 'return _ai;}'], ['async searchExtensions(){', 'return {success:true,query:"",matchCount:0,matches:[],note:"本编辑器用于制作扩展（自定义积木+实现），没有 Scratch 运行时，因此不提供内置扩展搜索。若要新增功能，请用「定义积木」方案表达。"};'], ['async installExtension(){', 'return {success:false,error:"本编辑器是扩展开发工具（没有 Scratch VM），无法安装 Scratch 内置扩展。请改用「定义积木」的方式来描述要实现的功能。"};']];
+
+// 注入到工具 schema 数组 nb 开头的「写入类」工具（让 AI 真能制作扩展）
+// 这些工具名与宿主 API window._extBuilderAI 上的同名函数一一对应。
+const TOOL_SCHEMA_INJECTION = '{type:"function",function:{name:"listBlocks",description:"列出当前扩展的所有积木定义（名称、类型、参数、颜色、是否已有实现）。",parameters:{type:"object",properties:{}}}},' + '{type:"function",function:{name:"defineBlock",description:"在当前扩展中新增一块积木。name 是积木面板文字（如「移动 [steps] 步」，参数位置用 [参数名] 占位）。blockType 必须根据积木功能正确选择：command=执行动作无返回值（如「移动」「说」）；reporter=返回数值/字符串（椭圆形，如「当前时间」「[a]加[b]」）；Boolean=返回true/false（六边形，如「碰到[color]？」「按下[key]？」「[a]>[b]？」）；hat=事件触发入口（帽子形，如「当收到[msg]」「当绿旗被点击」）；C=包含内部空间的控制块（C形，如「重复[n]次」「如果[cond]则」）。parts 是面板片段数组，元素形如 {kind:\'text\',value:\'文字\'} 或 {kind:\'input\',name:\'steps\',inputType:\'Number\'}（inputType 取 String 或 Number）；colour 可选，形如 #4C97FF；isAsync 可选布尔。⚠️ 一个扩展应混合使用多种类型，不要全用同一种。",parameters:{type:"object",properties:{name:{type:"string"},blockType:{type:"string"},parts:{type:"array",items:{type:"object"}},colour:{type:"string"},isAsync:{type:"boolean"},isTerminal:{type:"boolean"}},required:["name"]}}},' + '{type:"function",function:{name:"updateBlockDef",description:"修改已有积木定义。必须传 id，以及要修改的字段（name / blockType / parts / colour / isAsync / isTerminal）。",parameters:{type:"object",properties:{id:{type:"string"},name:{type:"string"},blockType:{type:"string"},parts:{type:"array",items:{type:"object"}},colour:{type:"string"},isAsync:{type:"boolean"},isTerminal:{type:"boolean"}},required:["id"]}}},' + '{type:"function",function:{name:"deleteBlockDef",description:"删除指定积木定义（扩展至少保留一块积木）。",parameters:{type:"object",properties:{id:{type:"string"}},required:["id"]}}},' + '{type:"function",function:{name:"setExtensionInfo",description:"设置扩展信息：name 扩展名称、description 描述、author 作者、color1 主题色（#RRGGBB）、id 扩展 ID（仅小写字母数字）。",parameters:{type:"object",properties:{name:{type:"string"},description:{type:"string"},author:{type:"string"},color1:{type:"string"},id:{type:"string"}}}}},' + '{type:"function",function:{name:"addVariable",description:"新增一个工程级变量。name 变量名；type 取 EMPTY/STRING/NUMBER/BOOLEAN/LIST/VECTOR。",parameters:{type:"object",properties:{name:{type:"string"},type:{type:"string"}},required:["name"]}}},' + '{type:"function",function:{name:"addImplementationBlocks",description:"给指定积木的「实现」区插入积木（AI 真正搭出实现的主力工具）。id 为积木 id；xml 为 scratch-blocks 积木片段。⚠️ 优先使用真实积木（control_if/control_ifElse/control_wait/control_repeat/control_while/operator_equals/operator_math_compare/math_arithmetic/variables_set/variables_get/looks_say 等）来构建实现，不要用 extra_rawCode（原始代码）块！只有当工具箱里没有对应积木时才用 rawCode。例如：if条件用 control_if（COND=条件 Boolean，DO=内部语句）；比较用 math_compare（OP=GT/LT/EQ，A/B=输入）；循环用 control_repeat（TIMES=次数，SUBSTACK=内部语句）；变量赋值用 variables_set。可用 <next> 串联多块；实现必须以语句积木（command/C 形）开头，返回值积木（reporter/Boolean）要放进 <value> 里当输入。",parameters:{type:"object",properties:{id:{type:"string"},xml:{type:"string"}},required:["id","xml"]}}},' + '{type:"function",function:{name:"getBlockImplementationXml",description:"读取某块积木当前的工作区 XML 快照（含它的定义与实现），用于确认已有实现或参照积木 XML 写法。",parameters:{type:"object",properties:{id:{type:"string"}},required:["id"]}}},' + '{type:"function",function:{name:"describeBlock",description:"查询某个 Scratch 积木类型的合法输入名/语句输入名/字段名。写实现 XML 前先用它核对，避免输入名写错（写错会被静默忽略、积木变空壳）。",parameters:{type:"object",properties:{type:{type:"string",description:"积木类型，如 motion_movesteps、looks_say、control_if、data_setvariableto。"}},required:["type"]}}},' + '{type:"function",function:{name:"clearBlockImplementation",description:"清空某块积木的「实现」（搭错了要重来时用，配合 addImplementationBlocks 重新搭）。id 为积木 id。",parameters:{type:"object",properties:{id:{type:"string"}},required:["id"]}}},' + '{type:"function",function:{name:"validateExtension",description:"自检：校验当前扩展导出的 JS 能否通过语法解析，并列出没有实现、没进代码的积木。建完积木与实现后应当调用它自我核对。",parameters:{type:"object",properties:{}}}},{type:"function",function:{name:"listAvailableBlocks",description:"列出本编辑器工具箱里真实可用的积木（按分类），含每块的 type、面板文字、合法输入/字段名与推荐默认影子。想找积木时先查这里，不要凭 Scratch 通用文档猜（本编辑器只支持其中一部分）。",parameters:{type:"object",properties:{query:{type:"string",description:"可选关键词，匹配积木 type 或面板文字，如 移动 / wait / string。"},category:{type:"string",description:"可选分类名，如 事件/控制/运算/字符串/变量/函数/运行时/目标/浏览器/音乐。"}},}}},' + '{type:"function",function:{name:"getExportCode",description:"读取当前扩展导出的完整 TurboWarp 扩展 JS 代码。",parameters:{type:"object",properties:{}}}},';
+
+// 工具 schema 数组 nb 的注入锚点（数组第一个元素之前）
+const NB_ANCHOR = 'nb=[{type:"function",function:{name:"listFiles"';
+
+// 工具调用守卫的注入锚点：让「宿主 API 上的同名函数」可直接作为工具调用，
+// 从而不必把新工具塞进 bundle 内部被压缩的 class 里。
+const GUARD_ANCHOR = '$g=async(e,t,n)=>{';
+const GUARD_INJECTION = 'if(window._extBuilderAI&&typeof window._extBuilderAI[t]==="function")return window._extBuilderAI[t](n);';
+
+// 替换 bundle 内那条英文 system prompt（单引号字符串，需正确处理转义）
+function patchSystemPrompt(src) {
+  const marker = 'role:"system",content:\'';
+  const at = src.indexOf(marker);
+  if (at < 0) return src;
+  const start = at + marker.length;
+  // 从内容起点扫描到未转义的结束单引号
+  let i = start;
+  let end = -1;
+  while (i < src.length) {
+    const ch = src[i];
+    if (ch === '\\') {
+      i += 2;
+      continue;
+    }
+    if (ch === "'") {
+      end = i;
+      break;
+    }
+    i++;
+  }
+  if (end < 0) return src;
+  const escaped = AI_SYSTEM_PROMPT.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\r?\n/g, '\\n');
+  return src.slice(0, start) + escaped + src.slice(end);
+}
+
+// 替换工具 schema 描述
+function patchToolSchemas(src) {
+  let out = src;
+  TOOL_SCHEMA_PATCHES.forEach(patch => {
+    const from = patch[0];
+    const to = patch[1].replace(/"/g, '\\"');
+    if (out.indexOf(from) < 0) return;
+    out = out.split(from).join(to);
+  });
+  return out;
+}
+
+// 在工具方法体首行注入短路 return
+function patchToolMethods(src) {
+  let out = src;
+  TOOL_METHOD_PATCHES.forEach(patch => {
+    const anchor = patch[0];
+    const inject = patch[1];
+    const idx = out.indexOf(anchor);
+    if (idx < 0) return;
+    const at = idx + anchor.length;
+    out = out.slice(0, at) + inject + out.slice(at);
+  });
+  return out;
+}
+
+// 注入「写入类」工具 schema（让 AI 知道可以新增/修改积木、设扩展信息、加变量）
+function patchToolSchemasAdd(src) {
+  const idx = src.indexOf(NB_ANCHOR);
+  if (idx < 0) return src;
+  const at = idx + 'nb=['.length;
+  return src.slice(0, at) + TOOL_SCHEMA_INJECTION + src.slice(at);
+}
+
+// 让宿主 API 上的同名函数可直接作为工具调用（工具调用守卫的逃生口）
+function patchToolGuard(src) {
+  const idx = src.indexOf(GUARD_ANCHOR);
+  if (idx < 0) return src;
+  const at = idx + GUARD_ANCHOR.length;
+  return src.slice(0, at) + GUARD_INJECTION + src.slice(at);
+}
+
+// 组合：源码 → 适配后的源码
+function adaptNovaBundle(src) {
+  let out = src;
+  try {
+    out = patchSystemPrompt(out);
+  } catch (e) {
+    console.warn('[AI] 系统提示词替换失败，沿用原版', e);
+  }
+  try {
+    out = patchToolSchemas(out);
+  } catch (e) {
+    console.warn('[AI] 工具描述替换失败', e);
+  }
+  try {
+    out = patchToolSchemasAdd(out);
+  } catch (e) {
+    console.warn('[AI] 写入类工具注入失败', e);
+  }
+  try {
+    out = patchToolGuard(out);
+  } catch (e) {
+    console.warn('[AI] 工具守卫注入失败', e);
+  }
+  try {
+    out = patchToolMethods(out);
+  } catch (e) {
+    console.warn('[AI] 工具方法改写失败', e);
+  }
+  return out;
+}
+
+// 取出注入的工具名列表（供运行时自检：这些名字必须与宿主 API 上的函数逐一同名）
+function getInjectedToolNames() {
+  try {
+    // eslint-disable-next-line no-new-func
+    const arr = new Function('return [' + TOOL_SCHEMA_INJECTION.replace(/,\s*$/, '') + ']')();
+    return arr.map(t => t && t.function && t.function.name || '').filter(Boolean);
+  } catch (e) {
+    return [];
+  }
+}
+
+
+/***/ }),
+
 /***/ "./src/extension-builder/lib/bilup-nova/bilup-nova.js":
 /*!************************************************************!*\
   !*** ./src/extension-builder/lib/bilup-nova/bilup-nova.js ***!
@@ -42159,6 +44845,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _raw_loader_novatheai_bundle_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! !raw-loader!./novatheai.bundle.js */ "./node_modules/raw-loader/index.js!./src/extension-builder/lib/bilup-nova/novatheai.bundle.js");
 /* harmony import */ var _raw_loader_novatheai_bundle_js__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_raw_loader_novatheai_bundle_js__WEBPACK_IMPORTED_MODULE_3__);
 /* harmony import */ var _messages_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./messages.js */ "./src/extension-builder/lib/bilup-nova/messages.js");
+/* harmony import */ var _adapt_bundle_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./adapt-bundle.js */ "./src/extension-builder/lib/bilup-nova/adapt-bundle.js");
 const _excluded = ["color", "size", "strokeWidth", "className", "children"];
 function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
 function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
@@ -42194,6 +44881,8 @@ function _objectWithoutPropertiesLoose(r, e) { if (null == r) return {}; var t =
 
 // 以字符串形式载入原版 bundle（raw-loader 内联，绕过 babel，避免被 scratch-gui 的 webpack 解析）
 
+
+// 本项目适配：在 eval 之前改写 bundle 源码（系统提示词 + VM 相关工具实现）
 
 
 // ---- lucide-react 垫片（原版经 n(5).a / n(1746).a 取用 lucide 图标）----
@@ -42563,6 +45252,10 @@ function createWindowManager() {
           root.style.width = r.width + 'px';
           root.style.height = r.height + 'px';
           root.style.borderRadius = '10px';
+          root.style.maxWidth = '';
+          root.style.maxHeight = '';
+          root.style.right = '';
+          root.style.bottom = '';
           instance.isMaximized = false;
           maxBtn.textContent = '□';
           maxBtn.title = '最大化';
@@ -42576,8 +45269,12 @@ function createWindowManager() {
           };
           root.style.left = '0';
           root.style.top = '0';
-          root.style.width = window.innerWidth + 'px';
-          root.style.height = window.innerHeight + 'px';
+          root.style.right = '0';
+          root.style.bottom = '0';
+          root.style.width = '100vw';
+          root.style.height = '100vh';
+          root.style.maxWidth = 'none';
+          root.style.maxHeight = 'none';
           root.style.borderRadius = '0';
           instance.isMaximized = true;
           maxBtn.textContent = '❐';
@@ -42971,11 +45668,25 @@ const ENTRY_MODULE_ID = 2112;
       } = makeRuntime();
 
       // 1) 先把原版 bundle 放进我们自己的 webpack runtime（临时替换全局 webpackJsonpGUI）
+      //    注意：执行前先经 adaptNovaBundle 改写系统提示词与 VM 相关工具实现
+      //    （本宿主是「扩展编辑器」而非 Scratch 运行时，见文件内适配层说明）。
+      const adaptedSrc = Object(_adapt_bundle_js__WEBPACK_IMPORTED_MODULE_5__["adaptNovaBundle"])(_raw_loader_novatheai_bundle_js__WEBPACK_IMPORTED_MODULE_3___default.a);
+      window.__novaAdaptInfo = {
+        systemPromptPatched: adaptedSrc.indexOf('scratch扩展编辑器') >= 0,
+        installExtensionPatched: adaptedSrc.indexOf('扩展开发工具（没有 Scratch VM）') >= 0,
+        listFilesPatched: adaptedSrc.indexOf('_extBuilderAI.listFiles') >= 0,
+        getProjectOverviewPatched: adaptedSrc.indexOf('_extBuilderAI.getProjectOverview') >= 0,
+        writeToolsInjected: adaptedSrc.indexOf('name:"defineBlock"') >= 0,
+        toolGuardPatched: adaptedSrc.indexOf('_extBuilderAI[t]') >= 0,
+        // 注入的工具名：运行时自检用 —— 这些名字必须与宿主 API 上的函数逐一同名，
+        // 否则守卫逃生口取不到函数会静默落回 bundle 自带实现（报 "Tool X not found"）。
+        injectedTools: Object(_adapt_bundle_js__WEBPACK_IMPORTED_MODULE_5__["getInjectedToolNames"])()
+      };
       const savedGlobal = window.webpackJsonpGUI;
       window.webpackJsonpGUI = [];
       try {
         // eslint-disable-next-line no-eval
-        (0, eval)(_raw_loader_novatheai_bundle_js__WEBPACK_IMPORTED_MODULE_3___default.a);
+        (0, eval)(adaptedSrc);
       } catch (e) {
         console.error('[AI] bundle eval error', e);
       }
@@ -43426,12 +46137,13 @@ __webpack_require__.r(__webpack_exports__);
 /*!********************************************************!*\
   !*** ./src/extension-builder/lib/block-definitions.js ***!
   \********************************************************/
-/*! exports provided: TOOLBOX_CONFIG, BLOCK_DEFINITIONS, CODE_GENERATORS, javascriptGenerator */
+/*! exports provided: TOOLBOX_CONFIG, setVariableOptionsProvider, BLOCK_DEFINITIONS, CODE_GENERATORS, javascriptGenerator */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "TOOLBOX_CONFIG", function() { return TOOLBOX_CONFIG; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setVariableOptionsProvider", function() { return setVariableOptionsProvider; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "BLOCK_DEFINITIONS", function() { return BLOCK_DEFINITIONS; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "CODE_GENERATORS", function() { return CODE_GENERATORS; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "javascriptGenerator", function() { return javascriptGenerator; });
@@ -43618,23 +46330,17 @@ const TOOLBOX_CONFIG = {
       kind: 'block',
       type: 'input_mouseY'
     }]
-  }, {
+  },
+  // 变量分类：内容由 ExtensionBuilder 动态生成（TurboWarp 风格）——
+  // 顶部是「建立一个变量 / 删除一个变量」按钮，随后是每个变量对应的
+  // 取值积木（var_get），最后是通用的「将 [] 设为 []」「将 [] 增加 []」。
+  // 变量列表来自组件 state，通过 buildToolboxXml 注入。
+  {
     kind: 'category',
     name: '变量',
     colour: '#FF8C1A',
-    contents: [{
-      kind: 'block',
-      type: 'var_register'
-    }, {
-      kind: 'block',
-      type: 'var_get'
-    }, {
-      kind: 'block',
-      type: 'var_set'
-    }, {
-      kind: 'block',
-      type: 'var_change'
-    }]
+    dynamic: 'variables',
+    contents: []
   }, {
     kind: 'category',
     name: '列表',
@@ -43667,23 +46373,17 @@ const TOOLBOX_CONFIG = {
       kind: 'block',
       type: 'list_foreach'
     }]
-  }, {
+  },
+  // 函数分类：内容由 ExtensionBuilder 动态生成——每个用户创建的自定义
+  // 积木都会生成一个对应的"调用"积木（类型 customcall_<id>），可拖到
+  // 其它积木的实现里调用。原先的 func_declare / func_call / func_return
+  // / func_param 已删除。
+  {
     kind: 'category',
     name: '函数',
     colour: '#CF63CF',
-    contents: [{
-      kind: 'block',
-      type: 'func_declare'
-    }, {
-      kind: 'block',
-      type: 'func_call'
-    }, {
-      kind: 'block',
-      type: 'func_return'
-    }, {
-      kind: 'block',
-      type: 'func_param'
-    }]
+    dynamic: 'customCalls',
+    contents: []
   }, {
     kind: 'category',
     name: '积木',
@@ -43877,6 +46577,19 @@ const TOOLBOX_CONFIG = {
     }]
   }]
 };
+
+// ── 变量下拉选项提供器（动态）────────────────────────────────
+// var_get / var_set / var_change 的 NAME 字段使用「函数形式」的 options：
+// scratch-blocks 的 FieldDropdown 会在每次打开下拉时调用该函数（见
+// field_dropdown.js 的 getOptions → menuGenerator_.call），因此这里返回的
+// 变量列表始终是最新的。ExtensionBuilder 挂载/变量变化时通过
+// setVariableOptionsProvider 注入真正的提供器。
+let _variableOptionsProvider = function _variableOptionsProvider() {
+  return [['我的变量', 'var_1']];
+};
+function setVariableOptionsProvider(fn) {
+  if (typeof fn === 'function') _variableOptionsProvider = fn;
+}
 
 // ============================================================
 // Block Definitions (visual shapes)
@@ -44306,7 +47019,7 @@ const BLOCK_DEFINITIONS = {
       options: [['真', 'TRUE'], ['假', 'FALSE']]
     }],
     output: 'Boolean',
-    colour: '#FFFFFF',
+    colour: '#59C059',
     id: 'BOOLEAN'
   },
   // ---- 文本 Text ----,
@@ -44609,11 +47322,14 @@ const BLOCK_DEFINITIONS = {
   },
   var_get: {
     type: 'var_get',
-    message0: '变量 %1',
+    // TurboWarp 风格：变量取值积木直接显示变量名（一个可切换的下拉）
+    message0: '%1',
     args0: [{
-      type: 'field_input',
+      type: 'field_dropdown',
       name: 'NAME',
-      text: 'myVar'
+      options: function options() {
+        return _variableOptionsProvider();
+      }
     }],
     colour: '#FF8C1A',
     output: 'Number',
@@ -44621,11 +47337,13 @@ const BLOCK_DEFINITIONS = {
   },
   var_set: {
     type: 'var_set',
-    message0: '设置变量 %1 为 %2',
+    message0: '将 %1 设为 %2',
     args0: [{
-      type: 'field_input',
+      type: 'field_dropdown',
       name: 'NAME',
-      text: 'myVar'
+      options: function options() {
+        return _variableOptionsProvider();
+      }
     }, {
       type: 'input_value',
       name: 'VALUE'
@@ -44637,11 +47355,13 @@ const BLOCK_DEFINITIONS = {
   },
   var_change: {
     type: 'var_change',
-    message0: '变量 %1 改变 %2',
+    message0: '将 %1 增加 %2',
     args0: [{
-      type: 'field_input',
+      type: 'field_dropdown',
       name: 'NAME',
-      text: 'myVar'
+      options: function options() {
+        return _variableOptionsProvider();
+      }
     }, {
       type: 'input_value',
       name: 'DELTA',
@@ -44797,75 +47517,8 @@ const BLOCK_DEFINITIONS = {
     colour: '#FF6680',
     id: 'C'
   },
-  // ---- 函数 Functions ----
-  func_declare: {
-    type: 'func_declare',
-    message0: '定义函数 %1 (%2)',
-    args0: [{
-      type: 'field_input',
-      name: 'NAME',
-      text: 'myFunc'
-    }, {
-      type: 'field_input',
-      name: 'PARAMS',
-      text: 'a, b'
-    }],
-    message1: '%1',
-    args1: [{
-      type: 'input_statement',
-      name: 'BODY'
-    }],
-    previousStatement: null,
-    nextStatement: null,
-    colour: 300,
-    id: 'C'
-  },
-  func_call: {
-    type: 'func_call',
-    message0: '调用函数 %1 (%2)',
-    args0: [{
-      type: 'field_input',
-      name: 'NAME',
-      text: 'myFunc'
-    }, {
-      type: 'field_input',
-      name: 'ARGS',
-      text: ''
-    }],
-    output: 'Number',
-    colour: 300,
-    id: 'REPORTER'
-  },
-  func_return: {
-    type: 'func_return',
-    message0: '从函数返回 %1',
-    args0: [{
-      type: 'input_value',
-      name: 'VALUE'
-    }],
-    args1: [{
-      type: 'field_label_serializable',
-      name: 'VALUE',
-      text: ''
-    }],
-    colour: 300,
-    id: 'COMMAND',
-    previousStatement: null,
-    nextStatement: null
-  },
-  func_param: {
-    type: 'func_param',
-    message0: '参数 %1',
-    args0: [{
-      type: 'field_input',
-      name: 'NAME',
-      text: 'param'
-    }],
-    colour: 300,
-    output: 'Number',
-    id: 'REPORTER'
-  },
   // ---- 积木 Blocks (Custom Block Definition) ----
+  // 初始定义（占位）；syncDefineBlockParams 会用 jsonInit 重建带参数的完整外观。
   block_define: {
     type: 'block_define',
     message0: '定义 %1',
@@ -44874,12 +47527,12 @@ const BLOCK_DEFINITIONS = {
       text: '我的积木',
       name: 'NAME'
     }],
-    message1: '实现 %1',
+    message1: '%1',
     args1: [{
       type: 'input_statement',
       name: 'IMPL'
     }],
-    colour: 290,
+    colour: '#FF6680',
     extensions: ['shape_hat']
   },
   block_field_string: {
@@ -45375,6 +48028,24 @@ const BLOCK_DEFINITIONS = {
     output: 'Number',
     id: 'REPORTER'
   },
+  // ---- 脚本 Script ----,
+  // 注意：script_eval 早已在 TOOLBOX_CONFIG 的「脚本」分类和 CODE_GENERATORS 里
+  // 被引用，但一直缺少这里的可视定义 —— 导致工具箱里渲染成一个无文字、无连接的
+  // 默认红色空块。生成器返回 [code, 0]（取值型签名），故此处定义为圆形(REPORTER)，
+  // 字段名 CODE 必须与生成器里的 getFieldValue('CODE') 保持一致；
+  // 颜色用「脚本」分类色 #5A5A8F。
+  script_eval: {
+    type: 'script_eval',
+    message0: '运行脚本 %1',
+    args0: [{
+      type: 'field_input',
+      name: 'CODE',
+      text: '1 + 1'
+    }],
+    colour: '#5A5A8F',
+    output: 'Number',
+    id: 'REPORTER'
+  },
   // ---- 额外 Extra ----,
   extra_comment: {
     type: 'extra_comment',
@@ -45715,23 +48386,6 @@ const CODE_GENERATORS = {
     const body = javascriptGenerator.statementToCode(b, 'DO');
     return "for (const ".concat(varName, " of ").concat(name, ") {\n").concat(body, "}\n");
   },
-  // 函数
-  func_declare: b => {
-    const name = b.getFieldValue('NAME');
-    const params = b.getFieldValue('PARAMS');
-    const body = javascriptGenerator.statementToCode(b, 'BODY');
-    return "function ".concat(name, "(").concat(params, ") {\n").concat(body, "}\n");
-  },
-  func_call: b => {
-    const name = b.getFieldValue('NAME');
-    const args = b.getFieldValue('ARGS') || '';
-    return ["".concat(name, "(").concat(args, ")"), 0];
-  },
-  func_return: b => {
-    const v = javascriptGenerator.valueToCode(b, 'VALUE', 0) || '';
-    return "return ".concat(v, ";\n");
-  },
-  func_param: b => [b.getFieldValue('NAME'), 0],
   // 积木
   block_define: b => {
     const name = b.getFieldValue('NAME') || 'myBlock';
@@ -45951,11 +48605,11 @@ const javascriptGenerator = {
   workspaceToCode: workspace => {
     let code = '';
     workspace.getTopBlocks(true).forEach(block => {
-      // 只输出 block_define（自定义积木方法）与 func_declare（顶层函数）。
+      // 只输出 block_define（自定义积木方法）。
       // 其他顶层游离块（如 control_wait / event_broadcast 拖到定义块外）
       // 一律跳过——否则会生成方法体外的裸代码（如 await ... 或
       // runtime.startHats(...)），污染扩展类结构导致 SyntaxError。
-      if (block.type !== 'block_define' && block.type !== 'func_declare') return;
+      if (block.type !== 'block_define') return;
       const fn = CODE_GENERATORS[block.type];
       if (typeof fn === 'function') {
         const result = fn(block);
@@ -46910,34 +49564,48 @@ __webpack_require__.r(__webpack_exports__);
     function toggleMaximize() {
       if (!isMaximized) {
         // 保存当前位置尺寸
-        const rect = panel.getBoundingClientRect();
+        var rect = panel.getBoundingClientRect();
         savedBounds = {
           left: rect.left,
           top: rect.top,
           width: rect.width,
           height: rect.height
         };
-        // 最大化：撑满屏幕（留边距）
-        panel.style.top = '8px';
-        panel.style.left = '8px';
-        panel.style.right = '8px';
-        panel.style.width = '';
-        panel.style.height = 'calc(100vh - 16px)';
+        // 撴满整个视口（和 Bilup 一样：面板铺满页面，浏览器标签栏/地址栏仍在）
+        // 用具体值覆盖 .rtc-panel 的 width/height/max-height 等硬约束
+        panel.style.top = '0';
+        panel.style.left = '0';
+        panel.style.right = '0';
+        panel.style.bottom = '0';
+        panel.style.width = '100vw';
+        panel.style.height = '100vh';
+        panel.style.maxWidth = 'none';
+        panel.style.maxHeight = 'none';
+        panel.style.minWidth = '0';
+        panel.style.minHeight = '0';
         panel.style.transform = 'none';
+        panel.style.borderRadius = '0';
         isMaximized = true;
+        render();
       } else {
-        // 还原
+        // 还原到之前的位置和尺寸
         if (savedBounds) {
           panel.style.top = savedBounds.top + 'px';
           panel.style.left = savedBounds.left + 'px';
           panel.style.right = 'auto';
+          panel.style.bottom = 'auto';
           panel.style.width = savedBounds.width + 'px';
           panel.style.height = savedBounds.height + 'px';
           panel.style.transform = 'none';
+          panel.style.borderRadius = '';
+          panel.style.maxWidth = '';
+          panel.style.maxHeight = '';
+          panel.style.minWidth = '';
+          panel.style.minHeight = '';
         }
         isMaximized = false;
+        render();
       }
-      render();
       syncResizeLayer();
     }
     function render() {
@@ -48833,13 +51501,12 @@ async function cloudUnfollow(follower, followee) {
 /*!*************************************************!*\
   !*** ./src/extension-builder/lib/ext-addons.js ***!
   \*************************************************/
-/*! exports provided: EXT_ADDONS, EXT_ADDONS_MIGRATION_NOTE, loadCustomAddons, saveCustomAddons, importCustomAddonFromFile, evalAddonBundle, importAddonBundle, importAddonFromZip, resolveAddonSource, importAddonFromSource, updateCustomAddonSource, importAddonFromGithubDir, fetchAddonMarketList, fetchAddonTopicRepos, fetchAddonMarketFromTopic, removeCustomAddon, getAllAddons, getAddonState, setAddonState, applyExtAddons, getAddonOptions, setAddonOptions */
+/*! exports provided: EXT_ADDONS, loadCustomAddons, saveCustomAddons, importCustomAddonFromFile, evalAddonBundle, importAddonBundle, importAddonFromZip, resolveAddonSource, importAddonFromSource, updateCustomAddonSource, importAddonFromGithubDir, fetchAddonMarketList, fetchAddonTopicRepos, fetchAddonMarketFromTopic, removeCustomAddon, getAllAddons, getAddonState, setAddonState, applyExtAddons, getAddonOptions, setAddonOptions */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* WEBPACK VAR INJECTION */(function(Buffer) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EXT_ADDONS", function() { return EXT_ADDONS; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EXT_ADDONS_MIGRATION_NOTE", function() { return EXT_ADDONS_MIGRATION_NOTE; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "loadCustomAddons", function() { return loadCustomAddons; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "saveCustomAddons", function() { return saveCustomAddons; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "importCustomAddonFromFile", function() { return importCustomAddonFromFile; });
@@ -48880,16 +51547,11 @@ function _objectWithoutPropertiesLoose(r, e) { if (null == r) return {}; var t =
  * ExtAddons — 轻量插件系统
  *
  * 设计说明：
- * - 多数内置插件（快速复制积木 / 斑马条纹 / 方形输入框 / 数字框微调 / 孤立半透明 /
- *   更多右键菜单）已于 2026-08-22 迁移到独立仓库：
- *     https://github.com/dhdbvcg/scratch-ext-addon
- *   并通过 ExtensionBuilder「设置 → 插件管理 → 安装插件」用来源
- *     github:dhdbvcg/scratch-ext-addon
- *   安装（对齐 DeepSeek Harness 的 dsh plugin add 风格）。
- * - EXT_ADDONS 现在保留少量「强内置」插件（随编辑器代码打包、默认启用、不可卸载），
- *   例如 realtime-collab（多人实时协作）。它们通过顶部 import 加入 EXT_ADDONS，
- *   并在 DEFAULT_STATE 设默认 true。
- * - 其余插件仍来自用户安装（外源）。
+ * - 所有插件（realtime-collab / bilup-nova / 快速复制积木 / 斑马条纹 / 方形输入框 /
+ *   数字框微调 / 孤立半透明 / 更多右键菜单）均为「强内置」插件：随编辑器代码打包、
+ *   默认启用、不可卸载，并在插件管理里显示绿色「内置」徽章。它们通过顶部 import
+ *   加入 EXT_ADDONS，并在 DEFAULT_STATE 设默认 true。
+ * - 用户仍可通过「安装插件」安装自定义外源插件（独立 localStorage 区，可删除/更新）。
  * - 所有插件在 Blockly 工作区注入完成后调用 applyExtAddons() 激活。
  *
  * 导入来源（持续优化）：
@@ -48906,7 +51568,7 @@ function _objectWithoutPropertiesLoose(r, e) { if (null == r) return {}; var t =
 
 // Bilup Nova（novatheai）：从原版搬运移植的 AI 助手插件（悬浮聊天框 / 多模型 / 设置 / Agent / 会话）
 
-// 以下插件已从外部仓库迁移回内置
+// 以下 6 个为原「外源插件」，现已内置打包（随 src 一起 babel 转译，默认启用、不可卸载、显示「内置」徽章）
 
 
 
@@ -48919,7 +51581,7 @@ const DEFAULT_STATE = {
   'realtime-collab': true,
   // Bilup Nova（AI 助手）：从原版搬运移植，默认开启
   'bilup-nova': true,
-  // 已迁移回内置的插件：默认开启
+  // 以下 6 个原外源插件已内置打包，默认开启
   'block-duplicate': true,
   'zebra-striping': true,
   'editor-square-inputs': true,
@@ -48929,7 +51591,7 @@ const DEFAULT_STATE = {
 };
 
 /**
- * 插件注册表（内置为空，插件均通过「插件管理 → 安装插件」外部安装）。
+ * 插件注册表（内置插件随编辑器打包，默认启用、不可卸载；用户自定义插件走 localStorage）。
  * 每个插件：
  *   id           唯一 id（对应 localStorage 键）
  *   name         中文名
@@ -48948,33 +51610,20 @@ Object.assign({}, _builtin_realtime_collab_js__WEBPACK_IMPORTED_MODULE_0__["defa
 Object.assign({}, _bilup_nova_bilup_nova_js__WEBPACK_IMPORTED_MODULE_1__["default"], {
   builtin: true
 }),
-// 快速复制积木：按住 Alt/⌥ 拖动直接复制一份
+// 以下 6 个原外源插件，已转为内置打包
 Object.assign({}, _builtin_block_duplicate_js__WEBPACK_IMPORTED_MODULE_2__["default"], {
   builtin: true
-}),
-// 斑马条纹积木：嵌套相同颜色积木交替明暗显示
-Object.assign({}, _builtin_zebra_striping_js__WEBPACK_IMPORTED_MODULE_3__["default"], {
+}), Object.assign({}, _builtin_zebra_striping_js__WEBPACK_IMPORTED_MODULE_3__["default"], {
   builtin: true
-}),
-// 方形数字输入框：数字/文本输入框从圆形变为方形
-Object.assign({}, _builtin_editor_square_inputs_js__WEBPACK_IMPORTED_MODULE_4__["default"], {
+}), Object.assign({}, _builtin_editor_square_inputs_js__WEBPACK_IMPORTED_MODULE_4__["default"], {
   builtin: true
-}),
-// 数字框 ↑↓ 微调：聚焦数字输入框时按 ↑/↓ 键快速增减数值
-Object.assign({}, _builtin_editor_number_arrow_keys_js__WEBPACK_IMPORTED_MODULE_5__["default"], {
+}), Object.assign({}, _builtin_editor_number_arrow_keys_js__WEBPACK_IMPORTED_MODULE_5__["default"], {
   builtin: true
-}),
-// 孤立积木半透明：顶部不是帽子积木的孤立积木变淡显示
-Object.assign({}, _builtin_transparent_orphans_js__WEBPACK_IMPORTED_MODULE_6__["default"], {
+}), Object.assign({}, _builtin_transparent_orphans_js__WEBPACK_IMPORTED_MODULE_6__["default"], {
   builtin: true
-}),
-// 更多右键菜单栏：右键积木新增全部复制/复制积木/剪切积木
-Object.assign({}, _builtin_developer_tools_js__WEBPACK_IMPORTED_MODULE_7__["default"], {
+}), Object.assign({}, _builtin_developer_tools_js__WEBPACK_IMPORTED_MODULE_7__["default"], {
   builtin: true
 })];
-
-/** 提示文案：内置插件已迁移到外部仓库（已废弃，所有插件已迁回内置） */
-const EXT_ADDONS_MIGRATION_NOTE = '';
 
 /**
  * ============================================================
@@ -49746,8 +52395,12 @@ function removeCustomAddon(id) {
 /**
  * 内置插件 + 自定义插件（运行时合并，用于列表渲染与激活）
  */
+// 内置插件 id 集合（用于过滤同名「自定义」残留项）
+const BUILTIN_IDS = EXT_ADDONS.map(a => a.id);
 function getAllAddons() {
-  return [...EXT_ADDONS, ...loadCustomAddons()];
+  // 过滤掉与内置插件同 id 的「自定义」残留项，避免重复显示 / 重复激活
+  const custom = loadCustomAddons().filter(a => !BUILTIN_IDS.includes(a.id));
+  return [...EXT_ADDONS, ...custom];
 }
 
 /**
@@ -50192,7 +52845,7 @@ function withUtilInjection(code) {
 /*!********************************************!*\
   !*** ./src/extension-builder/lib/saves.js ***!
   \********************************************/
-/*! exports provided: listSaves, syncSavesFromCloud, saveProject, deleteSave, mergeSaves, exportSaveFile, parseSaveFileText, collectProjectState, restoreProjectState */
+/*! exports provided: listSaves, syncSavesFromCloud, saveProject, deleteSave, mergeSaves, SEE_EXTENSION, SEE_MIME, SEE_FORMAT, SEE_FORMAT_VERSION, exportSaveFile, parseSaveFileText, collectProjectState, restoreProjectState */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -50202,6 +52855,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "saveProject", function() { return saveProject; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "deleteSave", function() { return deleteSave; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "mergeSaves", function() { return mergeSaves; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SEE_EXTENSION", function() { return SEE_EXTENSION; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SEE_MIME", function() { return SEE_MIME; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SEE_FORMAT", function() { return SEE_FORMAT; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SEE_FORMAT_VERSION", function() { return SEE_FORMAT_VERSION; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "exportSaveFile", function() { return exportSaveFile; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "parseSaveFileText", function() { return parseSaveFileText; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "collectProjectState", function() { return collectProjectState; });
@@ -50334,35 +52991,51 @@ function mergeSaves(username, incoming) {
   return added;
 }
 
-/** 把一个存档导出为 JSON 文件下载 */
+// ── SEE 专属文件格式（Scratch Extension Editor）──
+// 扩展名 .see，内容是带 format 标记的 JSON；旧版 .json 存档仍可导入。
+const SEE_EXTENSION = 'see';
+const SEE_MIME = 'application/x-scratch-extension-editor';
+const SEE_FORMAT = 'SEE';
+const SEE_FORMAT_VERSION = 1;
+
+/** 把一个存档导出为 .see 文件下载（Scratch Extension Editor 专属格式） */
 function exportSaveFile(save) {
-  const blob = new Blob([JSON.stringify(_objectSpread({
+  const payload = _objectSpread({
+    format: SEE_FORMAT,
+    app: 'Scratch Extension Editor',
+    formatVersion: SEE_FORMAT_VERSION,
     type: 'extbuilder-save',
     version: 1
-  }, save), null, 2)], {
+  }, save);
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {
     type: 'application/json'
   });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = (save.name || '存档').replace(/[\\/:*?"<>|]/g, '_') + '.json';
+  a.download = (save.name || '存档').replace(/[\\/:*?"<>|]/g, '_') + '.' + SEE_EXTENSION;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
 
-/** 解析导入的存档 JSON 文本 */
+/** 解析导入的存档文本（支持 .see 专属格式，兼容旧版 .json 存档） */
 function parseSaveFileText(text) {
   let obj;
   try {
     obj = JSON.parse(text);
   } catch (e) {
-    throw new Error('文件不是有效的 JSON');
+    throw new Error('文件不是有效的 ' + SEE_FORMAT + ' 存档（JSON 解析失败）');
   }
   if (!obj || typeof obj !== 'object' || !obj.data) {
     throw new Error('不是有效的扩展存档文件');
   }
+  // 带 format 标记的必须是 SEE；没有标记的按旧版 .json 存档兼容处理
+  if (obj.format && String(obj.format).toUpperCase() !== SEE_FORMAT) {
+    throw new Error('不支持的存档格式：' + obj.format + '（需要 .' + SEE_EXTENSION + ' 文件）');
+  }
+  obj.format = obj.format || SEE_FORMAT;
   return obj;
 }
 
@@ -50372,7 +53045,8 @@ function collectProjectState(_ref) {
     extInfo,
     customBlocks,
     workspaceXmlMap,
-    generatedCode
+    generatedCode,
+    variables
   } = _ref;
   const xml = {};
   if (workspaceXmlMap && typeof workspaceXmlMap.forEach === 'function') {
@@ -50385,7 +53059,9 @@ function collectProjectState(_ref) {
     extInfo: extInfo || {},
     customBlocks: Array.isArray(customBlocks) ? customBlocks : [],
     workspaceXml: xml,
-    generatedCode: generatedCode || ''
+    generatedCode: generatedCode || '',
+    // 工程级变量列表（TurboWarp 风格）：[{id, name, scope}]
+    variables: Array.isArray(variables) ? variables : []
   };
 }
 
@@ -50400,7 +53076,8 @@ function restoreProjectState(data) {
     extInfo: data && data.extInfo || {},
     customBlocks: data && Array.isArray(data.customBlocks) ? data.customBlocks : [],
     workspaceXmlMap: xmlMap,
-    generatedCode: data && data.generatedCode || ''
+    generatedCode: data && data.generatedCode || '',
+    variables: data && Array.isArray(data.variables) ? data.variables : []
   };
 }
 
@@ -51304,7 +53981,23 @@ Object(_app_target__WEBPACK_IMPORTED_MODULE_2__["default"])(/*#__PURE__*/react__
 
 // Register service worker for installable PWA (production only, avoids
 // interfering with the webpack-dev-server workflow during development)
-if (false) {}
+if (false) {} else if ('serviceWorker' in navigator) {
+  // dev 环境绝不运行 SW：清掉历史 production 注册残留的 SW 与全部缓存。
+  // 否则旧 SW 的 cache-first 会永久屏蔽 dev server 的最新代码，
+  // 表现为"改了没生效 / 修复了问题还在"。
+  navigator.serviceWorker.getRegistrations().then(function (regs) {
+    regs.forEach(function (r) {
+      r.unregister();
+    });
+  }).catch(function () {});
+  if (window.caches && caches.keys) {
+    caches.keys().then(function (keys) {
+      keys.forEach(function (k) {
+        caches.delete(k);
+      });
+    }).catch(function () {});
+  }
+}
 
 /***/ })
 

@@ -1,18 +1,4 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="google" value="notranslate">
-    <meta name="description" content="Scratch扩展编辑器 is a Scratch mod with a compiler to run projects faster, dark mode for your eyes, a bunch of addons to improve the editor, and more." />
-    <title>scratch扩展编辑器</title>
-    <link rel="icon" href="favicon.ico?v=20260824S">
-    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
-    
-      <link rel="manifest" href="manifest.webmanifest">
-    
-    <style>
-      .splash-screen {
+<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="google" value="notranslate"><meta name="description" content="Scratch扩展编辑器 is a Scratch mod with a compiler to run projects faster, dark mode for your eyes, a bunch of addons to improve the editor, and more."/><title>scratch扩展编辑器</title><link rel="icon" href="/scratch-extension-editor/favicon.ico?v=20260824S"><link rel="apple-touch-icon" href="/scratch-extension-editor/images/apple-touch-icon.png"><style>.splash-screen {
         position: absolute;
         width: 100%;
         height: 100%;
@@ -73,29 +59,7 @@
       }
       .splash-reset:disabled {
         opacity: 0.8;
-      }
-    </style>
-  </head>
-  <body>
-    <noscript>
-      <div class="splash-screen">
-        <div>
-          <h1>Scratch扩展编辑器 requires JavaScript</h1>
-          <p>Consider using <a href="https://desktop.turbowarp.org/">TurboWarp Desktop</a> if you are afraid of remote JavaScript.</p>
-        </div>
-      </div>
-    </noscript>
-
-    <div class="splash-screen spash-waiting-for-js" hidden>
-      <div class="splash-spinner"></div>
-
-      <div class="splash-error-title" hidden>Something went wrong. <a href="https://scratch.mit.edu/users/GarboMuffin/#comments" target="_blank" rel="noreferrer">Please report</a> with the information below.</div>
-      <div class="splash-errors" hidden></div>
-      <button class="splash-reset" hidden>Click here to reset caches (can fix some errors)</button>
-    </div>
-
-    <script>
-      (function () {
+      }</style></head><body><noscript><div class="splash-screen"><div><h1>Scratch扩展编辑器 requires JavaScript</h1><p>Consider using <a href="https://desktop.turbowarp.org/">TurboWarp Desktop</a> if you are afraid of remote JavaScript.</p></div></div></noscript><div class="splash-screen spash-waiting-for-js" hidden><div class="splash-spinner"></div><div class="splash-error-title" hidden>Something went wrong. <a href="https://scratch.mit.edu/users/GarboMuffin/#comments" target="_blank" rel="noreferrer">Please report</a> with the information below.</div><div class="splash-errors" hidden></div><button class="splash-reset" hidden>Click here to reset caches (can fix some errors)</button></div><script>(function () {
         'use strict';
 
         var theme = '';
@@ -165,7 +129,7 @@
           }
           if ('serviceWorker' in navigator) {
             setTimeout(hardRefresh, 5000);
-            navigator.serviceWorker.getRegistration("")
+            navigator.serviceWorker.getRegistration("/scratch-extension-editor/")
               .then(function(registration) {
                 if (registration) {
                   return registration.unregister();
@@ -182,9 +146,4 @@
           splash.hidden = true;
           window.onerror = null;
         };
-      })();
-    </script>
-
-    <div id="app"></div>
-  <script src="js/editor.js?58430ad2e7c961d38766"></script></body>
-</html>
+      })();</script><div id="app"></div><script src="/scratch-extension-editor/js/pentapod/editor.a1a31781008d41957fba.js?223a3a299c28889dacbb"></script></body></html>
